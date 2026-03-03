@@ -11,16 +11,16 @@ import {
   FormControl,
 } from "@mui/material";
 
-const roles = ["Admin", "Manager", "Developer"];
+const roles = ["Admin", "Manager", "HR", "Developer"];
 
 const SignupPage = ({ setRole, goToLogin }) => {
-  const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
 
   const handleSignup = async () => {
-  if (!username || !email || !password || !selectedRole) {
+  if (!name || !email || !password || !selectedRole) {
     alert("Please fill all fields!");
     return;
   }
@@ -32,7 +32,7 @@ const SignupPage = ({ setRole, goToLogin }) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        username,
+        name,
         email,
         password,
         role: selectedRole,
@@ -74,16 +74,18 @@ const SignupPage = ({ setRole, goToLogin }) => {
         </Typography>
 
         <TextField
-          label="Username"
+          label="Name"
           fullWidth
           margin="normal"
-          onChange={(e) => setUsername(e.target.value)}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
         />
 
         <TextField
           label="Email"
           fullWidth
           margin="normal"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
@@ -92,6 +94,7 @@ const SignupPage = ({ setRole, goToLogin }) => {
           type="password"
           fullWidth
           margin="normal"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
 

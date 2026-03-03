@@ -38,13 +38,14 @@
 // -----------------hrms---------------------------------
 
 import React, { useState } from "react";
-import LoginPage from "./LoginPage";
-import SignupPage from "./SignupPage";
-import ForgetPassword from "./ForgetPassword";
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
+import ForgetPassword from "./pages/ForgetPassword";
+import EmployeeListPage from "./pages/EmployeeListPage";
 
 function App() {
   const [role, setRole] = useState(null);
-  const [page, setPage] = useState("login"); 
+  const [page, setPage] = useState("login");
 
   return (
     <div
@@ -72,36 +73,7 @@ function App() {
           <ForgetPassword goToLogin={() => setPage("login")} />
         )
       ) : (
-        <div
-          style={{
-            backgroundColor: "white",
-            padding: "50px",
-            borderRadius: "12px",
-            boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-            textAlign: "center",
-            width: "400px",
-          }}
-        >
-          <h1 style={{ color: "#1E3A8A" }}>Welcome, {role} 🎉</h1>
-          <p style={{ color: "#3B82F6" }}>
-            You have successfully logged into HRMS.
-          </p>
-
-          <button
-            style={{
-              marginTop: "20px",
-              padding: "10px 20px",
-              backgroundColor: "#1E3A8A",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-            }}
-            onClick={() => setRole(null)}
-          >
-            Logout
-          </button>
-        </div>
+        <EmployeeListPage role={role}/>
       )}
     </div>
   );
