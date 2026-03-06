@@ -150,10 +150,33 @@
   //   </div>
   // );
 
-import DashboardPage from "./pages/DashboardPage";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-function App(){
-return <DashboardPage/>;
+import DashboardPage from "./pages/DashboardPage";
+import EmployeePage from "./pages/EmployeePage";
+import AttendancePage from "./pages/AttendancePage";
+import TaskPage from "./pages/TaskPage";
+import ReportsPage from "./pages/ReportsPage";
+import UserPage from "./pages/UserPage";
+import Layout from "./components/Layout";
+
+function App() {
+  return (
+    <Router>
+
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="/employees" element={<EmployeePage />} />
+          <Route path="/attendance" element={<AttendancePage />} />
+          <Route path="/tasks" element={<TaskPage />} />
+          <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/users" element={<UserPage />} />
+        </Route>
+      </Routes>
+
+    </Router>
+  );
 }
 
 export default App;

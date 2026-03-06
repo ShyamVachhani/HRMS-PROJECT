@@ -12,15 +12,16 @@ import PeopleIcon from "@mui/icons-material/People";
 import EventIcon from "@mui/icons-material/Event";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import BarChartIcon from "@mui/icons-material/BarChart";
+import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 const menu = [
-{ text: "Dashboard", icon: <DashboardIcon /> },
-{ text: "Employees", icon: <PeopleIcon /> },
-{ text: "Attendance", icon: <EventIcon /> },
-{ text: "Leave", icon: <EventIcon /> },
-{ text: "WFH", icon: <EventIcon /> },
-{ text: "Tasks", icon: <AssignmentIcon /> },
-{ text: "Reports", icon: <BarChartIcon /> }
+{ text: "Dashboard", path: "/" },
+{ text: "Employees", path: "/employees" },
+{ text: "Attendance", path: "/attendance" },
+{ text: "Tasks", path: "/tasks" },
+{ text: "Reports", path: "/reports" },
+{ text: "Users", path: "/users" }
 ];
 
 export default function Sidebar() {
@@ -39,21 +40,27 @@ background: "#FFFFFF"
 >
 
 <List>
+{menu.map((item,i)=>(
 
-{menu.map((item, i) => (
+<ListItemButton
+key={i}
+component={NavLink}
+to={item.path}
+sx={{
+"&.active": {
+background:"#E0E7FF",
+borderLeft:"4px solid #3B82F6",
+color:"#1E3A8A",
+fontWeight:"bold"
+}
+}}
+>
 
-<ListItemButton key={i}>
-
-<ListItemIcon sx={{ color: "#3B82F6" }}>
-{item.icon}
-</ListItemIcon>
-
-<ListItemText primary={item.text} />
+<ListItemText primary={item.text}/>
 
 </ListItemButton>
 
 ))}
-
 </List>
 
 </Drawer>

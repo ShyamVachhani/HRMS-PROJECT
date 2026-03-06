@@ -14,11 +14,7 @@ return(
 
 <Box sx={{ display:"flex", background:"#F8FAFC" }}>
 
-<Sidebar/>
-
 <Box sx={{ flexGrow:1, padding:3 }}>
-
-<Topbar/>
 
 <StatsCards/>
 
