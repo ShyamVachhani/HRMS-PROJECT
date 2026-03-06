@@ -16,55 +16,58 @@ import { Link } from "react-router-dom";
 import { NavLink } from "react-router-dom";
 
 const menu = [
-{ text: "Dashboard", path: "/" },
-{ text: "Employees", path: "/employees" },
-{ text: "Attendance", path: "/attendance" },
-{ text: "Tasks", path: "/tasks" },
-{ text: "Reports", path: "/reports" },
-{ text: "Users", path: "/users" }
+    { text: "Dashboard", path: "/" },
+    { text: "Employees", path: "/employees" },
+    { text: "Attendance", path: "/attendance" },
+    { text: "Tasks", path: "/tasks" },
+    { text: "Reports", path: "/reports" },
+    { text: "Users", path: "/users" }
 ];
 
 export default function Sidebar() {
 
-return (
+    return (
 
-<Drawer
-variant="permanent"
-sx={{
-width: 220,
-"& .MuiDrawer-paper": {
-width: 220,
-background: "#FFFFFF"
-}
-}}
->
+        <Drawer
+        variant="permanent"
+        sx={{
+        width: 220,
+        "& .MuiDrawer-paper": {
+        width: 220,
+        background: "#FFFFFF"
+        }
+        }}
+        >
 
-<List>
-{menu.map((item,i)=>(
+            <List>
+                {menu.map((item,i)=>(
 
-<ListItemButton
-key={i}
-component={NavLink}
-to={item.path}
-sx={{
-"&.active": {
-background:"#E0E7FF",
-borderLeft:"4px solid #3B82F6",
-color:"#1E3A8A",
-fontWeight:"bold"
-}
-}}
->
+                <ListItemButton
+                key={i}
+                component={NavLink}
+                to={item.path}
+                sx={{
+                "&.active": {
+                background:"#E0E7FF",
+                borderLeft:"4px solid #3B82F6",
+                color:"#1E3A8A",
+                fontWeight:"bold"
+                },
+                "&:hover": {
+                    background: "#F1F5F9"
+                }
+                }}
+                >
 
-<ListItemText primary={item.text}/>
+                <ListItemText primary={item.text}/>
 
-</ListItemButton>
+                </ListItemButton>
 
-))}
-</List>
+                ))}
+            </List>
 
-</Drawer>
+        </Drawer>
 
-);
+    );
 
 }

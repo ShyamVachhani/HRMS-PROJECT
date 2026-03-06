@@ -10,36 +10,36 @@ import RecentActivity from "../components/RecentActivity";
 
 export default function DashboardPage(){
 
-return(
+    return(
 
-<Box sx={{ display:"flex", background:"#F8FAFC" }}>
+    <Box sx={{ display:"flex", background:"#F8FAFC" }}>
 
-<Box sx={{ flexGrow:1, padding:3 }}>
+        <Box sx={{ flexGrow:1, padding:3 }}>
 
-<StatsCards/>
+            <StatsCards/>
 
-<Box sx={{ mt:4 }}>
+            <Box sx={{ mt:4 }}>
 
-<AttendanceSummary/>
+                <AttendanceSummary/>
 
-</Box>
+            </Box>
 
-<Box sx={{ mt:4 }}>
+            <Box sx={{ mt:4 }}>
 
-<TasksTable/>
+                <TasksTable/>
 
-</Box>
+            </Box>
 
-<Box sx={{ mt:4 }}>
+            <Box sx={{ mt:4 }}>
 
-<RecentActivity/>
+            <RecentActivity/>
 
-</Box>
+            </Box>
 
-</Box>
+        </Box>
 
-</Box>
+    </Box>
 
-);
+    );
 
 }

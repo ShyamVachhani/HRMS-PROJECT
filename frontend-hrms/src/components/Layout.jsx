@@ -17,7 +17,7 @@ export default function Layout() {
 
         <Topbar />
 
-        <Box sx={{ p:3 }}>
+        <Box sx={{ p:3,maxWidth:1400,margin:"auto" }}>
           <Outlet />
         </Box>
 

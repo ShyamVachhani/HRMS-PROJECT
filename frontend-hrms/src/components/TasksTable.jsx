@@ -10,47 +10,47 @@ TableCell
 } from "@mui/material";
 
 const tasks = [
-{ name:"Fix login bug", assigned:"Rahul", status:"Pending" },
-{ name:"Update UI", assigned:"Sneha", status:"In Progress" },
-{ name:"Prepare report", assigned:"Arjun", status:"Pending" }
+    { name:"Fix login bug", assigned:"Rahul", status:"Pending" },
+    { name:"Update UI", assigned:"Sneha", status:"In Progress" },
+    { name:"Prepare report", assigned:"Arjun", status:"Pending" }
 ];
 
 export default function TasksTable(){
 
-return(
+    return(
 
-<Card sx={{ marginTop:3 }}>
+        <Card sx={{ marginTop:3 }}>
 
-<CardContent>
+            <CardContent>
 
-<Typography variant="h6" sx={{ marginBottom:2 }}>
-Pending Tasks
-</Typography>
+                <Typography variant="h6" sx={{ marginBottom:2 }}>
+                Pending Tasks
+                </Typography>
 
-<Table>
+                <Table>
 
-<TableBody>
+                    <TableBody>
 
-{tasks.map((task,i)=>(
+                        {tasks.map((task,i)=>(
 
-<TableRow key={i}>
+                        <TableRow key={i}>
 
-<TableCell>{task.name}</TableCell>
-<TableCell>{task.assigned}</TableCell>
-<TableCell>{task.status}</TableCell>
+                            <TableCell>{task.name}</TableCell>
+                            <TableCell>{task.assigned}</TableCell>
+                            <TableCell>{task.status}</TableCell>
 
-</TableRow>
+                        </TableRow>
 
-))}
+                        ))}
 
-</TableBody>
+                    </TableBody>
 
-</Table>
+                </Table>
 
-</CardContent>
+            </CardContent>
 
-</Card>
+        </Card>
 
-);
+    );
 
 }
