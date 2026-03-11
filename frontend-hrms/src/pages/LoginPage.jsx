@@ -18,6 +18,7 @@ import SupervisedUserCircleIcon from "@mui/icons-material/SupervisedUserCircle";
 import WorkIcon from "@mui/icons-material/Work";
 import CodeIcon from "@mui/icons-material/Code";
 import SchoolIcon from "@mui/icons-material/School";
+import api from "../services/api.js";
 
 // Get dashboard route based on role
 const getDashboardRoute = (role) => {
@@ -73,35 +74,33 @@ const LoginPage = () => {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
+
+      // Axios request using API service
+      const res = await api.post("/auth/login", {
+        email,
+        password,
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.message || "Login failed");
-        return;
-      }
+      const data = res.data;
 
       // Save user data and token
       localStorage.setItem("user", JSON.stringify(data.user));
-      localStorage.setItem("token", data.token || "loggedin");
-      
+      localStorage.setItem("token", data.token);
+
       // Redirect to role-specific dashboard
       const dashboardRoute = getDashboardRoute(data.user.role);
       navigate(dashboardRoute);
 
     } catch (err) {
+
       console.error(err);
-      setError("Connection error. Please try again.");
+
+      if (err.response) {
+        setError(err.response.data.message);
+      } else {
+        setError("Connection error. Please try again.");
+      }
+
     } finally {
       setLoading(false);
     }
@@ -223,86 +222,6 @@ const LoginPage = () => {
           Forgot Password?
         </Typography>
 
-        {/* <Divider sx={{ my: 2 }}>
-          <Typography variant="body2" color="textSecondary">OR</Typography>
-        </Divider>
-
-        <Typography sx={{ mb: 2, fontWeight: "600" }}>
-          Demo Login - Click to explore dashboards:
-        </Typography>
-
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-          <Button
-            variant="outlined"
-            onClick={() => handleDemoLogin("admin")}
-            sx={{ 
-              borderColor: "#1E3A8A", 
-              color: "#1E3A8A",
-              justifyContent: "flex-start",
-              "&:hover": { backgroundColor: "#EEF2FF", borderColor: "#1E3A8A" }
-            }}
-            startIcon={<AdminPanelSettingsIcon />}
-          >
-            Admin Dashboard
-          </Button>
-          
-          <Button
-            variant="outlined"
-            onClick={() => handleDemoLogin("manager")}
-            sx={{ 
-              borderColor: "#7C3AED", 
-              color: "#7C3AED",
-              justifyContent: "flex-start",
-              "&:hover": { backgroundColor: "#F5F3FF", borderColor: "#7C3AED" }
-            }}
-            startIcon={<SupervisedUserCircleIcon />}
-          >
-            Manager Dashboard
-          </Button>
-          
-          <Button
-            variant="outlined"
-            onClick={() => handleDemoLogin("hr")}
-            sx={{ 
-              borderColor: "#059669", 
-              color: "#059669",
-              justifyContent: "flex-start",
-              "&:hover": { backgroundColor: "#ECFDF5", borderColor: "#059669" }
-            }}
-            startIcon={<WorkIcon />}
-          >
-            HR Dashboard
-          </Button>
-          
-          <Button
-            variant="outlined"
-            onClick={() => handleDemoLogin("developer")}
-            sx={{ 
-              borderColor: "#DC2626", 
-              color: "#DC2626",
-              justifyContent: "flex-start",
-              "&:hover": { backgroundColor: "#FEF2F2", borderColor: "#DC2626" }
-            }}
-            startIcon={<CodeIcon />}
-          >
-            Developer Dashboard
-          </Button>
-          
-          <Button
-            variant="outlined"
-            onClick={() => handleDemoLogin("intern")}
-            sx={{ 
-              borderColor: "#D97706", 
-              color: "#D97706",
-              justifyContent: "flex-start",
-              "&:hover": { backgroundColor: "#FFFBEB", borderColor: "#D97706" }
-            }}
-            startIcon={<SchoolIcon />}
-          >
-            Intern Dashboard
-          </Button>
-        </Box> */}
-
         <Typography sx={{ mt: 3 }}>
           Don't have an account?
           <Button
@@ -318,4 +237,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-

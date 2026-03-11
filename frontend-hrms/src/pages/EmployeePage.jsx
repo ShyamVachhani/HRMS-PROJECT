@@ -23,7 +23,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
-
+import api from "../services/api"
 const EmployeePage = () => {
   const [employees, setEmployees] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -71,9 +71,8 @@ const EmployeePage = () => {
 
   const fetchEmployees = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/employees");
-      if (!res.ok) throw new Error("Failed to fetch employees");
-      const data = await res.json();
+      const res = await api.get("/employees");
+      const data = res.data;
       // Handle both array response and pagination object response
       let employeesArray = [];
       if (Array.isArray(data)) {
@@ -104,13 +103,7 @@ const EmployeePage = () => {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/employees/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone, position, department_id: departmentId || null, join_date: joinDate })
-      });
-
-      if (!res.ok) throw new Error("Failed to add employee");
+      const res = await api.post("/employees/add", { name, email, phone, position, department_id: departmentId || null, join_date: joinDate });
 
       setName("");
       setEmail("");
@@ -145,21 +138,16 @@ const EmployeePage = () => {
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/employees/update/${editId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const res = await api.put(`/employees/update/${editId}`, {
           name: editName,
           email: editEmail,
           phone: editPhone,
           position: editPosition,
           department_id: editDepartmentId || null,
           join_date: editJoinDate
-        })
       });
 
-      if (!res.ok) throw new Error("Failed to update employee");
-
+      const data = res.data;
       setEditOpen(false);
       setSuccessMsg("Employee updated successfully");
       setErrorMsg("");
@@ -174,11 +162,7 @@ const EmployeePage = () => {
     if (!window.confirm("Are you sure you want to delete this employee?")) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/employees/delete/${id}`, {
-        method: "DELETE"
-      });
-
-      if (!res.ok) throw new Error("Failed to delete employee");
+      const res = await api.delete(`/employees/delete/${id}`);
 
       setSuccessMsg("Employee deleted successfully");
       setErrorMsg("");
