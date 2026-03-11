@@ -2,21 +2,35 @@ import db from "../config/db.js";
 
 /* Check-in */
 export const checkIn = (req, res) => {
-  const employeeId = req.body.employee_id;
 
-  if (!employeeId) {
+  const { employee_id, work_type } = req.body;
+
+  if (!employee_id) {
     return res.status(400).json({ message: "employee_id is required" });
+  }
+
+  if (!work_type) {
+    return res.status(400).json({ message: "Work type is required" });
   }
 
   const today = new Date().toISOString().slice(0, 10);
   const now = new Date();
 
   db.query(
-    "INSERT INTO attendance (employee_id,date,time_in) VALUES (?,?,?) ON DUPLICATE KEY UPDATE time_in=?",
-    [employeeId, today, now, now],
+    `INSERT INTO attendance (employee_id, date, work_type, time_in)
+    VALUES (?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE time_in=?`,
+    [employee_id, today, work_type, now, now],
     (err, result) => {
-      if (err) return res.status(500).json(err);
-      res.json({ message: "Checked in", time_in: now });
+      if (err) {
+        console.error(err);
+        return res.status(500).json(err);
+      }
+
+      res.json({
+        message: "Checked in",
+        time_in: now
+      });
     }
   );
 };

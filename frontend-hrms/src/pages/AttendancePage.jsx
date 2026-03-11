@@ -14,7 +14,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import LogoutIcon from "@mui/icons-material/Logout";
 import HomeIcon from "@mui/icons-material/Home";
 import { useNavigate } from "react-router-dom";
-
+import api from "../services/api";
 const AttendancePage = () => {
   const navigate = useNavigate();
   const [today, setToday] = useState({});
@@ -28,8 +28,8 @@ const AttendancePage = () => {
   // Fetch today's attendance
   const fetchToday = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/attendance/today/${employeeId}`);
-      const data = await res.json();
+      const res = await api.get(`/attendance/today/${employeeId}`);
+      const data = await res.data;
       setToday(data);
     } catch (err) {
       console.error(err);
@@ -54,11 +54,8 @@ const AttendancePage = () => {
       return;
     }
     try {
-      await fetch("http://localhost:5000/api/attendance/checkin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ employee_id: employeeId, work_type: workType }),
-      });
+      const res = await api.post("/attendance/checkin", { employee_id: employeeId, work_type: workType });
+      const data = res.data;
       setWorkType(""); // reset type selection
       fetchToday();
     } catch (err) {
@@ -68,11 +65,8 @@ const AttendancePage = () => {
 
   const handleCheckOut = async () => {
     try {
-      await fetch("http://localhost:5000/api/attendance/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ employee_id: employeeId }),
-      });
+      const res = await api.post("/attendance/checkout", { employee_id: employeeId });
+      const data = res.data;
       setWorkType("");
       fetchToday();
     } catch (err) {
@@ -156,7 +150,7 @@ const AttendancePage = () => {
             color="success"
             startIcon={<CheckCircleIcon />}
             onClick={handleCheckIn}
-            disabled={!hasSelectedType || hasCheckedIn}
+            disabled={!hasSelectedType || (hasCheckedIn && !hasCheckedOut)}
             fullWidth
             size="large"
           >

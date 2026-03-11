@@ -37,7 +37,7 @@ export const login = async (req, res) => {
 
     // Generate JWT
     const token = jwt.sign(
-      { id: user.id, role: user.role },
+      { id: user.id, role: user.role, employee_id: user.employee_id },
       JWT_SECRET,
       { expiresIn: "1d" }
     );
@@ -49,7 +49,8 @@ export const login = async (req, res) => {
         id: user.id,
         name: user.username,
         email: user.email,
-        role: user.role
+        role: user.role,
+        employee_id: user.employee_id   // added
       }
     });
   });
@@ -99,28 +100,49 @@ export const signup = async (req, res) => {
 
     const dbRole = roleMap[role] || role;
 
-    const insertSql =
-      "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)";
+    // 1️⃣ Create employee first
+    const insertEmployeeSql =
+      "INSERT INTO employees (name) VALUES (?)";
 
-    db.query(
-      insertSql,
-      [name, email, hashedPassword, dbRole],
-      (err, result) => {
+    db.query(insertEmployeeSql, [name], (err, employeeResult) => {
 
-        if (err) {
-          console.error("Signup error:", err);
-          return res.status(500).json({
-            message: "Signup failed",
-            error: err.message
-          });
-        }
-
-        res.status(201).json({
-          message: "User registered successfully",
-          userId: result.insertId
+      if (err) {
+        console.error("Employee creation error:", err);
+        return res.status(500).json({
+          message: "Employee creation failed",
+          error: err.message
         });
       }
-    );
+
+      const employeeId = employeeResult.insertId;
+
+      // 2️⃣ Create user linked with employee
+      const insertSql =
+        "INSERT INTO users (username, email, password, role, employee_id) VALUES (?, ?, ?, ?, ?)";
+
+      db.query(
+        insertSql,
+        [name, email, hashedPassword, dbRole, employeeId],
+        (err, result) => {
+
+          if (err) {
+            console.error("Signup error:", err);
+            return res.status(500).json({
+              message: "Signup failed",
+              error: err.message
+            });
+          }
+
+          res.status(201).json({
+            message: "User registered successfully",
+            userId: result.insertId,
+            employeeId: employeeId
+          });
+        }
+      );
+
+    });
+
   });
 };
 
