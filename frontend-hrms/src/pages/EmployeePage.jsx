@@ -43,19 +43,7 @@ const EmployeePage = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   
-  const departmentOptions = [
-    { id: 1, name: "HR" },
-    { id: 2, name: "Software Developer" },
-    { id: 3, name: "DevOps" },
-    { id: 4, name: "QA" }
-  ];
-
-  const positionOptions = [
-    "Junior Developer",
-    "Senior Developer",
-    "Intern",
-    "Project Manager"
-  ];
+  const [positions, setPositions] = useState([]);
   
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [name, setName] = useState("");
@@ -109,7 +97,24 @@ const EmployeePage = () => {
   };
 
   const fetchDepartments = async () => {
-    setDepartments(departmentOptions);
+    try {
+      const res = await api.get("/departments/all");
+      setDepartments(res.data || []);
+    } catch (error) {
+      console.error("Error fetching departments:", error);
+    }
+  };
+
+  const fetchPositions = async () => {
+    try {
+      const res = await api.get("/employees");
+      const data = res.data;
+      let employeesArray = Array.isArray(data) ? data : (data.employees || []);
+      const uniquePositions = [...new Set(employeesArray.map(emp => emp.position).filter(Boolean))];
+      setPositions(uniquePositions);
+    } catch (error) {
+      console.error("Error fetching positions:", error);
+    }
   };
 
   const resetAddForm = () => {
@@ -230,6 +235,7 @@ const EmployeePage = () => {
   useEffect(() => {
     fetchEmployees();
     fetchDepartments();
+    fetchPositions();
   }, []);
 
   const filteredEmployees = employees.filter(emp => 
@@ -404,18 +410,14 @@ const EmployeePage = () => {
               fullWidth
             />
             <TextField
-              select
               label="Position"
               value={position}
               onChange={(e) => setPosition(e.target.value)}
               fullWidth
               required
-            >
-              <MenuItem value="">Select Position</MenuItem>
-              {positionOptions.map((pos) => (
-                <MenuItem key={pos} value={pos}>{pos}</MenuItem>
-              ))}
-            </TextField>
+              placeholder="e.g. Developer, Manager, Intern"
+              helperText={positions.length > 0 ? `Existing: ${positions.slice(0, 5).join(", ")}` : ""}
+            />
             <TextField
               select
               label="Department"
@@ -483,18 +485,14 @@ const EmployeePage = () => {
               fullWidth 
             />
             <TextField
-              select
               label="Position"
               value={editPosition}
               onChange={(e) => setEditPosition(e.target.value)}
               fullWidth
               required
-            >
-              <MenuItem value="">Select Position</MenuItem>
-              {positionOptions.map((pos) => (
-                <MenuItem key={pos} value={pos}>{pos}</MenuItem>
-              ))}
-            </TextField>
+              placeholder="e.g. Developer, Manager, Intern"
+              helperText={positions.length > 0 ? `Existing: ${positions.slice(0, 5).join(", ")}` : ""}
+            />
             <TextField
               select
               label="Department"

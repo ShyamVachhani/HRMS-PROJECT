@@ -90,6 +90,31 @@ export const deleteTask = (req, res) => {
   );
 };
 
+export const updateTask = (req, res) => {
+  const { id } = req.params;
+  const { title, description, assigned_to, assigned_by, priority, due_date } = req.body;
+
+  const sql = `
+    UPDATE tasks 
+    SET title = ?, description = ?, assigned_to = ?, assigned_by = ?, priority = ?, due_date = ?
+    WHERE id = ?
+  `;
+
+  db.query(
+    sql,
+    [title, description, assigned_to, assigned_by, priority, due_date, id],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+
+      res.json({ message: "Task updated successfully" });
+    }
+  );
+};
+
 /* Get My Tasks (Current User) */
 export const getMyTasks = (req, res) => {
   const employeeId = req.user.employee_id;

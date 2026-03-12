@@ -1,53 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { Box, Grid, Card, CardContent, Typography, Button, Stepper, Step, StepLabel, StepContent, Chip, Avatar, LinearProgress } from "@mui/material";
+import { Box, Grid, Card, CardContent, Typography, Button, Chip, LinearProgress, CircularProgress } from "@mui/material";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import SchoolIcon from "@mui/icons-material/School";
-import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 import CampaignIcon from "@mui/icons-material/Campaign";
 import PersonIcon from "@mui/icons-material/Person";
+import BeachAccessIcon from "@mui/icons-material/BeachAccess";
+import HomeWorkIcon from "@mui/icons-material/HomeWork";
+import PendingActionsIcon from "@mui/icons-material/PendingActions";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
-// Intern-specific stats
-const internStats = [
-  { title: "Assigned Tasks", value: 4, icon: <AssignmentIcon />, color: "#D97706", bg: "#FFFBEB" },
-  { title: "Completed", value: 2, icon: <CheckCircleIcon />, color: "#16A34A", bg: "#ECFDF5" },
-  { title: "In Progress", value: 2, icon: <AccessTimeIcon />, color: "#F59E0B", bg: "#FFFBEB" },
-  { title: "Training Progress", value: "65%", icon: <SchoolIcon />, color: "#8B5CF6", bg: "#F5F3FF" }
-];
-
-const myTasks = [
-  { task: "Learn codebase", status: "In Progress", deadline: "2024-01-20", progress: 40, mentor: "John Doe" },
-  { task: "Complete training", status: "Completed", deadline: "2024-01-15", progress: 100, mentor: "Jane Smith" },
-  { task: "Setup environment", status: "Completed", deadline: "2024-01-14", progress: 100, mentor: "Mike Johnson" },
-  { task: "First assignment", status: "Pending", deadline: "2024-01-25", progress: 0, mentor: "Sarah Wilson" }
-];
-
-const trainingModules = [
-  { title: "Company Orientation", status: "Completed", completedDate: "2024-01-10" },
-  { title: "Development Tools", status: "Completed", completedDate: "2024-01-12" },
-  { title: "Code Review Process", status: "In Progress", completedDate: "-" },
-  { title: "Security Guidelines", status: "Pending", completedDate: "-" },
-  { title: "Project Workflow", status: "Pending", completedDate: "-" }
-];
-
-const learningGoals = [
-  { goal: "Complete React basics", deadline: "2024-01-20", status: "In Progress" },
-  { goal: "Learn company coding standards", deadline: "2024-01-22", status: "In Progress" },
-  { goal: "Submit first code review", deadline: "2024-01-25", status: "Pending" },
-  { goal: "Complete database training", deadline: "2024-01-30", status: "Pending" }
-];
-
-const mentorFeedback = [
-  { date: "2024-01-15", mentor: "John Doe", feedback: "Great progress on understanding the codebase. Keep it up!", rating: 4 },
-  { date: "2024-01-10", mentor: "Jane Smith", feedback: "Excellent orientation completion. You're adapting well.", rating: 5 }
-];
-
-function StatCard({ title, value, icon, color, bg }) {
+function StatCard({ title, value, icon, color, bg, loading }) {
   return (
     <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)", height: "100%" }}>
       <CardContent>
@@ -56,9 +22,13 @@ function StatCard({ title, value, icon, color, bg }) {
             <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5, fontWeight: 500 }}>
               {title}
             </Typography>
-            <Typography variant="h3" fontWeight="bold" sx={{ color: color }}>
-              {value}
-            </Typography>
+            {loading ? (
+              <CircularProgress size={30} sx={{ color: color }} />
+            ) : (
+              <Typography variant="h3" fontWeight="bold" sx={{ color: color }}>
+                {value}
+              </Typography>
+            )}
           </Box>
           <Box sx={{ 
             p: 2, 
@@ -92,20 +62,98 @@ function LinearProgressWithLabel(props) {
 export default function InternDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  
+  const [stats, setStats] = useState({
+    totalTasks: 0,
+    completedTasks: 0,
+    inProgressTasks: 0,
+    pendingTasks: 0,
+    leaveBalance: 0
+  });
+  
+  const [myTasks, setMyTasks] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
+  const [attendanceHistory, setAttendanceHistory] = useState([]);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
       setUser(JSON.parse(userData));
     }
-    fetchAnnouncements();
+    fetchAllData();
   }, []);
+
+  const fetchAllData = async () => {
+    setLoading(true);
+    try {
+      await Promise.all([
+        fetchTasks(),
+        fetchAnnouncements(),
+        fetchLeaveBalance(),
+        fetchAttendance()
+      ]);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTasks = async () => {
+    try {
+      const res = await api.get("/tasks/my");
+      const myTasksList = res.data || [];
+      
+      setMyTasks(myTasksList);
+      
+      const completed = myTasksList.filter(t => t.status === "completed").length;
+      const inProgress = myTasksList.filter(t => t.status === "in_progress").length;
+      const pending = myTasksList.filter(t => t.status === "pending" || !t.status).length;
+      
+      setStats(prev => ({
+        ...prev,
+        totalTasks: myTasksList.length,
+        completedTasks: completed,
+        inProgressTasks: inProgress,
+        pendingTasks: pending
+      }));
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  };
+
+  const fetchLeaveBalance = async () => {
+    try {
+      const userData = JSON.parse(localStorage.getItem("user"));
+      const employeeId = userData?.employee_id || userData?.id;
+      
+      const res = await api.get(`/employees/${employeeId}`);
+      const employee = res.data;
+      
+      setStats(prev => ({ ...prev, leaveBalance: employee?.leave_balance || 0 }));
+    } catch (error) {
+      console.error("Error fetching leave balance:", error);
+    }
+  };
+
+  const fetchAttendance = async () => {
+    try {
+      const userData = JSON.parse(localStorage.getItem("user"));
+      const employeeId = userData?.employee_id || userData?.id;
+      
+      const res = await api.get(`/attendance/history/${employeeId}`);
+      const attendance = res.data || [];
+      setAttendanceHistory(attendance.slice(0, 5));
+    } catch (error) {
+      console.error("Error fetching attendance:", error);
+    }
+  };
 
   const fetchAnnouncements = async () => {
     try {
       const res = await api.get("/announcements");
-      setAnnouncements(res.data.slice(0, 3));
+      setAnnouncements(res.data?.slice(0, 3) || []);
     } catch (error) {
       console.error("Error fetching announcements:", error);
     }
@@ -113,20 +161,28 @@ export default function InternDashboard() {
 
   const getStatusChip = (status) => {
     const colors = {
-      "In Progress": { bg: "#FEF3C7", color: "#D97706" },
-      Completed: { bg: "#ECFDF5", color: "#059669" },
-      Pending: { bg: "#F3F4F6", color: "#6B7280" }
+      "in_progress": { bg: "#FEF3C7", color: "#D97706", label: "In Progress" },
+      "completed": { bg: "#ECFDF5", color: "#059669", label: "Completed" },
+      "pending": { bg: "#F3F4F6", color: "#6B7280", label: "Pending" }
     };
-    const style = colors[status] || colors.Pending;
-    return <Chip label={status} size="small" sx={{ background: style.bg, color: style.color, fontWeight: "bold" }} />;
+    const style = colors[status] || colors.pending;
+    return <Chip label={style.label || status} size="small" sx={{ background: style.bg, color: style.color, fontWeight: "bold" }} />;
   };
 
-  const getRatingStars = (rating) => {
-    return "⭐".repeat(rating);
+  const getPriorityColor = (priority) => {
+    return priority === "high" ? "error" : priority === "medium" ? "warning" : "info";
   };
 
-  const completedModules = trainingModules.filter(m => m.status === "Completed").length;
-  const progressPercentage = (completedModules / trainingModules.length) * 100;
+  const taskCompletionRate = stats.totalTasks > 0 
+    ? Math.round((stats.completedTasks / stats.totalTasks) * 100) 
+    : 0;
+
+  const internStats = [
+    { title: "Assigned Tasks", value: stats.totalTasks, icon: <AssignmentIcon />, color: "#D97706", bg: "#FFFBEB" },
+    { title: "Completed", value: stats.completedTasks, icon: <CheckCircleIcon />, color: "#16A34A", bg: "#ECFDF5" },
+    { title: "In Progress", value: stats.inProgressTasks, icon: <AccessTimeIcon />, color: "#F59E0B", bg: "#FFFBEB" },
+    { title: "Leave Balance", value: stats.leaveBalance, icon: <BeachAccessIcon />, color: "#8B5CF6", bg: "#F5F3FF" }
+  ];
 
   return (
     <Box sx={{ p: 3, background: "#F8FAFC", minHeight: "100vh" }}>
@@ -135,7 +191,7 @@ export default function InternDashboard() {
         <Grid container alignItems="center" spacing={2}>
           <Grid item xs={12} md={8}>
             <Typography variant="h3" fontWeight="bold">
-              Welcome, {user?.name || "Intern"}! 🌟
+              Welcome, {user?.name || "Intern"}!
             </Typography>
             <Typography variant="h6" sx={{ opacity: 0.9, mt: 1 }}>
               Track your learning journey and grow with us
@@ -157,7 +213,7 @@ export default function InternDashboard() {
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {internStats.map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
-            <StatCard {...stat} />
+            <StatCard {...stat} loading={loading} />
           </Grid>
         ))}
       </Grid>
@@ -174,141 +230,180 @@ export default function InternDashboard() {
                 </Typography>
                 <Button size="small" onClick={() => navigate("/tasks")}>View All</Button>
               </Box>
-              {myTasks.map((task, i) => (
-                <Box key={i} sx={{ p: 2, mb: 2, borderRadius: 2, background: "#F8FAFC", border: "1px solid #E5E7EB" }}>
-                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
-                    <Typography fontWeight="600">{task.task}</Typography>
-                    {getStatusChip(task.status)}
-                  </Box>
-                  <Typography variant="caption" color="textSecondary" display="block">
-                    Mentor: {task.mentor} | Due: {task.deadline}
-                  </Typography>
-                  {task.status !== "Pending" && (
-                    <Box sx={{ mt: 1.5 }}>
-                      <LinearProgressWithLabel value={task.progress} />
-                    </Box>
-                  )}
+              
+              {loading ? (
+                <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+                  <CircularProgress sx={{ color: "#D97706" }} />
                 </Box>
-              ))}
+              ) : myTasks.length === 0 ? (
+                <Typography color="text.secondary" textAlign="center" sx={{ py: 4 }}>
+                  No tasks assigned to you yet
+                </Typography>
+              ) : (
+                myTasks.slice(0, 4).map((task, i) => (
+                  <Box key={task.id || i} sx={{ p: 2, mb: 2, borderRadius: 2, background: "#F8FAFC", border: "1px solid #E5E7EB" }}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Typography fontWeight="600">{task.title}</Typography>
+                        {task.priority && (
+                          <Chip label={task.priority} size="small" color={getPriorityColor(task.priority)} />
+                        )}
+                      </Box>
+                      {getStatusChip(task.status || "pending")}
+                    </Box>
+                    <Typography variant="caption" color="textSecondary" display="block">
+                      Assigned by: {task.assigned_by_name || "Manager"} | Due: {task.due_date?.split("T")[0] || "Not set"}
+                    </Typography>
+                  </Box>
+                ))
+              )}
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Training Progress */}
+        {/* Task Progress */}
         <Grid item xs={12} lg={6}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
                 <Typography variant="h6" fontWeight="bold" sx={{ color: "#D97706" }}>
-                  Training Progress
+                  Task Completion Progress
                 </Typography>
                 <Chip 
-                  label={`${completedModules}/${trainingModules.length} Completed`} 
+                  label={`${stats.completedTasks}/${stats.totalTasks} Completed`} 
                   sx={{ background: "#ECFDF5", color: "#059669", fontWeight: "bold" }} 
                 />
               </Box>
               
               <Box sx={{ mb: 3 }}>
-                <LinearProgressWithLabel value={progressPercentage} />
+                <LinearProgressWithLabel value={taskCompletionRate} />
               </Box>
 
-              {trainingModules.map((module, i) => (
-                <Box key={i} sx={{ p: 2, mb: 1, borderRadius: 2, background: "#F8FAFC", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    {module.status === "Completed" ? (
-                      <CheckCircleIcon sx={{ color: "#059669" }} />
-                    ) : module.status === "In Progress" ? (
-                      <AccessTimeIcon sx={{ color: "#D97706" }} />
-                    ) : (
-                      <MenuBookIcon sx={{ color: "#6B7280" }} />
-                    )}
-                    <Typography fontWeight="500">{module.title}</Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={4}>
+                  <Box sx={{ p: 2, background: "#ECFDF5", borderRadius: 2, textAlign: "center" }}>
+                    <CheckCircleIcon sx={{ color: "#059669", fontSize: 30 }} />
+                    <Typography variant="h5" fontWeight="bold" color="#059669">{stats.completedTasks}</Typography>
+                    <Typography variant="caption" color="textSecondary">Completed</Typography>
                   </Box>
-                  {getStatusChip(module.status)}
-                </Box>
-              ))}
+                </Grid>
+                <Grid item xs={4}>
+                  <Box sx={{ p: 2, background: "#FEF3C7", borderRadius: 2, textAlign: "center" }}>
+                    <AccessTimeIcon sx={{ color: "#D97706", fontSize: 30 }} />
+                    <Typography variant="h5" fontWeight="bold" color="#D97706">{stats.inProgressTasks}</Typography>
+                    <Typography variant="caption" color="textSecondary">In Progress</Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={4}>
+                  <Box sx={{ p: 2, background: "#F3F4F6", borderRadius: 2, textAlign: "center" }}>
+                    <PendingActionsIcon sx={{ color: "#6B7280", fontSize: 30 }} />
+                    <Typography variant="h5" fontWeight="bold" color="#6B7280">{stats.pendingTasks}</Typography>
+                    <Typography variant="caption" color="textSecondary">Pending</Typography>
+                  </Box>
+                </Grid>
+              </Grid>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Learning Goals */}
+        {/* Recent Attendance */}
         <Grid item xs={12} lg={6}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
-              <Typography variant="h6" fontWeight="bold" sx={{ color: "#D97706", mb: 3 }}>
-                Learning Goals
-              </Typography>
-              {learningGoals.map((goal, i) => (
-                <Box key={i} sx={{ p: 2, mb: 2, borderRadius: 2, background: "#F8FAFC", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <Box>
-                    <Typography fontWeight="600">{goal.goal}</Typography>
-                    <Typography variant="caption" color="textSecondary">Deadline: {goal.deadline}</Typography>
-                  </Box>
-                  {getStatusChip(goal.status)}
-                </Box>
-              ))}
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Mentor Feedback */}
-        <Grid item xs={12} lg={6}>
-          <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
-            <CardContent>
-              <Typography variant="h6" fontWeight="bold" sx={{ color: "#D97706", mb: 3 }}>
-                Mentor Feedback
-              </Typography>
-              {mentorFeedback.map((feedback, i) => (
-                <Box key={i} sx={{ p: 2, mb: 2, borderRadius: 2, background: "#F8FAFC", borderLeft: "4px solid #F59E0B" }}>
-                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
-                    <Typography fontWeight="600">{feedback.mentor}</Typography>
-                    <Typography>{getRatingStars(feedback.rating)}</Typography>
-                  </Box>
-                  <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
-                    "{feedback.feedback}"
-                  </Typography>
-                  <Typography variant="caption" color="textSecondary">
-                    Date: {feedback.date}
-                  </Typography>
-                </Box>
-              ))}
-              
-              <Box sx={{ mt: 3, p: 2, borderRadius: 2, background: "#FEF3C7", textAlign: "center" }}>
-                <Typography fontWeight="600" color="#D97706">
-                  🎯 Keep up the great work!
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Your next review is scheduled for next week
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Profile Completion */}
-        <Grid item xs={12} lg={6}>
-          <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
-            <CardContent>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
-                <PersonIcon sx={{ color: "#D97706" }} />
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
                 <Typography variant="h6" fontWeight="bold" sx={{ color: "#D97706" }}>
-                  Profile Completion
+                  Recent Attendance
                 </Typography>
+                <Button size="small" onClick={() => navigate("/attendance")}>Mark Attendance</Button>
               </Box>
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                  <Typography variant="body2">Profile Completeness</Typography>
-                  <Typography variant="body2" fontWeight="bold" color="#D97706">75%</Typography>
+              
+              {loading ? (
+                <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+                  <CircularProgress sx={{ color: "#D97706" }} />
                 </Box>
-                <LinearProgress variant="determinate" value={75} sx={{ height: 10, borderRadius: 5 }} />
-              </Box>
-              <Box sx={{ p: 2, background: "#F8FAFC", borderRadius: 2 }}>
-                <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>Complete your profile:</Typography>
-                <Typography variant="caption" color="textSecondary" display="block">✓ Basic Information</Typography>
-                <Typography variant="caption" color="textSecondary" display="block">✓ Contact Details</Typography>
-                <Typography variant="caption" color="error" display="block">○ Emergency Contact</Typography>
-                <Typography variant="caption" color="error" display="block">○ Profile Picture</Typography>
-              </Box>
+              ) : attendanceHistory.length === 0 ? (
+                <Typography color="text.secondary" textAlign="center" sx={{ py: 4 }}>
+                  No attendance records yet
+                </Typography>
+              ) : (
+                attendanceHistory.map((att, i) => (
+                  <Box key={i} sx={{ p: 2, mb: 1, borderRadius: 2, background: "#F8FAFC", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Box>
+                      <Typography fontWeight="500">{att.date?.split("T")[0]}</Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        {att.time_in ? new Date(att.time_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "-"} - 
+                        {att.time_out ? new Date(att.time_out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "-"}
+                      </Typography>
+                    </Box>
+                    <Chip 
+                      label={att.work_type === "present" ? "Present" : att.work_type === "wfh" ? "WFH" : att.work_type} 
+                      size="small"
+                      sx={{ 
+                        background: att.work_type === "present" ? "#ECFDF5" : "#EDE9FE",
+                        color: att.work_type === "present" ? "#059669" : "#7C3AED"
+                      }}
+                    />
+                  </Box>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Quick Actions */}
+        <Grid item xs={12} lg={6}>
+          <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
+            <CardContent>
+              <Typography variant="h6" fontWeight="bold" sx={{ color: "#D97706", mb: 3 }}>
+                Quick Actions
+              </Typography>
+              
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Button 
+                    variant="outlined" 
+                    fullWidth 
+                    onClick={() => navigate("/attendance")} 
+                    sx={{ p: 2, flexDirection: "column", height: 100 }}
+                  >
+                    <AccessTimeIcon sx={{ fontSize: 30, mb: 1 }} />
+                    <Typography variant="body2">Mark Attendance</Typography>
+                  </Button>
+                </Grid>
+                <Grid item xs={6}>
+                  <Button 
+                    variant="outlined" 
+                    fullWidth 
+                    onClick={() => navigate("/tasks")} 
+                    sx={{ p: 2, flexDirection: "column", height: 100 }}
+                  >
+                    <AssignmentIcon sx={{ fontSize: 30, mb: 1 }} />
+                    <Typography variant="body2">View Tasks</Typography>
+                  </Button>
+                </Grid>
+                <Grid item xs={6}>
+                  <Button 
+                    variant="outlined" 
+                    fullWidth 
+                    onClick={() => navigate("/leave")} 
+                    sx={{ p: 2, flexDirection: "column", height: 100 }}
+                  >
+                    <BeachAccessIcon sx={{ fontSize: 30, mb: 1 }} />
+                    <Typography variant="body2">Request Leave</Typography>
+                  </Button>
+                </Grid>
+                <Grid item xs={6}>
+                  <Button 
+                    variant="outlined" 
+                    fullWidth 
+                    onClick={() => navigate("/wfh")} 
+                    sx={{ p: 2, flexDirection: "column", height: 100 }}
+                  >
+                    <HomeWorkIcon sx={{ fontSize: 30, mb: 1 }} />
+                    <Typography variant="body2">Request WFH</Typography>
+                  </Button>
+                </Grid>
+              </Grid>
             </CardContent>
           </Card>
         </Grid>
@@ -345,6 +440,50 @@ export default function InternDashboard() {
           </Card>
         </Grid>
 
+        {/* Profile Info */}
+        <Grid item xs={12} lg={6}>
+          <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
+            <CardContent>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
+                <PersonIcon sx={{ color: "#D97706" }} />
+                <Typography variant="h6" fontWeight="bold" sx={{ color: "#D97706" }}>
+                  My Profile
+                </Typography>
+              </Box>
+              
+              <Box sx={{ p: 3, background: "#F8FAFC", borderRadius: 2 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <Typography variant="caption" color="textSecondary">Name</Typography>
+                    <Typography fontWeight="500">{user?.name || "-"}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="caption" color="textSecondary">Email</Typography>
+                    <Typography fontWeight="500">{user?.email || "-"}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="caption" color="textSecondary">Role</Typography>
+                    <Chip label={user?.role || "Intern"} size="small" sx={{ mt: 0.5, textTransform: "capitalize" }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="caption" color="textSecondary">Leave Balance</Typography>
+                    <Typography fontWeight="500">{stats.leaveBalance} days</Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+
+              <Box sx={{ mt: 3, p: 2, borderRadius: 2, background: "#FEF3C7", textAlign: "center" }}>
+                <Typography fontWeight="600" color="#D97706">
+                  Keep up the great work!
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  You've completed {stats.completedTasks} tasks so far
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
         {/* Learning Resources */}
         <Grid item xs={12}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
@@ -352,37 +491,57 @@ export default function InternDashboard() {
               <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
                 <MenuBookIcon sx={{ color: "#D97706" }} />
                 <Typography variant="h6" fontWeight="bold" sx={{ color: "#D97706" }}>
-                  Learning Resources
+                  Quick Links
                 </Typography>
               </Box>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6} md={3}>
-                  <Box sx={{ p: 2, background: "#F8FAFC", borderRadius: 2, textAlign: "center" }}>
-                    <Typography variant="h6" sx={{ color: "#3B82F6" }}>📚</Typography>
-                    <Typography fontWeight="600">Company Wiki</Typography>
-                    <Typography variant="caption" color="textSecondary">Internal documentation</Typography>
-                  </Box>
+                  <Button 
+                    variant="outlined" 
+                    fullWidth 
+                    onClick={() => navigate("/policies")}
+                    sx={{ p: 2, flexDirection: "column" }}
+                  >
+                    <Typography variant="h6" sx={{ color: "#3B82F6" }}>📋</Typography>
+                    <Typography fontWeight="600">Company Policies</Typography>
+                    <Typography variant="caption" color="textSecondary">View guidelines</Typography>
+                  </Button>
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
-                  <Box sx={{ p: 2, background: "#F8FAFC", borderRadius: 2, textAlign: "center" }}>
-                    <Typography variant="h6" sx={{ color: "#16A34A" }}>🎓</Typography>
-                    <Typography fontWeight="600">Training Videos</Typography>
-                    <Typography variant="caption" color="textSecondary">Video tutorials</Typography>
-                  </Box>
+                  <Button 
+                    variant="outlined" 
+                    fullWidth 
+                    onClick={() => navigate("/holidays")}
+                    sx={{ p: 2, flexDirection: "column" }}
+                  >
+                    <Typography variant="h6" sx={{ color: "#16A34A" }}>📅</Typography>
+                    <Typography fontWeight="600">Holidays</Typography>
+                    <Typography variant="caption" color="textSecondary">View calendar</Typography>
+                  </Button>
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
-                  <Box sx={{ p: 2, background: "#F8FAFC", borderRadius: 2, textAlign: "center" }}>
-                    <Typography variant="h6" sx={{ color: "#8B5CF6" }}>💡</Typography>
-                    <Typography fontWeight="600">Best Practices</Typography>
-                    <Typography variant="caption" color="textSecondary">Coding standards</Typography>
-                  </Box>
+                  <Button 
+                    variant="outlined" 
+                    fullWidth 
+                    onClick={() => navigate("/announcements")}
+                    sx={{ p: 2, flexDirection: "column" }}
+                  >
+                    <Typography variant="h6" sx={{ color: "#8B5CF6" }}>📢</Typography>
+                    <Typography fontWeight="600">Announcements</Typography>
+                    <Typography variant="caption" color="textSecondary">Stay updated</Typography>
+                  </Button>
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
-                  <Box sx={{ p: 2, background: "#F8FAFC", borderRadius: 2, textAlign: "center" }}>
-                    <Typography variant="h6" sx={{ color: "#DC2626" }}>🔧</Typography>
-                    <Typography fontWeight="600">Tools Setup</Typography>
-                    <Typography variant="caption" color="textSecondary">Development tools</Typography>
-                  </Box>
+                  <Button 
+                    variant="outlined" 
+                    fullWidth 
+                    onClick={() => navigate("/all-attendance")}
+                    sx={{ p: 2, flexDirection: "column" }}
+                  >
+                    <Typography variant="h6" sx={{ color: "#DC2626" }}>📊</Typography>
+                    <Typography fontWeight="600">Attendance History</Typography>
+                    <Typography variant="caption" color="textSecondary">View records</Typography>
+                  </Button>
                 </Grid>
               </Grid>
             </CardContent>

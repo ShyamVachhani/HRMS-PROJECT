@@ -30,11 +30,10 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import HomeWorkIcon from "@mui/icons-material/HomeWork";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
-import FilterListIcon from "@mui/icons-material/FilterList";
 import SearchIcon from "@mui/icons-material/Search";
 import api from "../services/api";
 
-const WFHPage = ({ employeeId }) => {
+const WFHPage = () => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -49,7 +48,11 @@ const WFHPage = ({ employeeId }) => {
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   const user = JSON.parse(localStorage.getItem("user"));
-  const canApprove = ["admin", "hr", "manager"].includes(user?.role);
+  const userRole = user?.role;
+  const employeeId = user?.employee_id || user?.id;
+  
+  const canApprove = ["admin", "hr", "manager"].includes(userRole);
+  const canViewAll = ["admin", "hr", "manager"].includes(userRole);
 
   const showSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
@@ -58,8 +61,13 @@ const WFHPage = ({ employeeId }) => {
   const fetchHistory = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/wfh/all");
-      setHistory(res.data);
+      let res;
+      if (canViewAll) {
+        res = await api.get("/wfh/all");
+      } else {
+        res = await api.get("/wfh/my");
+      }
+      setHistory(res.data || []);
     } catch (error) {
       console.error("Error fetching WFH data:", error);
       showSnackbar("Failed to load WFH requests", "error");
@@ -94,6 +102,11 @@ const WFHPage = ({ employeeId }) => {
       return;
     }
 
+    if (new Date(startDate) > new Date(endDate)) {
+      showSnackbar("End date must be after start date", "error");
+      return;
+    }
+
     setLoading(true);
     try {
       await api.post("/wfh/apply", {
@@ -108,7 +121,7 @@ const WFHPage = ({ employeeId }) => {
       fetchHistory();
     } catch (error) {
       console.error("Error applying WFH:", error);
-      showSnackbar("Failed to submit WFH request", "error");
+      showSnackbar(error.response?.data?.message || "Failed to submit WFH request", "error");
     } finally {
       setLoading(false);
     }
@@ -160,10 +173,12 @@ const WFHPage = ({ employeeId }) => {
   };
 
   const displayDateRange = (rec) => {
-    if (rec.start_date && rec.end_date) {
-      return `${rec.start_date?.split("T")[0]} to ${rec.end_date?.split("T")[0]}`;
+    const start = rec.start_date?.split("T")[0];
+    const end = rec.end_date?.split("T")[0];
+    if (start && end) {
+      return `${start} to ${end}`;
     }
-    return rec.wfh_date?.split("T")[0] || rec.start_date?.split("T")[0] || "-";
+    return rec.wfh_date?.split("T")[0] || start || "-";
   };
 
   const filteredHistory = history.filter(rec =>
@@ -183,7 +198,7 @@ const WFHPage = ({ employeeId }) => {
                 Work From Home
               </Typography>
               <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)" }}>
-                Apply and manage WFH requests
+                {canViewAll ? "Manage WFH requests" : "Apply and track your WFH requests"}
               </Typography>
             </Box>
           </Box>
@@ -241,7 +256,7 @@ const WFHPage = ({ employeeId }) => {
         <Table>
           <TableHead>
             <TableRow sx={{ backgroundColor: "#f8fafc" }}>
-              <TableCell sx={{ fontWeight: "bold" }}>Employee</TableCell>
+              {canViewAll && <TableCell sx={{ fontWeight: "bold" }}>Employee</TableCell>}
               <TableCell sx={{ fontWeight: "bold" }}>Date Range</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Reason</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
@@ -261,7 +276,7 @@ const WFHPage = ({ employeeId }) => {
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((rec) => (
                   <TableRow key={rec.id} hover>
-                    <TableCell sx={{ fontWeight: 500 }}>{rec.name}</TableCell>
+                    {canViewAll && <TableCell sx={{ fontWeight: 500 }}>{rec.name}</TableCell>}
                     <TableCell>{displayDateRange(rec)}</TableCell>
                     <TableCell>{rec.reason || "-"}</TableCell>
                     <TableCell>{getStatusChip(rec.status)}</TableCell>

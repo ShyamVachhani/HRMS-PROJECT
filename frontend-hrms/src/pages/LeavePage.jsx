@@ -23,8 +23,7 @@ import {
   Alert,
   CircularProgress,
   IconButton,
-  Tooltip,
-  InputAdornment
+  Tooltip
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RefreshIcon from "@mui/icons-material/Refresh";
@@ -45,7 +44,6 @@ function LeavePage() {
   const [totalCount, setTotalCount] = useState(0);
 
   const [applyDialogOpen, setApplyDialogOpen] = useState(false);
-  const [employeeId, setEmployeeId] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [reason, setReason] = useState("");
@@ -54,18 +52,38 @@ function LeavePage() {
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   const user = JSON.parse(localStorage.getItem("user"));
-  const canApprove = ["admin", "hr", "manager"].includes(user?.role);
+  const userRole = user?.role;
+  const employeeId = user?.employee_id || user?.id;
+  
+  const canApprove = ["admin", "hr", "manager"].includes(userRole);
+  const canViewAll = ["admin", "hr"].includes(userRole);
+  const isManager = userRole === "manager";
 
   const showSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
   };
 
   useEffect(() => {
-    api.get("/employees?page=1&limit=100")
-      .then(res => res.data)
-      .then(data => setEmployees(data.data || data.employees || []))
-      .catch(err => console.error(err));
+    if (canViewAll) {
+      api.get("/employees?page=1&limit=100")
+        .then(res => res.data)
+        .then(data => setEmployees(data.data || data.employees || []))
+        .catch(err => console.error(err));
+    }
+    
+    fetchLeaveBalance();
   }, []);
+
+  const fetchLeaveBalance = async () => {
+    if (employeeId) {
+      try {
+        const res = await api.get(`/employees/${employeeId}`);
+        setLeaveBalance(res.data?.leave_balance ?? null);
+      } catch (err) {
+        console.error("Error fetching leave balance:", err);
+      }
+    }
+  };
 
   const fetchLeaves = async () => {
     setLoading(true);
@@ -79,9 +97,17 @@ function LeavePage() {
     }
 
     try {
-      const res = await api.get(`/leaves?${query.toString()}`);
+      let res;
+      if (canViewAll) {
+        res = await api.get(`/leaves?${query.toString()}`);
+      } else if (isManager) {
+        res = await api.get(`/leaves/team?${query.toString()}`);
+      } else {
+        res = await api.get(`/leaves/my?${query.toString()}`);
+      }
+      
       setLeaves(res.data.data || []);
-      setTotalCount(res.data.totalLeaves || 0);
+      setTotalCount(res.data.totalLeaves || res.data.total || 0);
     } catch (err) {
       console.error(err);
       showSnackbar("Failed to load leaves", "error");
@@ -95,11 +121,10 @@ function LeavePage() {
   }, [page, rowsPerPage, statusFilter]);
 
   const handleApplyOpen = () => {
-    setEmployeeId("");
     setStartDate("");
     setEndDate("");
     setReason("");
-    setLeaveBalance(null);
+    fetchLeaveBalance();
     setApplyDialogOpen(true);
   };
 
@@ -108,15 +133,20 @@ function LeavePage() {
   };
 
   const handleApply = async () => {
-    if (!employeeId || !startDate || !endDate) {
+    if (!startDate || !endDate) {
       showSnackbar("Please fill required fields", "error");
       return;
     }
 
-    const days = (new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24) + 1;
+    if (new Date(startDate) > new Date(endDate)) {
+      showSnackbar("End date must be after start date", "error");
+      return;
+    }
+
+    const days = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) + 1;
 
     if (leaveBalance !== null && days > leaveBalance) {
-      showSnackbar("Not enough leave balance", "error");
+      showSnackbar(`Not enough leave balance. You have ${leaveBalance} days available.`, "error");
       return;
     }
 
@@ -135,7 +165,7 @@ function LeavePage() {
       fetchLeaves();
     } catch (err) {
       console.error(err);
-      showSnackbar("Failed to apply leave", "error");
+      showSnackbar(err.response?.data?.message || "Failed to apply leave", "error");
     } finally {
       setLoading(false);
     }
@@ -172,6 +202,12 @@ function LeavePage() {
     );
   };
 
+  const getPageSubtitle = () => {
+    if (canViewAll) return "Manage all leave requests";
+    if (isManager) return "Manage team leave requests";
+    return "Apply and track your leave requests";
+  };
+
   return (
     <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
       {/* Page Header */}
@@ -184,11 +220,17 @@ function LeavePage() {
                 Leave Management
               </Typography>
               <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)" }}>
-                Apply and manage leave requests
+                {getPageSubtitle()}
               </Typography>
             </Box>
           </Box>
-          <Box sx={{ display: "flex", gap: 2 }}>
+          <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+            {leaveBalance !== null && !canViewAll && (
+              <Chip 
+                label={`Balance: ${leaveBalance} days`} 
+                sx={{ bgcolor: "white", color: "#D97706", fontWeight: "bold" }}
+              />
+            )}
             <Button
               variant="contained"
               startIcon={<AddIcon />}
@@ -247,7 +289,7 @@ function LeavePage() {
             <TableRow sx={{ backgroundColor: "#f8fafc" }}>
               <TableCell sx={{ fontWeight: "bold" }}>ID</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Employee</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Department</TableCell>
+              {(canViewAll || isManager) && <TableCell sx={{ fontWeight: "bold" }}>Department</TableCell>}
               <TableCell sx={{ fontWeight: "bold" }}>Start Date</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>End Date</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Reason</TableCell>
@@ -268,7 +310,7 @@ function LeavePage() {
                 <TableRow key={leave.id} hover>
                   <TableCell>{leave.id}</TableCell>
                   <TableCell sx={{ fontWeight: 500 }}>{leave.name}</TableCell>
-                  <TableCell>{leave.department || "-"}</TableCell>
+                  {(canViewAll || isManager) && <TableCell>{leave.department || "-"}</TableCell>}
                   <TableCell>{leave.start_date?.split("T")[0]}</TableCell>
                   <TableCell>{leave.end_date?.split("T")[0]}</TableCell>
                   <TableCell>{leave.reason || "-"}</TableCell>
@@ -329,27 +371,6 @@ function LeavePage() {
         </DialogTitle>
         <DialogContent sx={{ mt: 2 }}>
           <Stack spacing={2.5} sx={{ mt: 1 }}>
-            <TextField
-              select
-              label="Select Employee"
-              value={employeeId}
-              onChange={(e) => {
-                const id = e.target.value;
-                setEmployeeId(id);
-                const emp = employees.find(emp => emp.id == id);
-                setLeaveBalance(emp?.leave_balance ?? null);
-              }}
-              fullWidth
-              required
-            >
-              <MenuItem value="">Select Employee</MenuItem>
-              {employees.map(emp => (
-                <MenuItem key={emp.id} value={emp.id}>
-                  {emp.name} {emp.leave_balance !== undefined && `(Balance: ${emp.leave_balance} days)`}
-                </MenuItem>
-              ))}
-            </TextField>
-
             {leaveBalance !== null && (
               <Alert severity="info">
                 Current Leave Balance: <strong>{leaveBalance} days</strong>
@@ -375,6 +396,18 @@ function LeavePage() {
               fullWidth
               required
             />
+
+            {startDate && endDate && new Date(startDate) <= new Date(endDate) && (
+              <Alert severity={
+                Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) + 1 > (leaveBalance || 0) 
+                  ? "warning" 
+                  : "success"
+              }>
+                Requesting: <strong>
+                  {Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) + 1} day(s)
+                </strong>
+              </Alert>
+            )}
 
             <TextField
               label="Reason"

@@ -50,7 +50,6 @@ const TaskPage = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
-  const [assignedBy, setAssignedBy] = useState("");
   const [priority, setPriority] = useState("medium");
   const [dueDate, setDueDate] = useState("");
 
@@ -59,7 +58,6 @@ const TaskPage = () => {
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editAssignedTo, setEditAssignedTo] = useState("");
-  const [editAssignedBy, setEditAssignedBy] = useState("");
   const [editPriority, setEditPriority] = useState("medium");
   const [editDueDate, setEditDueDate] = useState("");
 
@@ -68,6 +66,14 @@ const TaskPage = () => {
   const [deleteTitle, setDeleteTitle] = useState("");
 
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  const userRole = user?.role;
+  const employeeId = user?.employee_id || user?.id;
+  
+  const canCreateTask = ["admin", "manager"].includes(userRole);
+  const canDeleteTask = ["admin", "manager"].includes(userRole);
+  const canViewAll = ["admin", "manager", "hr"].includes(userRole);
 
   const priorityOptions = [
     { value: "high", label: "High", color: "error" },
@@ -82,8 +88,13 @@ const TaskPage = () => {
   const fetchTasks = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/tasks");
-      setTasks(res.data);
+      let res;
+      if (canViewAll) {
+        res = await api.get("/tasks");
+      } else {
+        res = await api.get("/tasks/my");
+      }
+      setTasks(res.data || []);
     } catch (error) {
       console.error("Error fetching tasks:", error);
       showSnackbar("Failed to load tasks", "error");
@@ -93,6 +104,7 @@ const TaskPage = () => {
   };
 
   const fetchEmployees = async () => {
+    if (!canCreateTask) return;
     try {
       const res = await api.get("/employees");
       let employeesArray = [];
@@ -100,6 +112,8 @@ const TaskPage = () => {
         employeesArray = res.data;
       } else if (res.data.employees) {
         employeesArray = res.data.employees;
+      } else if (res.data.data) {
+        employeesArray = res.data.data;
       }
       setEmployees(employeesArray);
     } catch (error) {
@@ -116,7 +130,6 @@ const TaskPage = () => {
     setTitle("");
     setDescription("");
     setAssignedTo("");
-    setAssignedBy("");
     setPriority("medium");
     setDueDate("");
   };
@@ -143,7 +156,7 @@ const TaskPage = () => {
         title,
         description,
         assigned_to: assignedTo,
-        assigned_by: assignedBy,
+        assigned_by: employeeId,
         priority,
         due_date: dueDate
       });
@@ -153,7 +166,7 @@ const TaskPage = () => {
       fetchTasks();
     } catch (error) {
       console.error("Error creating task:", error);
-      showSnackbar("Failed to create task", "error");
+      showSnackbar(error.response?.data?.message || "Failed to create task", "error");
     } finally {
       setLoading(false);
     }
@@ -164,7 +177,6 @@ const TaskPage = () => {
     setEditTitle(task.title);
     setEditDescription(task.description || "");
     setEditAssignedTo(task.assigned_to || "");
-    setEditAssignedBy(task.assigned_by || "");
     setEditPriority(task.priority || "medium");
     setEditDueDate(task.due_date?.split("T")[0] || "");
     setEditDialogOpen(true);
@@ -176,7 +188,7 @@ const TaskPage = () => {
   };
 
   const handleEditSave = async () => {
-    if (!editTitle || !editAssignedTo) {
+    if (!editTitle) {
       showSnackbar("Please fill required fields", "error");
       return;
     }
@@ -187,7 +199,7 @@ const TaskPage = () => {
         title: editTitle,
         description: editDescription,
         assigned_to: editAssignedTo,
-        assigned_by: editAssignedBy,
+        assigned_by: employeeId,
         priority: editPriority,
         due_date: editDueDate
       });
@@ -244,12 +256,6 @@ const TaskPage = () => {
     }
   };
 
-  const getEmployeeName = (id) => {
-    if (!id) return "-";
-    const emp = employees.find(e => e.id === parseInt(id) || e.id === id);
-    return emp ? emp.name : `ID: ${id}`;
-  };
-
   const getPriorityColor = (priority) => {
     const option = priorityOptions.find(p => p.value === priority?.toLowerCase());
     return option?.color || "default";
@@ -266,8 +272,14 @@ const TaskPage = () => {
 
   const filteredTasks = tasks.filter(task =>
     task.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    getEmployeeName(task.assigned_to)?.toLowerCase().includes(searchQuery.toLowerCase())
+    task.assigned_to_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    task.assigned_by_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const getPageSubtitle = () => {
+    if (canViewAll) return "Manage and assign tasks";
+    return "View and update your assigned tasks";
+  };
 
   return (
     <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
@@ -281,19 +293,21 @@ const TaskPage = () => {
                 Task Management
               </Typography>
               <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)" }}>
-                Assign and track tasks
+                {getPageSubtitle()}
               </Typography>
             </Box>
           </Box>
           <Box sx={{ display: "flex", gap: 2 }}>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleAddOpen}
-              sx={{ bgcolor: "white", color: "#6D28D9", "&:hover": { bgcolor: "#f0f0f0" } }}
-            >
-              Create Task
-            </Button>
+            {canCreateTask && (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleAddOpen}
+                sx={{ bgcolor: "white", color: "#6D28D9", "&:hover": { bgcolor: "#f0f0f0" } }}
+              >
+                Create Task
+              </Button>
+            )}
             <Tooltip title="Refresh">
               <IconButton onClick={fetchTasks} sx={{ color: "white" }}>
                 <RefreshIcon />
@@ -364,18 +378,18 @@ const TaskPage = () => {
                   <TableRow key={task.id} hover>
                     <TableCell>{task.id}</TableCell>
                     <TableCell sx={{ fontWeight: 500 }}>{task.title}</TableCell>
-                    <TableCell>{getEmployeeName(task.assigned_to)}</TableCell>
-                    <TableCell>{getEmployeeName(task.assigned_by)}</TableCell>
+                    <TableCell>{task.assigned_to_name || "-"}</TableCell>
+                    <TableCell>{task.assigned_by_name || "-"}</TableCell>
                     <TableCell>
                       <Chip 
-                        label={task.status || "Pending"} 
+                        label={task.status || "pending"} 
                         color={getStatusColor(task.status)} 
                         size="small" 
                       />
                     </TableCell>
                     <TableCell>
                       <Chip 
-                        label={task.priority || "Medium"} 
+                        label={task.priority || "medium"} 
                         color={getPriorityColor(task.priority)} 
                         size="small" 
                         variant="outlined"
@@ -384,7 +398,7 @@ const TaskPage = () => {
                     <TableCell>{task.due_date?.split("T")[0] || "-"}</TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={0.5} justifyContent="center">
-                        <Tooltip title="Start">
+                        <Tooltip title="Start Task">
                           <IconButton 
                             size="small" 
                             color="primary"
@@ -394,7 +408,7 @@ const TaskPage = () => {
                             <PlayArrowIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Complete">
+                        <Tooltip title="Mark Complete">
                           <IconButton 
                             size="small" 
                             color="success"
@@ -403,7 +417,7 @@ const TaskPage = () => {
                             <CheckCircleIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Pending">
+                        <Tooltip title="Mark Pending">
                           <IconButton 
                             size="small" 
                             color="warning"
@@ -412,24 +426,28 @@ const TaskPage = () => {
                             <PauseIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Edit">
-                          <IconButton 
-                            size="small" 
-                            color="info"
-                            onClick={() => handleEditClick(task)}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton 
-                            size="small" 
-                            color="error"
-                            onClick={() => handleDeleteClick(task)}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                        {canCreateTask && (
+                          <>
+                            <Tooltip title="Edit">
+                              <IconButton 
+                                size="small" 
+                                color="info"
+                                onClick={() => handleEditClick(task)}
+                              >
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Delete">
+                              <IconButton 
+                                size="small" 
+                                color="error"
+                                onClick={() => handleDeleteClick(task)}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </>
+                        )}
                       </Stack>
                     </TableCell>
                   </TableRow>
@@ -479,25 +497,13 @@ const TaskPage = () => {
             />
             <TextField
               select
-              label="Assigned To (Employee)"
+              label="Assign To Employee"
               value={assignedTo}
               onChange={(e) => setAssignedTo(e.target.value)}
               fullWidth
               required
             >
               <MenuItem value="">Select Employee</MenuItem>
-              {employees.map((emp) => (
-                <MenuItem key={emp.id} value={emp.id}>{emp.name}</MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              label="Assigned By (Manager)"
-              value={assignedBy}
-              onChange={(e) => setAssignedBy(e.target.value)}
-              fullWidth
-            >
-              <MenuItem value="">Select Manager</MenuItem>
               {employees.map((emp) => (
                 <MenuItem key={emp.id} value={emp.id}>{emp.name}</MenuItem>
               ))}
@@ -567,25 +573,13 @@ const TaskPage = () => {
             />
             <TextField
               select
-              label="Assigned To (Employee)"
+              label="Assign To Employee"
               value={editAssignedTo}
               onChange={(e) => setEditAssignedTo(e.target.value)}
               fullWidth
               required
             >
               <MenuItem value="">Select Employee</MenuItem>
-              {employees.map((emp) => (
-                <MenuItem key={emp.id} value={emp.id}>{emp.name}</MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              label="Assigned By (Manager)"
-              value={editAssignedBy}
-              onChange={(e) => setEditAssignedBy(e.target.value)}
-              fullWidth
-            >
-              <MenuItem value="">Select Manager</MenuItem>
               {employees.map((emp) => (
                 <MenuItem key={emp.id} value={emp.id}>{emp.name}</MenuItem>
               ))}
