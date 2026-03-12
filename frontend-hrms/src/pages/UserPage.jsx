@@ -11,33 +11,49 @@ import {
   TableBody,
   Paper,
   Stack,
-  Alert,
   IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  MenuItem
+  MenuItem,
+  Box,
+  Snackbar,
+  Alert,
+  CircularProgress,
+  Tooltip,
+  Chip,
+  InputAdornment,
+  TablePagination
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import PersonIcon from "@mui/icons-material/Person";
+import SearchIcon from "@mui/icons-material/Search";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
+import BadgeIcon from "@mui/icons-material/Badge";
+import SchoolIcon from "@mui/icons-material/School";
+import api from "../services/api";
 
 const UserPage = () => {
   const [users, setUsers] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   
-  // Form state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   
-  const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
-  
-  // Edit dialog state
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState(null);
   const [editUsername, setEditUsername] = useState("");
@@ -45,59 +61,92 @@ const UserPage = () => {
   const [editRole, setEditRole] = useState("");
   const [editDepartmentId, setEditDepartmentId] = useState("");
 
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [deleteUsername, setDeleteUsername] = useState("");
+
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+
+  const roleOptions = [
+    { value: "admin", label: "Admin", color: "#DC2626", icon: <AdminPanelSettingsIcon fontSize="small" /> },
+    { value: "manager", label: "Manager", color: "#2563EB", icon: <SupervisorAccountIcon fontSize="small" /> },
+    { value: "hr", label: "HR", color: "#7C3AED", icon: <BadgeIcon fontSize="small" /> },
+    { value: "developer", label: "Developer", color: "#059669", icon: <PersonIcon fontSize="small" /> },
+    { value: "intern", label: "Intern", color: "#D97706", icon: <SchoolIcon fontSize="small" /> }
+  ];
+
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
   const fetchUsers = async () => {
+    setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/users/all");
-      if (!res.ok) throw new Error("Failed to fetch users");
-      setUsers(await res.json());
+      const res = await api.get("/users/all");
+      setUsers(res.data);
     } catch (error) {
       console.error("Error:", error);
-      setErrorMsg("Failed to load users");
+      showSnackbar("Failed to load users", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchDepartments = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/departments/all");
-      if (!res.ok) throw new Error("Failed to fetch departments");
-      setDepartments(await res.json());
+      const res = await api.get("/departments/all");
+      setDepartments(res.data);
     } catch (error) {
       console.error("Error:", error);
     }
   };
 
+  useEffect(() => {
+    fetchUsers();
+    fetchDepartments();
+  }, []);
+
+  const resetAddForm = () => {
+    setUsername("");
+    setEmail("");
+    setPassword("");
+    setRole("");
+    setDepartmentId("");
+  };
+
+  const handleAddOpen = () => {
+    resetAddForm();
+    setAddDialogOpen(true);
+  };
+
+  const handleAddClose = () => {
+    setAddDialogOpen(false);
+    resetAddForm();
+  };
+
   const addUser = async () => {
     if (!username || !email || !password || !role) {
-      setErrorMsg("Please fill in all required fields");
+      showSnackbar("Please fill in all required fields", "error");
       return;
     }
 
+    setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/users/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          username, 
-          email, 
-          password, 
-          role, 
-          department_id: departmentId || null 
-        })
+      await api.post("/users/add", { 
+        username, 
+        email, 
+        password, 
+        role, 
+        department_id: departmentId || null 
       });
 
-      if (!res.ok) throw new Error("Failed to add user");
-
-      setUsername("");
-      setEmail("");
-      setPassword("");
-      setRole("");
-      setDepartmentId("");
-      setSuccessMsg("User added successfully");
-      setErrorMsg("");
+      handleAddClose();
+      showSnackbar("User added successfully");
       fetchUsers();
     } catch (error) {
-      setErrorMsg("Failed to add user");
-      setSuccessMsg("");
+      showSnackbar("Failed to add user", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -110,211 +159,331 @@ const UserPage = () => {
     setEditOpen(true);
   };
 
+  const handleEditClose = () => {
+    setEditOpen(false);
+    setEditId(null);
+  };
+
   const handleEditSave = async () => {
     if (!editUsername || !editEmail || !editRole) {
-      setErrorMsg("Please fill in required fields");
+      showSnackbar("Please fill in required fields", "error");
       return;
     }
 
+    setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/users/update/${editId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: editUsername,
-          email: editEmail,
-          role: editRole,
-          department_id: editDepartmentId || null
-        })
+      await api.put(`/users/update/${editId}`, {
+        username: editUsername,
+        email: editEmail,
+        role: editRole,
+        department_id: editDepartmentId || null
       });
 
-      if (!res.ok) throw new Error("Failed to update user");
-
-      setEditOpen(false);
-      setSuccessMsg("User updated successfully");
-      setErrorMsg("");
+      handleEditClose();
+      showSnackbar("User updated successfully");
       fetchUsers();
     } catch (error) {
-      setErrorMsg("Failed to update user");
-      setSuccessMsg("");
+      showSnackbar("Failed to update user", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const deleteUser = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
+  const handleDeleteClick = (user) => {
+    setDeleteId(user.id);
+    setDeleteUsername(user.username);
+    setDeleteDialogOpen(true);
+  };
 
+  const handleDeleteClose = () => {
+    setDeleteDialogOpen(false);
+    setDeleteId(null);
+    setDeleteUsername("");
+  };
+
+  const confirmDelete = async () => {
+    setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/users/delete/${id}`, {
-        method: "DELETE"
-      });
-
-      if (!res.ok) throw new Error("Failed to delete user");
-
-      setSuccessMsg("User deleted successfully");
-      setErrorMsg("");
+      await api.delete(`/users/delete/${deleteId}`);
+      handleDeleteClose();
+      showSnackbar("User deleted successfully");
       fetchUsers();
     } catch (error) {
-      setErrorMsg("Failed to delete user");
-      setSuccessMsg("");
+      showSnackbar("Failed to delete user", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-    fetchDepartments();
-  }, []);
+  const getRoleChip = (roleValue) => {
+    const roleConfig = roleOptions.find(r => r.value === roleValue);
+    return (
+      <Chip 
+        label={roleConfig?.label || roleValue} 
+        size="small"
+        icon={roleConfig?.icon}
+        sx={{ 
+          bgcolor: roleConfig?.color || "#6B7280",
+          color: "white",
+          "& .MuiChip-icon": { color: "white" }
+        }}
+      />
+    );
+  };
+
+  const filteredUsers = users.filter(user =>
+    user.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.role?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <Container sx={{ mt: 4 }}>
-      <Typography variant="h5" sx={{ mb: 3, color: "#1E3A8A" }}>
-        User Management
-      </Typography>
+    <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
+      {/* Page Header */}
+      <Paper sx={{ p: 3, mb: 3, background: "linear-gradient(135deg, #EF4444 0%, #DC2626 100%)" }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <PersonIcon sx={{ fontSize: 40, color: "white" }} />
+            <Box>
+              <Typography variant="h5" sx={{ color: "white", fontWeight: "bold" }}>
+                User Management
+              </Typography>
+              <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)" }}>
+                Manage system users and roles
+              </Typography>
+            </Box>
+          </Box>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleAddOpen}
+              sx={{ bgcolor: "white", color: "#DC2626", "&:hover": { bgcolor: "#f0f0f0" } }}
+            >
+              Add User
+            </Button>
+            <Tooltip title="Refresh">
+              <IconButton onClick={fetchUsers} sx={{ color: "white" }}>
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Box>
+      </Paper>
 
-      {errorMsg && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setErrorMsg("")}>
-          {errorMsg}
-        </Alert>
-      )}
-
-      {successMsg && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMsg("")}>
-          {successMsg}
-        </Alert>
-      )}
-
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>Add New User</Typography>
-        <Stack spacing={2}>
+      {/* Search Bar */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Stack direction="row" spacing={2} alignItems="center">
           <TextField
-            label="Username *"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            fullWidth
+            placeholder="Search users..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            size="small"
+            sx={{ minWidth: 300 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon color="action" />
+                </InputAdornment>
+              ),
+            }}
           />
-          <TextField
-            label="Email *"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            fullWidth
+          <Chip 
+            label={`${filteredUsers.length} users`} 
+            color="error" 
+            variant="outlined" 
           />
-          <TextField
-            label="Password *"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            fullWidth
-          />
-          <TextField
-            select
-            label="Role *"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            fullWidth
-          >
-            <MenuItem value="">Select Role</MenuItem>
-            <MenuItem value="admin">Admin</MenuItem>
-            <MenuItem value="manager">Manager</MenuItem>
-            <MenuItem value="employee">Employee</MenuItem>
-            <MenuItem value="hr">HR</MenuItem>
-            <MenuItem value="intern">Intern</MenuItem>
-          </TextField>
-          <TextField
-            select
-            label="Department"
-            value={departmentId}
-            onChange={(e) => setDepartmentId(e.target.value)}
-            fullWidth
-          >
-            <MenuItem value="">Select Department</MenuItem>
-            {departments.map((dept) => (
-              <MenuItem key={dept.id} value={dept.id}>{dept.name}</MenuItem>
-            ))}
-          </TextField>
-          <Button variant="contained" onClick={addUser} startIcon={<AddIcon />}>
-            Add User
-          </Button>
         </Stack>
       </Paper>
 
-      <Paper>
+      {/* Data Table */}
+      <Paper sx={{ overflow: "hidden" }}>
+        {loading && (
+          <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+            <CircularProgress color="error" />
+          </Box>
+        )}
+
         <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+            <TableRow sx={{ backgroundColor: "#f8fafc" }}>
               <TableCell sx={{ fontWeight: "bold" }}>ID</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Username</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Role</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Department</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }} align="center">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {users.length === 0 ? (
+            {!loading && filteredUsers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">No users found</TableCell>
+                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                  <Typography color="text.secondary">No users found</Typography>
+                </TableCell>
               </TableRow>
             ) : (
-              users.map((user) => (
-                <TableRow key={user.id} hover>
-                  <TableCell>{user.id}</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>{user.username}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        display: "inline-block",
-                        px: 1,
-                        py: 0.5,
-                        borderRadius: 1,
-                        backgroundColor: 
-                          user.role === "admin" ? "#dc2626" : 
-                          user.role === "manager" ? "#2563eb" : 
-                          user.role === "hr" ? "#7c3aed" :
-                          user.role === "intern" ? "#059669" :
-                          "#16a34a",
-                        color: "white",
-                        textTransform: "capitalize"
-                      }}
-                    >
-                      {user.role}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>{user.department_name || "Not Assigned"}</TableCell>
-                  <TableCell>
-                    <IconButton color="primary" onClick={() => handleEditClick(user)} size="small">
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton color="error" onClick={() => deleteUser(user.id)} size="small">
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))
+              filteredUsers
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((user) => (
+                  <TableRow key={user.id} hover>
+                    <TableCell>{user.id}</TableCell>
+                    <TableCell sx={{ fontWeight: 500 }}>{user.username}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{getRoleChip(user.role)}</TableCell>
+                    <TableCell>{user.department_name || "Not Assigned"}</TableCell>
+                    <TableCell align="center">
+                      <Tooltip title="Edit">
+                        <IconButton color="primary" onClick={() => handleEditClick(user)} size="small">
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton color="error" onClick={() => handleDeleteClick(user)} size="small">
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))
             )}
           </TableBody>
         </Table>
+        
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          component="div"
+          count={filteredUsers.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={(event, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(event) => {
+            setRowsPerPage(parseInt(event.target.value, 10));
+            setPage(0);
+          }}
+        />
       </Paper>
 
-      <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Edit User</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField label="Username *" value={editUsername} onChange={(e) => setEditUsername(e.target.value)} fullWidth />
-            <TextField label="Email *" type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} fullWidth />
+      {/* Add User Dialog */}
+      <Dialog open={addDialogOpen} onClose={handleAddClose} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ bgcolor: "#EF4444", color: "white" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <AddIcon />
+            Add New User
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Stack spacing={2.5} sx={{ mt: 1 }}>
+            <TextField
+              label="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              fullWidth
+              required
+            />
             <TextField
               select
-              label="Role *"
+              label="Role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              fullWidth
+              required
+            >
+              <MenuItem value="">Select Role</MenuItem>
+              {roleOptions.map((r) => (
+                <MenuItem key={r.value} value={r.value}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    {r.icon}
+                    {r.label}
+                  </Box>
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              select
+              label="Department"
+              value={departmentId}
+              onChange={(e) => setDepartmentId(e.target.value)}
+              fullWidth
+            >
+              <MenuItem value="">Select Department</MenuItem>
+              {departments.map((dept) => (
+                <MenuItem key={dept.id} value={dept.id}>{dept.name}</MenuItem>
+              ))}
+            </TextField>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={handleAddClose} color="inherit">Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={addUser}
+            disabled={loading}
+            color="error"
+            startIcon={loading ? <CircularProgress size={20} /> : <AddIcon />}
+          >
+            Add User
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={editOpen} onClose={handleEditClose} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ bgcolor: "#3B82F6", color: "white" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <EditIcon />
+            Edit User
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Stack spacing={2.5} sx={{ mt: 1 }}>
+            <TextField 
+              label="Username" 
+              value={editUsername} 
+              onChange={(e) => setEditUsername(e.target.value)} 
+              fullWidth 
+              required 
+            />
+            <TextField 
+              label="Email" 
+              type="email" 
+              value={editEmail} 
+              onChange={(e) => setEditEmail(e.target.value)} 
+              fullWidth 
+              required 
+            />
+            <TextField
+              select
+              label="Role"
               value={editRole}
               onChange={(e) => setEditRole(e.target.value)}
               fullWidth
+              required
             >
-              <MenuItem value="admin">Admin</MenuItem>
-              <MenuItem value="manager">Manager</MenuItem>
-              <MenuItem value="employee">Employee</MenuItem>
-              <MenuItem value="hr">HR</MenuItem>
-              <MenuItem value="intern">Intern</MenuItem>
+              {roleOptions.map((r) => (
+                <MenuItem key={r.value} value={r.value}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    {r.icon}
+                    {r.label}
+                  </Box>
+                </MenuItem>
+              ))}
             </TextField>
             <TextField
               select
@@ -330,11 +499,63 @@ const UserPage = () => {
             </TextField>
           </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleEditSave}>Save</Button>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={handleEditClose} color="inherit">Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleEditSave}
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={20} /> : "Save Changes"}
+          </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={handleDeleteClose} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ bgcolor: "#DC2626", color: "white" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <DeleteIcon />
+            Confirm Delete
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Typography>
+            Are you sure you want to delete user <strong>"{deleteUsername}"</strong>?
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={handleDeleteClose} color="inherit">Cancel</Button>
+          <Button 
+            variant="contained" 
+            color="error"
+            onClick={confirmDelete}
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={20} /> : <DeleteIcon />}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for feedback */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

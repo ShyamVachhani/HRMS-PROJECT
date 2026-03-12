@@ -193,3 +193,19 @@ CREATE TABLE IF NOT EXISTS task_attachments (
     FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
 );
 
+-- ============================================
+-- ANNOUNCEMENTS
+-- ============================================
+CREATE TABLE IF NOT EXISTS announcements (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    content TEXT,
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+INSERT INTO announcements (title, content, created_by) VALUES 
+('Welcome to HRMS', 'Welcome to our new HR Management System. Please update your profile information.', 1),
+('Office Timing Update', 'Starting next month, office hours will be 9 AM to 6 PM.', 1);
+

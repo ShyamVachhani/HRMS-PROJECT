@@ -27,6 +27,7 @@ import EventIcon from "@mui/icons-material/Event";
 import BusinessIcon from "@mui/icons-material/Business";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import CampaignIcon from "@mui/icons-material/Campaign";
 import { useNavigate, useLocation } from "react-router-dom";
 
 // Role-based menu items - redirects to role-specific dashboard
@@ -42,6 +43,7 @@ const roleMenuItems = {
     { text: "WFH", path: "/wfh", icon: <HomeWorkIcon /> },
     { text: "Holidays", path: "/holidays", icon: <EventIcon /> },
     { text: "Department", path: "/departments", icon: <BusinessIcon /> },
+    { text: "Announcements", path: "/announcements", icon: <CampaignIcon /> },
     { text: "Reports", path: "/reports", icon: <AssessmentIcon /> },
     { text: "Users", path: "/users", icon: <AdminPanelSettingsIcon /> }
   ],
@@ -53,6 +55,7 @@ const roleMenuItems = {
     { text: "Tasks", path: "/tasks", icon: <AssignmentIcon /> },
     { text: "WFH", path: "/wfh", icon: <HomeWorkIcon /> },
     { text: "Department", path: "/departments", icon: <BusinessIcon /> },
+    { text: "Announcements", path: "/announcements", icon: <CampaignIcon /> },
     { text: "Reports", path: "/reports", icon: <AssessmentIcon /> }
   ],
   hr: [
@@ -60,20 +63,25 @@ const roleMenuItems = {
     { text: "Employees", path: "/employees", icon: <PeopleIcon /> },
     { text: "Attendance", path: "/attendance", icon: <CheckCircleIcon /> },
     { text: "Leave", path: "/leave", icon: <BeachAccessIcon /> },
+    { text: "Salary", path: "/salary", icon: <AttachMoneyIcon /> },
+    { text: "Policies", path: "/policies", icon: <PolicyIcon /> },
     { text: "Department", path: "/departments", icon: <BusinessIcon /> },
-    { text: "Holidays", path: "/holidays", icon: <EventIcon /> }
+    { text: "Holidays", path: "/holidays", icon: <EventIcon /> },
+    { text: "Announcements", path: "/announcements", icon: <CampaignIcon /> }
   ],
   developer: [
     { text: "Dashboard", path: "/developer", icon: <DashboardIcon /> },
     { text: "Attendance", path: "/attendance", icon: <CheckCircleIcon /> },
     { text: "Leave", path: "/leave", icon: <BeachAccessIcon /> },
     { text: "Tasks", path: "/tasks", icon: <AssignmentIcon /> },
-    { text: "WFH", path: "/wfh", icon: <HomeWorkIcon /> }
+    { text: "WFH", path: "/wfh", icon: <HomeWorkIcon /> },
+    { text: "Announcements", path: "/announcements", icon: <CampaignIcon /> }
   ],
   intern: [
     { text: "Dashboard", path: "/intern", icon: <DashboardIcon /> },
     { text: "Attendance", path: "/attendance", icon: <CheckCircleIcon /> },
-    { text: "Tasks", path: "/tasks", icon: <AssignmentIcon /> }
+    { text: "Tasks", path: "/tasks", icon: <AssignmentIcon /> },
+    { text: "Announcements", path: "/announcements", icon: <CampaignIcon /> }
   ]
 };
 

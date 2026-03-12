@@ -16,7 +16,8 @@ const roleAccess = {
     "/policies",
     "/wfh",
     "/holidays",
-    "/departments"
+    "/departments",
+    "/announcements"
   ],
   manager: [
     "/",
@@ -26,27 +27,33 @@ const roleAccess = {
     "/reports",
     "/leave",
     "/wfh",
-    "/departments"
+    "/departments",
+    "/announcements"
   ],
   hr: [
     "/",
     "/employees",
     "/attendance",
     "/leave",
+    "/salary",
+    "/policies",
     "/holidays",
-    "/departments"
+    "/departments",
+    "/announcements"
   ],
   developer: [
     "/",
     "/attendance",
     "/leave",
     "/tasks",
-    "/wfh"
+    "/wfh",
+    "/announcements"
   ],
   intern: [
     "/",
     "/attendance",
-    "/tasks"
+    "/tasks",
+    "/announcements"
   ]
 };
 

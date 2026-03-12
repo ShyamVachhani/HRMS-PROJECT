@@ -10,24 +10,56 @@ import {
   TableRow,
   Paper,
   Stack,
-  TablePagination
+  TablePagination,
+  Box,
+  Chip,
+  TextField,
+  MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Snackbar,
+  Alert,
+  CircularProgress,
+  IconButton,
+  Tooltip,
+  InputAdornment
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import BeachAccessIcon from "@mui/icons-material/BeachAccess";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import EventIcon from "@mui/icons-material/Event";
 import api from "../services/api";
 
-function LeavePage({ user }) {
+function LeavePage() {
   const [leaves, setLeaves] = useState([]);
   const [employees, setEmployees] = useState([]);
-  const [employeeId, setEmployeeId] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [reason, setReason] = useState("");
+  const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
+
+  const [applyDialogOpen, setApplyDialogOpen] = useState(false);
+  const [employeeId, setEmployeeId] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [reason, setReason] = useState("");
   const [leaveBalance, setLeaveBalance] = useState(null);
 
-  // Load employees for dropdown
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  const canApprove = ["admin", "hr", "manager"].includes(user?.role);
+
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
   useEffect(() => {
     api.get("/employees?page=1&limit=100")
       .then(res => res.data)
@@ -35,8 +67,8 @@ function LeavePage({ user }) {
       .catch(err => console.error(err));
   }, []);
 
-  // Load leaves
-  const fetchLeaves = () => {
+  const fetchLeaves = async () => {
+    setLoading(true);
     const query = new URLSearchParams({
       page: page + 1,
       limit: rowsPerPage
@@ -46,36 +78,49 @@ function LeavePage({ user }) {
       query.append("status", statusFilter);
     }
 
-    api.get(`/leaves?${query.toString()}`)
-      .then(res => res.data)
-      .then(data => {
-        setLeaves(data.data || []);
-        setTotalCount(data.totalLeaves || 0);
-      })
-      .catch(err => console.error(err));
+    try {
+      const res = await api.get(`/leaves?${query.toString()}`);
+      setLeaves(res.data.data || []);
+      setTotalCount(res.data.totalLeaves || 0);
+    } catch (err) {
+      console.error(err);
+      showSnackbar("Failed to load leaves", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    fetchLeaves(page, rowsPerPage);
+    fetchLeaves();
   }, [page, rowsPerPage, statusFilter]);
 
-  // Apply Leave
+  const handleApplyOpen = () => {
+    setEmployeeId("");
+    setStartDate("");
+    setEndDate("");
+    setReason("");
+    setLeaveBalance(null);
+    setApplyDialogOpen(true);
+  };
+
+  const handleApplyClose = () => {
+    setApplyDialogOpen(false);
+  };
+
   const handleApply = async () => {
     if (!employeeId || !startDate || !endDate) {
-      alert("Please fill required fields");
+      showSnackbar("Please fill required fields", "error");
       return;
     }
 
-    const days =
-      (new Date(endDate) - new Date(startDate)) /
-        (1000 * 60 * 60 * 24) +
-      1;
+    const days = (new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24) + 1;
 
     if (leaveBalance !== null && days > leaveBalance) {
-      alert("Not enough leave balance");
+      showSnackbar("Not enough leave balance", "error");
       return;
     }
 
+    setLoading(true);
     try {
       await api.post("/leaves", {
         employee_id: employeeId,
@@ -84,186 +129,180 @@ function LeavePage({ user }) {
         reason
       });
 
-      alert("Leave applied!");
-      setEmployeeId("");
-      setStartDate("");
-      setEndDate("");
-      setReason("");
+      handleApplyClose();
+      showSnackbar("Leave applied successfully!");
       setPage(0);
-      fetchLeaves(0, rowsPerPage);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // Update Leave Status
-  const updateStatus = async (id, newStatus) => {
-    try {
-      await api.put(`/leaves/${id}`, { status: newStatus });
       fetchLeaves();
     } catch (err) {
       console.error(err);
+      showSnackbar("Failed to apply leave", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+  const updateStatus = async (id, newStatus) => {
+    setLoading(true);
+    try {
+      await api.put(`/leaves/${id}`, { status: newStatus });
+      showSnackbar(`Leave ${newStatus.toLowerCase()} successfully!`);
+      fetchLeaves();
+    } catch (err) {
+      console.error(err);
+      showSnackbar("Failed to update status", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+  const getStatusChip = (status) => {
+    const statusConfig = {
+      Pending: { color: "warning", icon: <EventIcon fontSize="small" /> },
+      Approved: { color: "success", icon: <CheckCircleIcon fontSize="small" /> },
+      Rejected: { color: "error", icon: <CancelIcon fontSize="small" /> }
+    };
+    const config = statusConfig[status] || statusConfig.Pending;
+    return (
+      <Chip 
+        label={status} 
+        color={config.color} 
+        size="small"
+        icon={config.icon}
+      />
+    );
   };
 
   return (
-    <Container sx={{ mt: 5 }}>
-      {/* Welcome message */}
-      <Typography variant="h5" sx={{ mb: 3, textAlign: "center" }}>
-        Welcome {user?.name} {user?.role}
-      </Typography>
+    <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
+      {/* Page Header */}
+      <Paper sx={{ p: 3, mb: 3, background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)" }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <BeachAccessIcon sx={{ fontSize: 40, color: "white" }} />
+            <Box>
+              <Typography variant="h5" sx={{ color: "white", fontWeight: "bold" }}>
+                Leave Management
+              </Typography>
+              <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)" }}>
+                Apply and manage leave requests
+              </Typography>
+            </Box>
+          </Box>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleApplyOpen}
+              sx={{ bgcolor: "white", color: "#D97706", "&:hover": { bgcolor: "#f0f0f0" } }}
+            >
+              Apply Leave
+            </Button>
+            <Tooltip title="Refresh">
+              <IconButton onClick={fetchLeaves} sx={{ color: "white" }}>
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Box>
+      </Paper>
 
-      {/* Apply Leave Form */}
-      <Paper sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>Apply Leave</Typography>
-
-        <Stack direction="row" spacing={2} sx={{ mb: 2 }} alignItems="center">
-
-          <select
-            value={employeeId}
-            onChange={e => {
-              const id = e.target.value;
-              setEmployeeId(id);
-
-              const emp = employees.find(emp => emp.id == id);
-              setLeaveBalance(emp?.leave_balance ?? null);
+      {/* Filter Bar */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Stack direction="row" spacing={2} alignItems="center">
+          <FilterListIcon color="action" />
+          <TextField
+            select
+            label="Filter by Status"
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(0);
             }}
+            size="small"
+            sx={{ minWidth: 200 }}
           >
-            <option value="">Select Employee</option>
-            {employees.map(emp => (
-              <option key={emp.id} value={emp.id}>
-                {emp.name}
-              </option>
-            ))}
-          </select>
-
-          {leaveBalance !== null && (
-            <Typography>
-              Leave Balance: {leaveBalance} days
-            </Typography>
-          )}
-
-          <input
-            type="date"
-            value={startDate}
-            onChange={e => setStartDate(e.target.value)}
+            <MenuItem value="">All Status</MenuItem>
+            <MenuItem value="Pending">Pending</MenuItem>
+            <MenuItem value="Approved">Approved</MenuItem>
+            <MenuItem value="Rejected">Rejected</MenuItem>
+          </TextField>
+          <Chip 
+            label={`${totalCount} requests`} 
+            color="warning" 
+            variant="outlined" 
           />
-
-          <input
-            type="date"
-            value={endDate}
-            onChange={e => setEndDate(e.target.value)}
-          />
-
-          <input
-            placeholder="Reason"
-            value={reason}
-            onChange={e => setReason(e.target.value)}
-          />
-
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleApply}
-          >
-            Apply
-          </Button>
-
         </Stack>
       </Paper>
 
-      {/* Status Filter */}
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <select
-          value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value)}
-        >
-          <option value="">All Status</option>
-          <option value="Pending">Pending</option>
-          <option value="Approved">Approved</option>
-          <option value="Rejected">Rejected</option>
-        </select>
-      </Stack>
+      {/* Data Table */}
+      <Paper sx={{ overflow: "hidden" }}>
+        {loading && (
+          <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+            <CircularProgress color="warning" />
+          </Box>
+        )}
 
-      {/* Leave Table */}
-      <Paper>
         <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-              <TableCell>ID</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Department</TableCell>
-              <TableCell>Start</TableCell>
-              <TableCell>End</TableCell>
-              <TableCell>Reason</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Action</TableCell>
+            <TableRow sx={{ backgroundColor: "#f8fafc" }}>
+              <TableCell sx={{ fontWeight: "bold" }}>ID</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Employee</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Department</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Start Date</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>End Date</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Reason</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
+              {canApprove && <TableCell sx={{ fontWeight: "bold" }} align="center">Actions</TableCell>}
             </TableRow>
           </TableHead>
 
           <TableBody>
-            {leaves.length > 0 ? (
-              leaves.map(leave => (
-                <TableRow key={leave.id} hover>
-
-                  <TableCell>{leave.id}</TableCell>
-                  <TableCell>{leave.name}</TableCell>
-                  <TableCell>{leave.department}</TableCell>
-                  <TableCell>{leave.start_date}</TableCell>
-                  <TableCell>{leave.end_date}</TableCell>
-                  <TableCell>{leave.reason}</TableCell>
-                  <TableCell>{leave.status}</TableCell>
-
-                  <TableCell>
-                    {leave.status === "Pending" && (
-                      <Stack direction="row" spacing={1}>
-
-                        <Button
-                          variant="contained"
-                          color="success"
-                          size="small"
-                          onClick={() =>
-                            updateStatus(leave.id, "Approved")
-                          }
-                        >
-                          Approve
-                        </Button>
-
-                        <Button
-                          variant="contained"
-                          color="error"
-                          size="small"
-                          onClick={() =>
-                            updateStatus(leave.id, "Rejected")
-                          }
-                        >
-                          Reject
-                        </Button>
-
-                      </Stack>
-                    )}
-                  </TableCell>
-
-                </TableRow>
-              ))
-            ) : (
+            {!loading && leaves.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} align="center">
-                  No leave records
+                <TableCell colSpan={canApprove ? 8 : 7} align="center" sx={{ py: 4 }}>
+                  <Typography color="text.secondary">No leave records found</Typography>
                 </TableCell>
               </TableRow>
+            ) : (
+              leaves.map(leave => (
+                <TableRow key={leave.id} hover>
+                  <TableCell>{leave.id}</TableCell>
+                  <TableCell sx={{ fontWeight: 500 }}>{leave.name}</TableCell>
+                  <TableCell>{leave.department || "-"}</TableCell>
+                  <TableCell>{leave.start_date?.split("T")[0]}</TableCell>
+                  <TableCell>{leave.end_date?.split("T")[0]}</TableCell>
+                  <TableCell>{leave.reason || "-"}</TableCell>
+                  <TableCell>{getStatusChip(leave.status)}</TableCell>
+                  {canApprove && (
+                    <TableCell align="center">
+                      {leave.status === "Pending" && (
+                        <Stack direction="row" spacing={1} justifyContent="center">
+                          <Button
+                            variant="contained"
+                            color="success"
+                            size="small"
+                            startIcon={<CheckCircleIcon />}
+                            onClick={() => updateStatus(leave.id, "Approved")}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            color="error"
+                            size="small"
+                            startIcon={<CancelIcon />}
+                            onClick={() => updateStatus(leave.id, "Rejected")}
+                          >
+                            Reject
+                          </Button>
+                        </Stack>
+                      )}
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))
             )}
           </TableBody>
-
         </Table>
 
         <TablePagination
@@ -272,11 +311,111 @@ function LeavePage({ user }) {
           count={totalCount}
           rowsPerPage={rowsPerPage}
           page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
+          onPageChange={(event, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(event) => {
+            setRowsPerPage(parseInt(event.target.value, 10));
+            setPage(0);
+          }}
         />
-
       </Paper>
+
+      {/* Apply Leave Dialog */}
+      <Dialog open={applyDialogOpen} onClose={handleApplyClose} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ bgcolor: "#F59E0B", color: "white" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <BeachAccessIcon />
+            Apply for Leave
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Stack spacing={2.5} sx={{ mt: 1 }}>
+            <TextField
+              select
+              label="Select Employee"
+              value={employeeId}
+              onChange={(e) => {
+                const id = e.target.value;
+                setEmployeeId(id);
+                const emp = employees.find(emp => emp.id == id);
+                setLeaveBalance(emp?.leave_balance ?? null);
+              }}
+              fullWidth
+              required
+            >
+              <MenuItem value="">Select Employee</MenuItem>
+              {employees.map(emp => (
+                <MenuItem key={emp.id} value={emp.id}>
+                  {emp.name} {emp.leave_balance !== undefined && `(Balance: ${emp.leave_balance} days)`}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            {leaveBalance !== null && (
+              <Alert severity="info">
+                Current Leave Balance: <strong>{leaveBalance} days</strong>
+              </Alert>
+            )}
+
+            <TextField
+              type="date"
+              label="Start Date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+              required
+            />
+
+            <TextField
+              type="date"
+              label="End Date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+              required
+            />
+
+            <TextField
+              label="Reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              multiline
+              rows={3}
+              fullWidth
+              placeholder="Enter reason for leave..."
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={handleApplyClose} color="inherit">Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleApply}
+            disabled={loading}
+            sx={{ bgcolor: "#F59E0B", "&:hover": { bgcolor: "#D97706" } }}
+            startIcon={loading ? <CircularProgress size={20} /> : <AddIcon />}
+          >
+            Submit Request
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for feedback */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }

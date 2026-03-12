@@ -11,6 +11,7 @@ import {
   Alert
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import api from "../services/api";
 
 const roles = ["admin", "manager", "hr", "developer", "intern"];
 
@@ -33,32 +34,19 @@ const SignupPage = () => {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-          role: selectedRole,
-        }),
+      await api.post("/auth/signup", {
+        name,
+        email,
+        password,
+        role: selectedRole,
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.message || "Signup failed");
-        return;
-      }
 
       alert("Signup successful! Please login.");
       navigate("/login");
 
     } catch (error) {
       console.error(error);
-      setError("Connection error. Please try again.");
+      setError(error.response?.data?.message || "Connection error. Please try again.");
     } finally {
       setLoading(false);
     }

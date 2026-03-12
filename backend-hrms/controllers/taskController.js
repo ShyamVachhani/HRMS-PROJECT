@@ -89,3 +89,24 @@ export const deleteTask = (req, res) => {
     }
   );
 };
+
+/* Get My Tasks (Current User) */
+export const getMyTasks = (req, res) => {
+  const employeeId = req.user.employee_id;
+
+  const sql = `
+    SELECT t.*, 
+           e1.name AS assigned_to_name,
+           e2.name AS assigned_by_name
+    FROM tasks t
+    JOIN employees e1 ON t.assigned_to = e1.id
+    JOIN employees e2 ON t.assigned_by = e2.id
+    WHERE t.assigned_to = ?
+    ORDER BY t.created_at DESC
+  `;
+
+  db.query(sql, [employeeId], (err, result) => {
+    if (err) return res.status(500).json(err);
+    res.json(result);
+  });
+};

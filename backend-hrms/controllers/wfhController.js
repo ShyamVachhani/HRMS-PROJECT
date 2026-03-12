@@ -94,3 +94,21 @@ export const getAllWFH = (req,res)=>{
     }
   );
 };
+
+/* Get My WFH Requests (Current User) */
+export const getMyWFH = (req, res) => {
+  const employeeId = req.user.employee_id;
+
+  db.query(
+    `SELECT w.*, e.name
+     FROM wfh_requests w
+     JOIN employees e ON w.employee_id = e.id
+     WHERE w.employee_id = ?
+     ORDER BY w.start_date DESC`,
+    [employeeId],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
+      res.json(result);
+    }
+  );
+};

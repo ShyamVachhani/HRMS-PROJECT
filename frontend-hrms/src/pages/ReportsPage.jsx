@@ -11,6 +11,7 @@ import {
   Paper,
   Stack
 } from "@mui/material";
+import api from "../services/api";
 
 const ReportsPage = () => {
 
@@ -18,25 +19,19 @@ const ReportsPage = () => {
   const [reportType, setReportType] = useState("");
 
   const fetchReport = async (type) => {
-
-  try {
-
-    const res = await fetch(`http://localhost:5000/api/reports/${type}`);
-    const result = await res.json();
-
-    if (Array.isArray(result)) {
-      setData(result);
-    } else {
-      console.error(result);
+    try {
+      const res = await api.get(`/reports/${type}`);
+      if (Array.isArray(res.data)) {
+        setData(res.data);
+      } else {
+        console.error(res.data);
+        setData([]);
+      }
+    } catch (err) {
+      console.error(err);
       setData([]);
     }
-
-  } catch (err) {
-    console.error(err);
-    setData([]);
-  }
-
-};
+  };
 
   return (
     <Container sx={{ mt: 5 }}>

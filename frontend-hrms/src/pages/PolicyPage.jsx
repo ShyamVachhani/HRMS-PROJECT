@@ -11,81 +11,68 @@ import {
   TableBody,
   Paper,
   Stack,
-  Alert,
   IconButton,
-  Box
+  Box,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Snackbar,
+  Alert,
+  CircularProgress,
+  Tooltip,
+  Chip,
+  Card,
+  CardContent,
+  Grid,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  TablePagination
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import PolicyIcon from "@mui/icons-material/Policy";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import BeachAccessIcon from "@mui/icons-material/BeachAccess";
+import HomeWorkIcon from "@mui/icons-material/HomeWork";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import api from "../services/api";
 
 const PolicyPage = () => {
   const [policies, setPolicies] = useState([]);
+  const [loading, setLoading] = useState(false);
+  
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [deleteTitle, setDeleteTitle] = useState("");
+
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
 
   const fetchPolicies = async () => {
+    setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/policies/all");
-      if (!res.ok) {
-        throw new Error("Failed to fetch policies");
-      }
-      setPolicies(await res.json());
+      const res = await api.get("/policies/all");
+      setPolicies(res.data);
     } catch (error) {
       console.error("Error fetching policies:", error);
-      setErrorMsg("Failed to load policies");
-    }
-  };
-
-  const addPolicy = async () => {
-    if (!title || !description) {
-      setErrorMsg("Please enter policy title and description");
-      return;
-    }
-
-    try {
-      const res = await fetch("http://localhost:5000/api/policies/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description })
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to add policy");
-      }
-
-      setTitle("");
-      setDescription("");
-      setSuccessMsg("Policy added successfully");
-      setErrorMsg("");
-      fetchPolicies();
-    } catch (error) {
-      setErrorMsg("Failed to add policy");
-      setSuccessMsg("");
-    }
-  };
-
-  const deletePolicy = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this policy?")) {
-      return;
-    }
-
-    try {
-      const res = await fetch(`http://localhost:5000/api/policies/delete/${id}`, {
-        method: "DELETE"
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to delete policy");
-      }
-
-      setSuccessMsg("Policy deleted successfully");
-      setErrorMsg("");
-      fetchPolicies();
-    } catch (error) {
-      setErrorMsg("Failed to delete policy");
-      setSuccessMsg("");
+      showSnackbar("Failed to load policies", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -93,140 +80,316 @@ const PolicyPage = () => {
     fetchPolicies();
   }, []);
 
+  const resetForm = () => {
+    setTitle("");
+    setDescription("");
+  };
+
+  const handleAddOpen = () => {
+    resetForm();
+    setAddDialogOpen(true);
+  };
+
+  const handleAddClose = () => {
+    setAddDialogOpen(false);
+    resetForm();
+  };
+
+  const addPolicy = async () => {
+    if (!title || !description) {
+      showSnackbar("Please enter policy title and description", "error");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await api.post("/policies/add", { title, description });
+      handleAddClose();
+      showSnackbar("Policy added successfully");
+      fetchPolicies();
+    } catch (error) {
+      showSnackbar("Failed to add policy", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteClick = (policy) => {
+    setDeleteId(policy.id);
+    setDeleteTitle(policy.title);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteClose = () => {
+    setDeleteDialogOpen(false);
+    setDeleteId(null);
+    setDeleteTitle("");
+  };
+
+  const confirmDelete = async () => {
+    setLoading(true);
+    try {
+      await api.delete(`/policies/delete/${deleteId}`);
+      handleDeleteClose();
+      showSnackbar("Policy deleted successfully");
+      fetchPolicies();
+    } catch (error) {
+      showSnackbar("Failed to delete policy", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const companyGuidelines = [
+    {
+      icon: <AccessTimeIcon sx={{ color: "#3B82F6" }} />,
+      title: "Working Hours",
+      description: "Standard working hours are 9:00 AM to 6:00 PM, Monday through Friday.",
+      color: "#EFF6FF"
+    },
+    {
+      icon: <EventAvailableIcon sx={{ color: "#10B981" }} />,
+      title: "Attendance Policy",
+      description: "Employees are required to mark their attendance daily. Late arrivals should be reported to your manager.",
+      color: "#ECFDF5"
+    },
+    {
+      icon: <BeachAccessIcon sx={{ color: "#F59E0B" }} />,
+      title: "Leave Policy",
+      description: "Employees can apply for leave through the Leave request system. Leave requests should be submitted in advance.",
+      color: "#FFFBEB"
+    },
+    {
+      icon: <HomeWorkIcon sx={{ color: "#06B6D4" }} />,
+      title: "Work From Home",
+      description: "WFH requests must be approved by the manager. Employees should maintain productivity while working remotely.",
+      color: "#ECFEFF"
+    },
+    {
+      icon: <AttachMoneyIcon sx={{ color: "#8B5CF6" }} />,
+      title: "Salary",
+      description: "Salary is calculated based on working days, present days, and leave days. Salary reports can be viewed in the Salary section.",
+      color: "#F5F3FF"
+    }
+  ];
+
   return (
-    <Container sx={{ mt: 4 }}>
-      <Typography variant="h5" sx={{ mb: 3, color: "#1E3A8A" }}>
-        Company Policies Management
-      </Typography>
-
-      {errorMsg && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setErrorMsg("")}>
-          {errorMsg}
-        </Alert>
-      )}
-
-      {successMsg && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMsg("")}>
-          {successMsg}
-        </Alert>
-      )}
-
-      {/* Add Policy Form */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>
-          Add New Policy
-        </Typography>
-        <Stack spacing={2}>
-          <TextField
-            label="Policy Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            fullWidth
-          />
-          <TextField
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            multiline
-            rows={3}
-            fullWidth
-          />
-          <Button 
-            variant="contained" 
-            onClick={addPolicy}
-            startIcon={<AddIcon />}
-            sx={{ mt: 1 }}
-          >
-            Add Policy
-          </Button>
-        </Stack>
-      </Paper>
-
-      {/* Policies List */}
-      <Paper sx={{ mb: 3 }}>
-        <Typography variant="h6" sx={{ p: 2, pb: 0 }}>
-          Company Guidelines
-        </Typography>
-        
-        {/* Static Company Policies */}
-        <Box sx={{ p: 2 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 1, color: "#1E3A8A" }}>
-            Working Hours
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Standard working hours are 9:00 AM to 6:00 PM, Monday through Friday.
-          </Typography>
-
-          <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 1, color: "#1E3A8A" }}>
-            Attendance Policy
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Employees are required to mark their attendance daily. Late arrivals should be reported.
-          </Typography>
-
-          <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 1, color: "#1E3A8A" }}>
-            Leave Policy
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Employees can apply for leave through the WFH/Leave request system. Leave requests should be submitted in advance.
-          </Typography>
-
-          <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 1, color: "#1E3A8A" }}>
-            Work From Home
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            WFH requests must be approved by the manager. Employees should maintain productivity while working remotely.
-          </Typography>
-
-          <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 1, color: "#1E3A8A" }}>
-            Salary
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Salary is calculated based on working days, present days, and leave days. Salary reports can be viewed in the Salary section.
-          </Typography>
+    <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
+      {/* Page Header */}
+      <Paper sx={{ p: 3, mb: 3, background: "linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)" }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <PolicyIcon sx={{ fontSize: 40, color: "white" }} />
+            <Box>
+              <Typography variant="h5" sx={{ color: "white", fontWeight: "bold" }}>
+                Company Policies
+              </Typography>
+              <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)" }}>
+                View and manage company policies
+              </Typography>
+            </Box>
+          </Box>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleAddOpen}
+              sx={{ bgcolor: "white", color: "#4F46E5", "&:hover": { bgcolor: "#f0f0f0" } }}
+            >
+              Add Policy
+            </Button>
+            <Tooltip title="Refresh">
+              <IconButton onClick={fetchPolicies} sx={{ color: "white" }}>
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
         </Box>
       </Paper>
 
-      {/* Custom Policies from Database */}
-      <Paper>
-        <Typography variant="h6" sx={{ p: 2 }}>
+      {/* Company Guidelines Cards */}
+      <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
+        Company Guidelines
+      </Typography>
+      <Grid container spacing={2} sx={{ mb: 4 }}>
+        {companyGuidelines.map((guideline, index) => (
+          <Grid item xs={12} sm={6} md={4} key={index}>
+            <Card sx={{ height: "100%", bgcolor: guideline.color }}>
+              <CardContent>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+                  {guideline.icon}
+                  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                    {guideline.title}
+                  </Typography>
+                </Box>
+                <Typography variant="body2" color="text.secondary">
+                  {guideline.description}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* Custom Policies Section */}
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+        <Typography variant="h6" sx={{ fontWeight: "bold" }}>
           Custom Policies
         </Typography>
+        <Chip 
+          label={`${policies.length} policies`} 
+          color="primary" 
+          variant="outlined" 
+        />
+      </Box>
+
+      <Paper sx={{ overflow: "hidden" }}>
+        {loading && (
+          <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+            <CircularProgress sx={{ color: "#6366F1" }} />
+          </Box>
+        )}
+
         <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+            <TableRow sx={{ backgroundColor: "#f8fafc" }}>
               <TableCell sx={{ fontWeight: "bold" }}>Title</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Description</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }} align="center">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {policies.length === 0 ? (
+            {!loading && policies.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} align="center">
-                  No custom policies found
+                <TableCell colSpan={3} align="center" sx={{ py: 4 }}>
+                  <Typography color="text.secondary">No custom policies found</Typography>
                 </TableCell>
               </TableRow>
             ) : (
-              policies.map((policy) => (
-                <TableRow key={policy.id} hover>
-                  <TableCell sx={{ fontWeight: "bold" }}>{policy.title}</TableCell>
-                  <TableCell>{policy.description}</TableCell>
-                  <TableCell>
-                    <IconButton
-                      color="error"
-                      onClick={() => deletePolicy(policy.id)}
-                      size="small"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))
+              policies
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((policy) => (
+                  <TableRow key={policy.id} hover>
+                    <TableCell sx={{ fontWeight: 500 }}>{policy.title}</TableCell>
+                    <TableCell>{policy.description}</TableCell>
+                    <TableCell align="center">
+                      <Tooltip title="Delete">
+                        <IconButton
+                          color="error"
+                          onClick={() => handleDeleteClick(policy)}
+                          size="small"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))
             )}
           </TableBody>
         </Table>
+        
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={policies.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={(event, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(event) => {
+            setRowsPerPage(parseInt(event.target.value, 10));
+            setPage(0);
+          }}
+        />
       </Paper>
+
+      {/* Add Policy Dialog */}
+      <Dialog open={addDialogOpen} onClose={handleAddClose} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ bgcolor: "#6366F1", color: "white" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <AddIcon />
+            Add New Policy
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Stack spacing={2.5} sx={{ mt: 1 }}>
+            <TextField
+              label="Policy Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              multiline
+              rows={4}
+              fullWidth
+              required
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={handleAddClose} color="inherit">Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={addPolicy}
+            disabled={loading}
+            sx={{ bgcolor: "#6366F1", "&:hover": { bgcolor: "#4F46E5" } }}
+            startIcon={loading ? <CircularProgress size={20} /> : <AddIcon />}
+          >
+            Add Policy
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={handleDeleteClose} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ bgcolor: "#DC2626", color: "white" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <DeleteIcon />
+            Confirm Delete
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Typography>
+            Are you sure you want to delete policy <strong>"{deleteTitle}"</strong>?
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={handleDeleteClose} color="inherit">Cancel</Button>
+          <Button 
+            variant="contained" 
+            color="error"
+            onClick={confirmDelete}
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={20} /> : <DeleteIcon />}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for feedback */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

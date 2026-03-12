@@ -105,7 +105,6 @@ export const updateLeaveStatus = async (req, res) => {
   }
 
   try {
-    // Get leave details
     const leaveResult = await sequelize.query(
       `SELECT employee_id, start_date, end_date FROM leaves WHERE id = :id`,
       { replacements: { id }, type: QueryTypes.SELECT }
@@ -122,7 +121,6 @@ export const updateLeaveStatus = async (req, res) => {
     const end = new Date(leave.end_date);
     const days = (end - start) / (1000 * 60 * 60 * 24) + 1;
 
-    // If approving, reduce leave balance
     if (status === "Approved") {
       await sequelize.query(
         `UPDATE employees SET leave_balance = leave_balance - :days WHERE id = :employee_id`,
@@ -130,7 +128,6 @@ export const updateLeaveStatus = async (req, res) => {
       );
     }
 
-    // Update leave status
     await sequelize.query(
       `UPDATE leaves SET status = :status WHERE id = :id`,
       { replacements: { status, id }, type: QueryTypes.UPDATE }
@@ -138,6 +135,98 @@ export const updateLeaveStatus = async (req, res) => {
 
     res.json({
       message: "Leave status updated successfully"
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Database error" });
+  }
+};
+
+/* Get My Leaves (Current User) */
+export const getMyLeaves = async (req, res) => {
+  const employeeId = req.user.employee_id;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const offset = (page - 1) * limit;
+
+  try {
+    const leaves = await sequelize.query(
+      `SELECT l.*, e.name 
+       FROM leaves l 
+       JOIN employees e ON l.employee_id = e.id 
+       WHERE l.employee_id = :employee_id 
+       ORDER BY l.created_at DESC 
+       LIMIT :limit OFFSET :offset`,
+      {
+        replacements: { employee_id: employeeId, limit, offset },
+        type: QueryTypes.SELECT
+      }
+    );
+
+    const countResult = await sequelize.query(
+      `SELECT COUNT(*) as total FROM leaves WHERE employee_id = :employee_id`,
+      { replacements: { employee_id: employeeId }, type: QueryTypes.SELECT }
+    );
+
+    const total = countResult[0].total;
+
+    res.json({
+      data: leaves,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      total
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Database error" });
+  }
+};
+
+/* Get Team Leaves (Manager) */
+export const getTeamLeaves = async (req, res) => {
+  const managerId = req.user.employee_id;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const status = req.query.status;
+  const offset = (page - 1) * limit;
+
+  let whereClauses = [
+    "e.department_id = (SELECT department_id FROM employees WHERE id = :managerId)"
+  ];
+  let replacements = { managerId, limit, offset };
+
+  if (status) {
+    whereClauses.push("l.status = :status");
+    replacements.status = status;
+  }
+
+  try {
+    const leaves = await sequelize.query(
+      `SELECT l.id, e.name, d.name AS department, l.start_date, l.end_date, l.reason, l.status
+       FROM leaves l
+       JOIN employees e ON l.employee_id = e.id
+       LEFT JOIN departments d ON e.department_id = d.id
+       WHERE ${whereClauses.join(" AND ")}
+       ORDER BY l.created_at DESC
+       LIMIT :limit OFFSET :offset`,
+      { replacements, type: QueryTypes.SELECT }
+    );
+
+    const countResult = await sequelize.query(
+      `SELECT COUNT(*) as total
+       FROM leaves l
+       JOIN employees e ON l.employee_id = e.id
+       WHERE ${whereClauses.join(" AND ")}`,
+      { replacements, type: QueryTypes.SELECT }
+    );
+
+    const total = countResult[0].total;
+
+    res.json({
+      data: leaves,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      total
     });
   } catch (err) {
     console.error(err);

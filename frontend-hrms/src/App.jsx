@@ -19,6 +19,7 @@ import PolicyPage from "./pages/PolicyPage";
 import WFHPage from "./pages/WFHPage";
 import HolidayPage from "./pages/HolidayPage";
 import DepartmentPage from "./pages/DepartmentPage";
+import AnnouncementsPage from "./pages/AnnouncementsPage";
 import Layout from "./components/Layout";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
@@ -189,6 +190,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={["admin", "manager", "hr"]}>
                   <DepartmentPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/announcements" 
+              element={
+                <ProtectedRoute allowedRoles={["admin", "manager", "hr", "developer", "intern"]}>
+                  <AnnouncementsPage />
                 </ProtectedRoute>
               } 
             />

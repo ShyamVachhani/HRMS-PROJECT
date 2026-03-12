@@ -11,69 +11,103 @@ import {
   TableBody,
   Paper,
   Stack,
-  Alert,
   IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  TablePagination
+  TablePagination,
+  Box,
+  Snackbar,
+  Alert,
+  CircularProgress,
+  Tooltip,
+  Chip,
+  InputAdornment
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import BusinessIcon from "@mui/icons-material/Business";
+import SearchIcon from "@mui/icons-material/Search";
+import api from "../services/api";
 
 const DepartmentPage = () => {
   const [departments, setDepartments] = useState([]);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   
-  // Pagination state
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   
-  // Edit dialog state
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
 
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [deleteName, setDeleteName] = useState("");
+
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
   const fetchDepartments = async () => {
+    setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/departments/all");
-      if (!res.ok) throw new Error("Failed to fetch departments");
-      setDepartments(await res.json());
+      const res = await api.get("/departments/all");
+      setDepartments(res.data);
     } catch (error) {
       console.error("Error:", error);
-      setErrorMsg("Failed to load departments");
+      showSnackbar("Failed to load departments", "error");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
+
+  const resetAddForm = () => {
+    setName("");
+    setDescription("");
+  };
+
+  const handleAddOpen = () => {
+    resetAddForm();
+    setAddDialogOpen(true);
+  };
+
+  const handleAddClose = () => {
+    setAddDialogOpen(false);
+    resetAddForm();
   };
 
   const addDepartment = async () => {
     if (!name) {
-      setErrorMsg("Please enter department name");
+      showSnackbar("Please enter department name", "error");
       return;
     }
 
+    setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/departments/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, description })
-      });
-
-      if (!res.ok) throw new Error("Failed to add department");
-
-      setName("");
-      setDescription("");
-      setSuccessMsg("Department added successfully");
-      setErrorMsg("");
+      await api.post("/departments/add", { name, description });
+      handleAddClose();
+      showSnackbar("Department added successfully");
       fetchDepartments();
     } catch (error) {
-      setErrorMsg("Failed to add department");
-      setSuccessMsg("");
+      showSnackbar("Failed to add department", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -84,126 +118,170 @@ const DepartmentPage = () => {
     setEditOpen(true);
   };
 
+  const handleEditClose = () => {
+    setEditOpen(false);
+    setEditId(null);
+  };
+
   const handleEditSave = async () => {
     if (!editName) {
-      setErrorMsg("Please enter department name");
+      showSnackbar("Please enter department name", "error");
       return;
     }
 
+    setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/departments/update/${editId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editName, description: editDescription })
-      });
-
-      if (!res.ok) throw new Error("Failed to update department");
-
-      setEditOpen(false);
-      setSuccessMsg("Department updated successfully");
-      setErrorMsg("");
+      await api.put(`/departments/update/${editId}`, { name: editName, description: editDescription });
+      handleEditClose();
+      showSnackbar("Department updated successfully");
       fetchDepartments();
     } catch (error) {
-      setErrorMsg("Failed to update department");
-      setSuccessMsg("");
+      showSnackbar("Failed to update department", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const deleteDepartment = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this department?")) return;
+  const handleDeleteClick = (dept) => {
+    setDeleteId(dept.id);
+    setDeleteName(dept.name);
+    setDeleteDialogOpen(true);
+  };
 
+  const handleDeleteClose = () => {
+    setDeleteDialogOpen(false);
+    setDeleteId(null);
+    setDeleteName("");
+  };
+
+  const confirmDelete = async () => {
+    setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/departments/delete/${id}`, {
-        method: "DELETE"
-      });
-
-      if (!res.ok) throw new Error("Failed to delete department");
-
-      setSuccessMsg("Department deleted successfully");
-      setErrorMsg("");
+      await api.delete(`/departments/delete/${deleteId}`);
+      handleDeleteClose();
+      showSnackbar("Department deleted successfully");
       fetchDepartments();
     } catch (error) {
-      setErrorMsg("Failed to delete department");
-      setSuccessMsg("");
+      showSnackbar("Failed to delete department", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchDepartments();
-  }, []);
+  const filteredDepartments = departments.filter(dept =>
+    dept.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    dept.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <Container sx={{ mt: 4 }}>
-      <Typography variant="h5" sx={{ mb: 3, color: "#1E3A8A" }}>
-        Department Management
-      </Typography>
+    <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
+      {/* Page Header */}
+      <Paper sx={{ p: 3, mb: 3, background: "linear-gradient(135deg, #F97316 0%, #EA580C 100%)" }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <BusinessIcon sx={{ fontSize: 40, color: "white" }} />
+            <Box>
+              <Typography variant="h5" sx={{ color: "white", fontWeight: "bold" }}>
+                Department Management
+              </Typography>
+              <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)" }}>
+                Manage company departments
+              </Typography>
+            </Box>
+          </Box>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleAddOpen}
+              sx={{ bgcolor: "white", color: "#EA580C", "&:hover": { bgcolor: "#f0f0f0" } }}
+            >
+              Add Department
+            </Button>
+            <Tooltip title="Refresh">
+              <IconButton onClick={fetchDepartments} sx={{ color: "white" }}>
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Box>
+      </Paper>
 
-      {errorMsg && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setErrorMsg("")}>
-          {errorMsg}
-        </Alert>
-      )}
-
-      {successMsg && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMsg("")}>
-          {successMsg}
-        </Alert>
-      )}
-
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>Add New Department</Typography>
-        <Stack spacing={2}>
+      {/* Search Bar */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Stack direction="row" spacing={2} alignItems="center">
           <TextField
-            label="Department Name *"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            fullWidth
+            placeholder="Search departments..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            size="small"
+            sx={{ minWidth: 300 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon color="action" />
+                </InputAdornment>
+              ),
+            }}
           />
-          <TextField
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            multiline
-            rows={2}
-            fullWidth
+          <Chip 
+            label={`${filteredDepartments.length} departments`} 
+            sx={{ bgcolor: "#FFF7ED", color: "#EA580C" }}
           />
-          <Button variant="contained" onClick={addDepartment} startIcon={<AddIcon />}>
-            Add Department
-          </Button>
         </Stack>
       </Paper>
 
-      <Paper>
+      {/* Data Table */}
+      <Paper sx={{ overflow: "hidden" }}>
+        {loading && (
+          <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+            <CircularProgress sx={{ color: "#F97316" }} />
+          </Box>
+        )}
+
         <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+            <TableRow sx={{ backgroundColor: "#f8fafc" }}>
               <TableCell sx={{ fontWeight: "bold" }}>ID</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Description</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }} align="center">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {departments.length === 0 ? (
+            {!loading && filteredDepartments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} align="center">No departments found</TableCell>
+                <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                  <Typography color="text.secondary">No departments found</Typography>
+                </TableCell>
               </TableRow>
             ) : (
-              departments.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((dept) => (
-                <TableRow key={dept.id} hover>
-                  <TableCell>{dept.id}</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>{dept.name}</TableCell>
-                  <TableCell>{dept.description}</TableCell>
-                  <TableCell>
-                    <IconButton color="primary" onClick={() => handleEditClick(dept)} size="small">
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton color="error" onClick={() => deleteDepartment(dept.id)} size="small">
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))
+              filteredDepartments
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((dept) => (
+                  <TableRow key={dept.id} hover>
+                    <TableCell>{dept.id}</TableCell>
+                    <TableCell>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <BusinessIcon sx={{ color: "#F97316", fontSize: 20 }} />
+                        <Typography sx={{ fontWeight: 500 }}>{dept.name}</Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell>{dept.description || "-"}</TableCell>
+                    <TableCell align="center">
+                      <Tooltip title="Edit">
+                        <IconButton color="primary" onClick={() => handleEditClick(dept)} size="small">
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton color="error" onClick={() => handleDeleteClick(dept)} size="small">
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))
             )}
           </TableBody>
         </Table>
@@ -211,7 +289,7 @@ const DepartmentPage = () => {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25, 50]}
           component="div"
-          count={departments.length}
+          count={filteredDepartments.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={(event, newPage) => setPage(newPage)}
@@ -222,31 +300,131 @@ const DepartmentPage = () => {
         />
       </Paper>
 
-      <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Edit Department</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
+      {/* Add Department Dialog */}
+      <Dialog open={addDialogOpen} onClose={handleAddClose} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ bgcolor: "#F97316", color: "white" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <AddIcon />
+            Add New Department
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Stack spacing={2.5} sx={{ mt: 1 }}>
             <TextField
-              label="Department Name *"
+              label="Department Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              multiline
+              rows={3}
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={handleAddClose} color="inherit">Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={addDepartment}
+            disabled={loading}
+            sx={{ bgcolor: "#F97316", "&:hover": { bgcolor: "#EA580C" } }}
+            startIcon={loading ? <CircularProgress size={20} /> : <AddIcon />}
+          >
+            Add Department
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Department Dialog */}
+      <Dialog open={editOpen} onClose={handleEditClose} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ bgcolor: "#3B82F6", color: "white" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <EditIcon />
+            Edit Department
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Stack spacing={2.5} sx={{ mt: 1 }}>
+            <TextField
+              label="Department Name"
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
               fullWidth
+              required
             />
             <TextField
               label="Description"
               value={editDescription}
               onChange={(e) => setEditDescription(e.target.value)}
               multiline
-              rows={2}
+              rows={3}
               fullWidth
             />
           </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleEditSave}>Save</Button>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={handleEditClose} color="inherit">Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleEditSave}
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={20} /> : "Save Changes"}
+          </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={handleDeleteClose} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ bgcolor: "#DC2626", color: "white" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <DeleteIcon />
+            Confirm Delete
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Typography>
+            Are you sure you want to delete department <strong>"{deleteName}"</strong>?
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={handleDeleteClose} color="inherit">Cancel</Button>
+          <Button 
+            variant="contained" 
+            color="error"
+            onClick={confirmDelete}
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={20} /> : <DeleteIcon />}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for feedback */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

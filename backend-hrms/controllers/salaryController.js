@@ -109,3 +109,26 @@ export const getSalaryReport = async (req, res) => {
   }
 };
 
+/* Get My Salary (Current User's Payslips) */
+export const getMySalary = async (req, res) => {
+  const employeeId = req.user.employee_id;
+
+  try {
+    const results = await sequelize.query(
+      `SELECT s.*, e.name 
+       FROM salaries s 
+       JOIN employees e ON s.employee_id = e.id 
+       WHERE s.employee_id = :employee_id 
+       ORDER BY s.year DESC, s.month DESC`,
+      {
+        replacements: { employee_id: employeeId },
+        type: QueryTypes.SELECT
+      }
+    );
+
+    res.json(results);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Database error" });
+  }
+};

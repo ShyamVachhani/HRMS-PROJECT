@@ -4,16 +4,19 @@ import {
   approveWFH,
   rejectWFH,
   getWFHHistory,
-  getAllWFH
+  getAllWFH,
+  getMyWFH
 } from "../controllers/wfhController.js";
+import { verifyToken } from "../middleware/authMiddleware.js";
+import { authorizeRoles } from "../middleware/roleMiddleware.js";
 
 const router = express.Router();
 
-router.post("/apply", applyWFH);
-router.post("/approve", approveWFH);
-router.post("/reject", rejectWFH);
-
-router.get("/history/:employee_id", getWFHHistory);
-router.get("/all", getAllWFH);
+router.post("/apply", verifyToken, applyWFH);
+router.post("/approve", verifyToken, authorizeRoles("admin", "hr", "manager"), approveWFH);
+router.post("/reject", verifyToken, authorizeRoles("admin", "hr", "manager"), rejectWFH);
+router.get("/my", verifyToken, getMyWFH);
+router.get("/history/:employee_id", verifyToken, getWFHHistory);
+router.get("/all", verifyToken, authorizeRoles("admin", "hr", "manager"), getAllWFH);
 
 export default router;

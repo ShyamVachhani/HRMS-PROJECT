@@ -7,7 +7,10 @@ import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
+import CampaignIcon from "@mui/icons-material/Campaign";
+import PersonIcon from "@mui/icons-material/Person";
 import { useNavigate } from "react-router-dom";
+import api from "../services/api";
 
 // Intern-specific stats
 const internStats = [
@@ -89,13 +92,24 @@ function LinearProgressWithLabel(props) {
 export default function InternDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [announcements, setAnnouncements] = useState([]);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
       setUser(JSON.parse(userData));
     }
+    fetchAnnouncements();
   }, []);
+
+  const fetchAnnouncements = async () => {
+    try {
+      const res = await api.get("/announcements");
+      setAnnouncements(res.data.slice(0, 3));
+    } catch (error) {
+      console.error("Error fetching announcements:", error);
+    }
+  };
 
   const getStatusChip = (status) => {
     const colors = {
@@ -267,6 +281,110 @@ export default function InternDashboard() {
                   Your next review is scheduled for next week
                 </Typography>
               </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Profile Completion */}
+        <Grid item xs={12} lg={6}>
+          <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
+            <CardContent>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
+                <PersonIcon sx={{ color: "#D97706" }} />
+                <Typography variant="h6" fontWeight="bold" sx={{ color: "#D97706" }}>
+                  Profile Completion
+                </Typography>
+              </Box>
+              <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                  <Typography variant="body2">Profile Completeness</Typography>
+                  <Typography variant="body2" fontWeight="bold" color="#D97706">75%</Typography>
+                </Box>
+                <LinearProgress variant="determinate" value={75} sx={{ height: 10, borderRadius: 5 }} />
+              </Box>
+              <Box sx={{ p: 2, background: "#F8FAFC", borderRadius: 2 }}>
+                <Typography variant="body2" fontWeight="500" sx={{ mb: 1 }}>Complete your profile:</Typography>
+                <Typography variant="caption" color="textSecondary" display="block">✓ Basic Information</Typography>
+                <Typography variant="caption" color="textSecondary" display="block">✓ Contact Details</Typography>
+                <Typography variant="caption" color="error" display="block">○ Emergency Contact</Typography>
+                <Typography variant="caption" color="error" display="block">○ Profile Picture</Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Announcements */}
+        <Grid item xs={12} lg={6}>
+          <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
+            <CardContent>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <CampaignIcon sx={{ color: "#D97706" }} />
+                  <Typography variant="h6" fontWeight="bold" sx={{ color: "#D97706" }}>
+                    Announcements
+                  </Typography>
+                </Box>
+                <Button size="small" onClick={() => navigate("/announcements")}>View All</Button>
+              </Box>
+              {announcements.length === 0 ? (
+                <Typography color="text.secondary" textAlign="center">No announcements</Typography>
+              ) : (
+                announcements.map((ann) => (
+                  <Box key={ann.id} sx={{ p: 2, mb: 2, borderRadius: 2, background: "#F8FAFC", borderLeft: "4px solid #3B82F6" }}>
+                    <Typography fontWeight="600">{ann.title}</Typography>
+                    <Typography variant="body2" color="textSecondary" sx={{ mt: 0.5 }}>
+                      {ann.content?.substring(0, 80)}{ann.content?.length > 80 ? "..." : ""}
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: "block" }}>
+                      {new Date(ann.created_at).toLocaleDateString()}
+                    </Typography>
+                  </Box>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Learning Resources */}
+        <Grid item xs={12}>
+          <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
+            <CardContent>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
+                <MenuBookIcon sx={{ color: "#D97706" }} />
+                <Typography variant="h6" fontWeight="bold" sx={{ color: "#D97706" }}>
+                  Learning Resources
+                </Typography>
+              </Box>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Box sx={{ p: 2, background: "#F8FAFC", borderRadius: 2, textAlign: "center" }}>
+                    <Typography variant="h6" sx={{ color: "#3B82F6" }}>📚</Typography>
+                    <Typography fontWeight="600">Company Wiki</Typography>
+                    <Typography variant="caption" color="textSecondary">Internal documentation</Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Box sx={{ p: 2, background: "#F8FAFC", borderRadius: 2, textAlign: "center" }}>
+                    <Typography variant="h6" sx={{ color: "#16A34A" }}>🎓</Typography>
+                    <Typography fontWeight="600">Training Videos</Typography>
+                    <Typography variant="caption" color="textSecondary">Video tutorials</Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Box sx={{ p: 2, background: "#F8FAFC", borderRadius: 2, textAlign: "center" }}>
+                    <Typography variant="h6" sx={{ color: "#8B5CF6" }}>💡</Typography>
+                    <Typography fontWeight="600">Best Practices</Typography>
+                    <Typography variant="caption" color="textSecondary">Coding standards</Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Box sx={{ p: 2, background: "#F8FAFC", borderRadius: 2, textAlign: "center" }}>
+                    <Typography variant="h6" sx={{ color: "#DC2626" }}>🔧</Typography>
+                    <Typography fontWeight="600">Tools Setup</Typography>
+                    <Typography variant="caption" color="textSecondary">Development tools</Typography>
+                  </Box>
+                </Grid>
+              </Grid>
             </CardContent>
           </Card>
         </Grid>

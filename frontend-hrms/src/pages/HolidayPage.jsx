@@ -11,85 +11,115 @@ import {
   TableBody,
   Paper,
   Stack,
-  Alert,
   IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  TablePagination
+  TablePagination,
+  Box,
+  Snackbar,
+  Alert,
+  CircularProgress,
+  Tooltip,
+  Chip,
+  InputAdornment
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import AddIcon from "@mui/icons-material/Add";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import EventIcon from "@mui/icons-material/Event";
+import SearchIcon from "@mui/icons-material/Search";
+import api from "../services/api";
 
 const HolidayPage = () => {
-  const [title, setTitle] = useState("");
-  const [date, setDate] = useState("");
-  const [desc, setDesc] = useState("");
   const [holidays, setHolidays] = useState([]);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   
-  // Pagination state
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   
-  // Edit dialog state
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [date, setDate] = useState("");
+  const [desc, setDesc] = useState("");
+  
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
   const [editDate, setEditDate] = useState("");
   const [editDesc, setEditDesc] = useState("");
 
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [deleteTitle, setDeleteTitle] = useState("");
+
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
   const fetchHolidays = async () => {
+    setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/holidays/all");
-      if (!res.ok) {
-        throw new Error("Failed to fetch holidays");
-      }
-      const data = await res.json();
-      // Format the date for display
-      const formatted = data.map(h => ({
+      const res = await api.get("/holidays/all");
+      const formatted = res.data.map(h => ({
         ...h,
         holiday_date: h.holiday_date ? h.holiday_date.split('T')[0] : ''
       }));
       setHolidays(formatted);
     } catch (error) {
       console.error("Error fetching holidays:", error);
-      setErrorMsg("Failed to load holidays");
+      showSnackbar("Failed to load holidays", "error");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchHolidays();
+  }, []);
+
+  const resetAddForm = () => {
+    setTitle("");
+    setDate("");
+    setDesc("");
+  };
+
+  const handleAddOpen = () => {
+    resetAddForm();
+    setAddDialogOpen(true);
+  };
+
+  const handleAddClose = () => {
+    setAddDialogOpen(false);
+    resetAddForm();
   };
 
   const addHoliday = async () => {
     if (!title || !date) {
-      setErrorMsg("Please enter holiday name and date");
+      showSnackbar("Please enter holiday name and date", "error");
       return;
     }
     
+    setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/holidays/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          holiday_date: date,
-          description: desc
-        })
+      await api.post("/holidays/add", {
+        title,
+        holiday_date: date,
+        description: desc
       });
       
-      if (!res.ok) {
-        throw new Error("Failed to add holiday");
-      }
-      
-      setTitle("");
-      setDate("");
-      setDesc("");
-      setSuccessMsg("Holiday added successfully");
-      setErrorMsg("");
+      handleAddClose();
+      showSnackbar("Holiday added successfully");
       fetchHolidays();
     } catch (error) {
-      setErrorMsg("Failed to add holiday");
-      setSuccessMsg("");
+      showSnackbar("Failed to add holiday", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -101,160 +131,201 @@ const HolidayPage = () => {
     setEditOpen(true);
   };
 
+  const handleEditClose = () => {
+    setEditOpen(false);
+    setEditId(null);
+  };
+
   const handleEditSave = async () => {
     if (!editTitle || !editDate) {
-      setErrorMsg("Please enter holiday name and date");
+      showSnackbar("Please enter holiday name and date", "error");
       return;
     }
 
+    setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/holidays/update/${editId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: editTitle,
-          holiday_date: editDate,
-          description: editDesc
-        })
+      await api.put(`/holidays/update/${editId}`, {
+        title: editTitle,
+        holiday_date: editDate,
+        description: editDesc
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to update holiday");
-      }
-
-      setEditOpen(false);
-      setSuccessMsg("Holiday updated successfully");
-      setErrorMsg("");
+      handleEditClose();
+      showSnackbar("Holiday updated successfully");
       fetchHolidays();
     } catch (error) {
-      setErrorMsg("Failed to update holiday");
-      setSuccessMsg("");
+      showSnackbar("Failed to update holiday", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this holiday?")) {
-      return;
-    }
+  const handleDeleteClick = (holiday) => {
+    setDeleteId(holiday.id);
+    setDeleteTitle(holiday.title);
+    setDeleteDialogOpen(true);
+  };
 
+  const handleDeleteClose = () => {
+    setDeleteDialogOpen(false);
+    setDeleteId(null);
+    setDeleteTitle("");
+  };
+
+  const confirmDelete = async () => {
+    setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/holidays/delete/${id}`, {
-        method: "DELETE"
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to delete holiday");
-      }
-
-      setSuccessMsg("Holiday deleted successfully");
-      setErrorMsg("");
+      await api.delete(`/holidays/delete/${deleteId}`);
+      handleDeleteClose();
+      showSnackbar("Holiday deleted successfully");
       fetchHolidays();
     } catch (error) {
-      setErrorMsg("Failed to delete holiday");
-      setSuccessMsg("");
+      showSnackbar("Failed to delete holiday", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchHolidays();
-  }, []);
+  const filteredHolidays = holidays.filter(h =>
+    h.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    h.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const isUpcoming = (dateStr) => {
+    const holidayDate = new Date(dateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return holidayDate >= today;
+  };
 
   return (
-    <Container sx={{ mt: 4 }}>
-      <Typography variant="h5" sx={{ mb: 3, color: "#1E3A8A" }}>
-        Holiday Calendar Management
-      </Typography>
+    <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
+      {/* Page Header */}
+      <Paper sx={{ p: 3, mb: 3, background: "linear-gradient(135deg, #EC4899 0%, #DB2777 100%)" }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <EventIcon sx={{ fontSize: 40, color: "white" }} />
+            <Box>
+              <Typography variant="h5" sx={{ color: "white", fontWeight: "bold" }}>
+                Holiday Calendar
+              </Typography>
+              <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)" }}>
+                Manage company holidays
+              </Typography>
+            </Box>
+          </Box>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleAddOpen}
+              sx={{ bgcolor: "white", color: "#DB2777", "&:hover": { bgcolor: "#f0f0f0" } }}
+            >
+              Add Holiday
+            </Button>
+            <Tooltip title="Refresh">
+              <IconButton onClick={fetchHolidays} sx={{ color: "white" }}>
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Box>
+      </Paper>
 
-      {errorMsg && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setErrorMsg("")}>
-          {errorMsg}
-        </Alert>
-      )}
-
-      {successMsg && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMsg("")}>
-          {successMsg}
-        </Alert>
-      )}
-
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>
-          Add New Holiday
-        </Typography>
-        <Stack spacing={2}>
+      {/* Search Bar */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Stack direction="row" spacing={2} alignItems="center">
           <TextField
-            label="Holiday Name"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            fullWidth
+            placeholder="Search holidays..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            size="small"
+            sx={{ minWidth: 300 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon color="action" />
+                </InputAdornment>
+              ),
+            }}
           />
-
-          <TextField
-            type="date"
-            label="Date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            fullWidth
+          <Chip 
+            label={`${filteredHolidays.length} holidays`} 
+            sx={{ bgcolor: "#FCE7F3", color: "#DB2777" }}
           />
-
-          <TextField
-            label="Description"
-            value={desc}
-            onChange={(e) => setDesc(e.target.value)}
-            multiline
-            rows={2}
-            fullWidth
-          />
-
-          <Button variant="contained" onClick={addHoliday} sx={{ mt: 1 }}>
-            Add Holiday
-          </Button>
         </Stack>
       </Paper>
 
-      <Paper>
+      {/* Data Table */}
+      <Paper sx={{ overflow: "hidden" }}>
+        {loading && (
+          <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+            <CircularProgress sx={{ color: "#EC4899" }} />
+          </Box>
+        )}
+
         <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+            <TableRow sx={{ backgroundColor: "#f8fafc" }}>
               <TableCell sx={{ fontWeight: "bold" }}>Holiday</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Description</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }} align="center">Actions</TableCell>
             </TableRow>
           </TableHead>
 
           <TableBody>
-            {holidays.length === 0 ? (
+            {!loading && filteredHolidays.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} align="center">
-                  No holidays found
+                <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                  <Typography color="text.secondary">No holidays found</Typography>
                 </TableCell>
               </TableRow>
             ) : (
-              holidays.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((h) => (
-                <TableRow key={h.id} hover>
-                  <TableCell>{h.title}</TableCell>
-                  <TableCell>{h.holiday_date}</TableCell>
-                  <TableCell>{h.description}</TableCell>
-                  <TableCell>
-                    <IconButton
-                      color="primary"
-                      onClick={() => handleEditClick(h)}
-                      size="small"
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      color="error"
-                      onClick={() => handleDelete(h.id)}
-                      size="small"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))
+              filteredHolidays
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((h) => (
+                  <TableRow key={h.id} hover>
+                    <TableCell sx={{ fontWeight: 500 }}>{h.title}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={h.holiday_date} 
+                        size="small" 
+                        icon={<EventIcon fontSize="small" />}
+                        variant="outlined"
+                      />
+                    </TableCell>
+                    <TableCell>{h.description || "-"}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={isUpcoming(h.holiday_date) ? "Upcoming" : "Past"} 
+                        size="small"
+                        color={isUpcoming(h.holiday_date) ? "success" : "default"}
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <Tooltip title="Edit">
+                        <IconButton
+                          color="primary"
+                          onClick={() => handleEditClick(h)}
+                          size="small"
+                        >
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton
+                          color="error"
+                          onClick={() => handleDeleteClick(h)}
+                          size="small"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))
             )}
           </TableBody>
         </Table>
@@ -262,7 +333,7 @@ const HolidayPage = () => {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25, 50]}
           component="div"
-          count={holidays.length}
+          count={filteredHolidays.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={(event, newPage) => setPage(newPage)}
@@ -273,16 +344,72 @@ const HolidayPage = () => {
         />
       </Paper>
 
-      {/* Edit Dialog */}
-      <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Edit Holiday</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
+      {/* Add Holiday Dialog */}
+      <Dialog open={addDialogOpen} onClose={handleAddClose} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ bgcolor: "#EC4899", color: "white" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <AddIcon />
+            Add New Holiday
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Stack spacing={2.5} sx={{ mt: 1 }}>
+            <TextField
+              label="Holiday Name"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              fullWidth
+              required
+            />
+            <TextField
+              type="date"
+              label="Date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Description"
+              value={desc}
+              onChange={(e) => setDesc(e.target.value)}
+              multiline
+              rows={3}
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={handleAddClose} color="inherit">Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={addHoliday}
+            disabled={loading}
+            sx={{ bgcolor: "#EC4899", "&:hover": { bgcolor: "#DB2777" } }}
+            startIcon={loading ? <CircularProgress size={20} /> : <AddIcon />}
+          >
+            Add Holiday
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Holiday Dialog */}
+      <Dialog open={editOpen} onClose={handleEditClose} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ bgcolor: "#3B82F6", color: "white" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <EditIcon />
+            Edit Holiday
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Stack spacing={2.5} sx={{ mt: 1 }}>
             <TextField
               label="Holiday Name"
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
               fullWidth
+              required
             />
             <TextField
               type="date"
@@ -291,24 +418,75 @@ const HolidayPage = () => {
               onChange={(e) => setEditDate(e.target.value)}
               InputLabelProps={{ shrink: true }}
               fullWidth
+              required
             />
             <TextField
               label="Description"
               value={editDesc}
               onChange={(e) => setEditDesc(e.target.value)}
               multiline
-              rows={2}
+              rows={3}
               fullWidth
             />
           </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleEditSave}>
-            Save
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={handleEditClose} color="inherit">Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleEditSave}
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={20} /> : "Save Changes"}
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={handleDeleteClose} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ bgcolor: "#DC2626", color: "white" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <DeleteIcon />
+            Confirm Delete
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Typography>
+            Are you sure you want to delete <strong>"{deleteTitle}"</strong>?
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={handleDeleteClose} color="inherit">Cancel</Button>
+          <Button 
+            variant="contained" 
+            color="error"
+            onClick={confirmDelete}
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={20} /> : <DeleteIcon />}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for feedback */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

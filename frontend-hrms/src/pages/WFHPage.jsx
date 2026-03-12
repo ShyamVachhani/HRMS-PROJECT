@@ -13,102 +13,58 @@ import {
   TablePagination,
   Stack,
   Chip,
-  Alert
+  Box,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Snackbar,
+  Alert,
+  CircularProgress,
+  IconButton,
+  Tooltip,
+  InputAdornment
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import HomeWorkIcon from "@mui/icons-material/HomeWork";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import SearchIcon from "@mui/icons-material/Search";
+import api from "../services/api";
 
 const WFHPage = ({ employeeId }) => {
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const [applyDialogOpen, setApplyDialogOpen] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [reason, setReason] = useState("");
-  const [history, setHistory] = useState([]);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [message, setMessage] = useState({ type: "", text: "" });
+
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  const canApprove = ["admin", "hr", "manager"].includes(user?.role);
+
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
 
   const fetchHistory = async () => {
+    setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/wfh/all`);
-      if (!res.ok) {
-        throw new Error("Failed to fetch");
-      }
-      const data = await res.json();
-      setHistory(data);
+      const res = await api.get("/wfh/all");
+      setHistory(res.data);
     } catch (error) {
       console.error("Error fetching WFH data:", error);
-      setMessage({ type: "error", text: "Failed to load WFH requests" });
-    }
-  };
-
-  const applyWFH = async () => {
-    if (!startDate || !endDate) {
-      setMessage({ type: "error", text: "Please select start and end dates" });
-      return;
-    }
-    
-    try {
-      const res = await fetch("http://localhost:5000/api/wfh/apply", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          employee_id: employeeId,
-          start_date: startDate,
-          end_date: endDate,
-          reason: reason
-        })
-      });
-      
-      if (!res.ok) {
-        throw new Error("Failed to apply");
-      }
-
-      setStartDate("");
-      setEndDate("");
-      setReason("");
-      setMessage({ type: "success", text: "WFH request submitted successfully" });
-      fetchHistory();
-    } catch (error) {
-      console.error("Error applying WFH:", error);
-      setMessage({ type: "error", text: "Failed to submit WFH request" });
-    }
-  };
-
-  const handleApprove = async (id) => {
-    try {
-      const res = await fetch("http://localhost:5000/api/wfh/approve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id })
-      });
-      
-      if (!res.ok) {
-        throw new Error("Failed to approve");
-      }
-
-      setMessage({ type: "success", text: "WFH request approved" });
-      fetchHistory();
-    } catch (error) {
-      console.error("Error approving WFH:", error);
-      setMessage({ type: "error", text: "Failed to approve WFH request" });
-    }
-  };
-
-  const handleReject = async (id) => {
-    try {
-      const res = await fetch("http://localhost:5000/api/wfh/reject", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id })
-      });
-      
-      if (!res.ok) {
-        throw new Error("Failed to reject");
-      }
-
-      setMessage({ type: "success", text: "WFH request rejected" });
-      fetchHistory();
-    } catch (error) {
-      console.error("Error rejecting WFH:", error);
-      setMessage({ type: "error", text: "Failed to reject WFH request" });
+      showSnackbar("Failed to load WFH requests", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -116,159 +72,315 @@ const WFHPage = ({ employeeId }) => {
     fetchHistory();
   }, []);
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+  const resetForm = () => {
+    setStartDate("");
+    setEndDate("");
+    setReason("");
   };
 
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+  const handleApplyOpen = () => {
+    resetForm();
+    setApplyDialogOpen(true);
+  };
+
+  const handleApplyClose = () => {
+    setApplyDialogOpen(false);
+    resetForm();
+  };
+
+  const applyWFH = async () => {
+    if (!startDate || !endDate) {
+      showSnackbar("Please select start and end dates", "error");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await api.post("/wfh/apply", {
+        employee_id: employeeId,
+        start_date: startDate,
+        end_date: endDate,
+        reason: reason
+      });
+
+      handleApplyClose();
+      showSnackbar("WFH request submitted successfully");
+      fetchHistory();
+    } catch (error) {
+      console.error("Error applying WFH:", error);
+      showSnackbar("Failed to submit WFH request", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = async (id) => {
+    setLoading(true);
+    try {
+      await api.post("/wfh/approve", { id });
+      showSnackbar("WFH request approved");
+      fetchHistory();
+    } catch (error) {
+      console.error("Error approving WFH:", error);
+      showSnackbar("Failed to approve WFH request", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReject = async (id) => {
+    setLoading(true);
+    try {
+      await api.post("/wfh/reject", { id });
+      showSnackbar("WFH request rejected");
+      fetchHistory();
+    } catch (error) {
+      console.error("Error rejecting WFH:", error);
+      showSnackbar("Failed to reject WFH request", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getStatusChip = (status) => {
-    if (status === "approved") {
-      return <Chip label="Approved" color="success" size="small" />;
-    } else if (status === "rejected") {
-      return <Chip label="Rejected" color="error" size="small" />;
-    } else {
-      return <Chip label="Pending" color="warning" size="small" />;
-    }
+    const statusConfig = {
+      approved: { color: "success", icon: <CheckCircleIcon fontSize="small" /> },
+      rejected: { color: "error", icon: <CancelIcon fontSize="small" /> },
+      pending: { color: "warning", icon: null }
+    };
+    const config = statusConfig[status] || statusConfig.pending;
+    return (
+      <Chip 
+        label={status?.charAt(0).toUpperCase() + status?.slice(1) || "Pending"} 
+        color={config.color} 
+        size="small"
+        icon={config.icon}
+      />
+    );
   };
 
-  const paginatedHistory = history.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
-  // Helper to display date range
   const displayDateRange = (rec) => {
     if (rec.start_date && rec.end_date) {
-      return `${rec.start_date} to ${rec.end_date}`;
+      return `${rec.start_date?.split("T")[0]} to ${rec.end_date?.split("T")[0]}`;
     }
-    return rec.wfh_date || rec.start_date || "-";
+    return rec.wfh_date?.split("T")[0] || rec.start_date?.split("T")[0] || "-";
   };
 
+  const filteredHistory = history.filter(rec =>
+    rec.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    rec.reason?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <Container sx={{ mt: 3 }}>
-      {message.text && (
-        <Alert severity={message.type} sx={{ mb: 2 }} onClose={() => setMessage({ type: "", text: "" })}>
-          {message.text}
-        </Alert>
-      )}
-
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>
-          Apply Work From Home
-        </Typography>
-
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-          <TextField
-            type="date"
-            label="Start Date"
-            fullWidth
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-          />
-
-          <TextField
-            type="date"
-            label="End Date"
-            fullWidth
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-          />
-        </Stack>
-
-        <TextField
-          label="Reason"
-          multiline
-          rows={2}
-          fullWidth
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          sx={{ mt: 2 }}
-          placeholder="Enter reason for WFH"
-        />
-
-        <Button
-          variant="contained"
-          color="primary"
-          sx={{ mt: 2, display: 'flex', justifyContent: 'center', width: '100%' }}
-          onClick={applyWFH}
-        >
-          Apply WFH
-        </Button>
+    <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
+      {/* Page Header */}
+      <Paper sx={{ p: 3, mb: 3, background: "linear-gradient(135deg, #06B6D4 0%, #0891B2 100%)" }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <HomeWorkIcon sx={{ fontSize: 40, color: "white" }} />
+            <Box>
+              <Typography variant="h5" sx={{ color: "white", fontWeight: "bold" }}>
+                Work From Home
+              </Typography>
+              <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)" }}>
+                Apply and manage WFH requests
+              </Typography>
+            </Box>
+          </Box>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleApplyOpen}
+              sx={{ bgcolor: "white", color: "#0891B2", "&:hover": { bgcolor: "#f0f0f0" } }}
+            >
+              Apply WFH
+            </Button>
+            <Tooltip title="Refresh">
+              <IconButton onClick={fetchHistory} sx={{ color: "white" }}>
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Box>
       </Paper>
 
-      <Paper>
-        <Typography sx={{ p: 2 }} variant="h6">
-          WFH Requests
-        </Typography>
+      {/* Search Bar */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Stack direction="row" spacing={2} alignItems="center">
+          <TextField
+            placeholder="Search by name or reason..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            size="small"
+            sx={{ minWidth: 300 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon color="action" />
+                </InputAdornment>
+              ),
+            }}
+          />
+          <Chip 
+            label={`${filteredHistory.length} requests`} 
+            color="info" 
+            variant="outlined" 
+          />
+        </Stack>
+      </Paper>
+
+      {/* Data Table */}
+      <Paper sx={{ overflow: "hidden" }}>
+        {loading && (
+          <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+            <CircularProgress color="info" />
+          </Box>
+        )}
 
         <Table>
           <TableHead>
-            <TableRow sx={{ bgcolor: "#f5f5f5" }}>
-              <TableCell sx={{ fontWeight: 600 }}>Employee</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Date Range</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Reason</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
+            <TableRow sx={{ backgroundColor: "#f8fafc" }}>
+              <TableCell sx={{ fontWeight: "bold" }}>Employee</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Date Range</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Reason</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
+              {canApprove && <TableCell sx={{ fontWeight: "bold" }} align="center">Actions</TableCell>}
             </TableRow>
           </TableHead>
 
           <TableBody>
-            {paginatedHistory.length === 0 ? (
+            {!loading && filteredHistory.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} align="center" sx={{ py: 4, color: "text.secondary" }}>
-                  No WFH requests found
+                <TableCell colSpan={canApprove ? 5 : 4} align="center" sx={{ py: 4 }}>
+                  <Typography color="text.secondary">No WFH requests found</Typography>
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedHistory.map((rec) => (
-                <TableRow key={rec.id}>
-                  <TableCell>{rec.name}</TableCell>
-                  <TableCell>{displayDateRange(rec)}</TableCell>
-                  <TableCell>{rec.reason || "-"}</TableCell>
-                  <TableCell>
-                    {getStatusChip(rec.status)}
-                  </TableCell>
-                  <TableCell>
-                    {rec.status === "pending" && (
-                      <Stack direction="row" spacing={1}>
-                        <Button
-                          variant="contained"
-                          color="success"
-                          size="small"
-                          onClick={() => handleApprove(rec.id)}
-                        >
-                          Approve
-                        </Button>
-                        <Button
-                          variant="contained"
-                          color="error"
-                          size="small"
-                          onClick={() => handleReject(rec.id)}
-                        >
-                          Reject
-                        </Button>
-                      </Stack>
+              filteredHistory
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((rec) => (
+                  <TableRow key={rec.id} hover>
+                    <TableCell sx={{ fontWeight: 500 }}>{rec.name}</TableCell>
+                    <TableCell>{displayDateRange(rec)}</TableCell>
+                    <TableCell>{rec.reason || "-"}</TableCell>
+                    <TableCell>{getStatusChip(rec.status)}</TableCell>
+                    {canApprove && (
+                      <TableCell align="center">
+                        {rec.status === "pending" && (
+                          <Stack direction="row" spacing={1} justifyContent="center">
+                            <Button
+                              variant="contained"
+                              color="success"
+                              size="small"
+                              startIcon={<CheckCircleIcon />}
+                              onClick={() => handleApprove(rec.id)}
+                            >
+                              Approve
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              color="error"
+                              size="small"
+                              startIcon={<CancelIcon />}
+                              onClick={() => handleReject(rec.id)}
+                            >
+                              Reject
+                            </Button>
+                          </Stack>
+                        )}
+                      </TableCell>
                     )}
-                  </TableCell>
-                </TableRow>
-              ))
+                  </TableRow>
+                ))
             )}
           </TableBody>
         </Table>
 
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
+          rowsPerPageOptions={[5, 10, 25, 50]}
           component="div"
-          count={history.length}
+          count={filteredHistory.length}
           rowsPerPage={rowsPerPage}
           page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
+          onPageChange={(event, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(event) => {
+            setRowsPerPage(parseInt(event.target.value, 10));
+            setPage(0);
+          }}
         />
       </Paper>
+
+      {/* Apply WFH Dialog */}
+      <Dialog open={applyDialogOpen} onClose={handleApplyClose} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ bgcolor: "#06B6D4", color: "white" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <HomeWorkIcon />
+            Apply Work From Home
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Stack spacing={2.5} sx={{ mt: 1 }}>
+            <TextField
+              type="date"
+              label="Start Date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+              required
+            />
+
+            <TextField
+              type="date"
+              label="End Date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+              required
+            />
+
+            <TextField
+              label="Reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              multiline
+              rows={3}
+              fullWidth
+              placeholder="Enter reason for WFH request..."
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={handleApplyClose} color="inherit">Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={applyWFH}
+            disabled={loading}
+            sx={{ bgcolor: "#06B6D4", "&:hover": { bgcolor: "#0891B2" } }}
+            startIcon={loading ? <CircularProgress size={20} /> : <AddIcon />}
+          >
+            Submit Request
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for feedback */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

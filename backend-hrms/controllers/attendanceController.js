@@ -117,7 +117,7 @@ export const getAttendanceHistory = (req,res) => {
     );
 };
 
-/* All Attendance (Admin/Manager) */
+/* All Attendance (Admin/HR) */
 export const getAllAttendance = (req, res) => {
   const { start_date, end_date, employee_id, date } = req.query;
   let sql = "SELECT a.*, u.name FROM attendance a JOIN employees u ON a.employee_id=u.id WHERE 1=1";
@@ -137,6 +137,74 @@ export const getAllAttendance = (req, res) => {
   }
   if (date) {
     sql += " AND a.date=?";
+    params.push(date);
+  }
+
+  sql += " ORDER BY a.date DESC";
+
+  db.query(sql, params, (err, result) => {
+    if (err) return res.status(500).json(err);
+    res.json(result);
+  });
+};
+
+/* Get My Attendance (Current User) */
+export const getMyAttendance = (req, res) => {
+  const employeeId = req.user.employee_id;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const offset = (page - 1) * limit;
+
+  db.query(
+    "SELECT * FROM attendance WHERE employee_id=? ORDER BY date DESC LIMIT ? OFFSET ?",
+    [employeeId, limit, offset],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
+      
+      db.query(
+        "SELECT COUNT(*) as total FROM attendance WHERE employee_id=?",
+        [employeeId],
+        (err2, countResult) => {
+          if (err2) return res.status(500).json(err2);
+          
+          const total = countResult[0].total;
+          const totalPages = Math.ceil(total / limit);
+          res.json({
+            data: result,
+            currentPage: page,
+            totalPages,
+            total
+          });
+        }
+      );
+    }
+  );
+};
+
+/* Get Team Attendance (Manager) */
+export const getTeamAttendance = (req, res) => {
+  const managerId = req.user.employee_id;
+  const { start_date, end_date, date } = req.query;
+
+  let sql = `
+    SELECT a.*, e.name 
+    FROM attendance a 
+    JOIN employees e ON a.employee_id = e.id 
+    JOIN users u ON e.id = u.employee_id
+    WHERE e.department_id = (SELECT department_id FROM employees WHERE id = ?)
+  `;
+  const params = [managerId];
+
+  if (start_date) {
+    sql += " AND a.date >= ?";
+    params.push(start_date);
+  }
+  if (end_date) {
+    sql += " AND a.date <= ?";
+    params.push(end_date);
+  }
+  if (date) {
+    sql += " AND a.date = ?";
     params.push(date);
   }
 

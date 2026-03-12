@@ -5,12 +5,14 @@ import {
   updateDepartment,
   deleteDepartment
 } from "../controllers/departmentController.js";
+import { verifyToken } from "../middleware/authMiddleware.js";
+import { authorizeRoles } from "../middleware/roleMiddleware.js";
 
 const router = express.Router();
 
-router.post("/add", addDepartment);
-router.get("/all", getDepartments);
-router.put("/update/:id", updateDepartment);
-router.delete("/delete/:id", deleteDepartment);
+router.post("/add", verifyToken, authorizeRoles("admin", "hr"), addDepartment);
+router.get("/all", verifyToken, getDepartments);
+router.put("/update/:id", verifyToken, authorizeRoles("admin", "hr"), updateDepartment);
+router.delete("/delete/:id", verifyToken, authorizeRoles("admin", "hr"), deleteDepartment);
 
 export default router;

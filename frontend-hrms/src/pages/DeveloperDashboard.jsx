@@ -8,7 +8,10 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import CodeIcon from "@mui/icons-material/Code";
 import TimerIcon from "@mui/icons-material/Timer";
 import EventNoteIcon from "@mui/icons-material/EventNote";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import CampaignIcon from "@mui/icons-material/Campaign";
 import { useNavigate } from "react-router-dom";
+import api from "../services/api";
 
 // Developer-specific stats
 const developerStats = [
@@ -89,13 +92,24 @@ function LinearProgressWithLabel(props) {
 export default function DeveloperDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [announcements, setAnnouncements] = useState([]);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
       setUser(JSON.parse(userData));
     }
+    fetchAnnouncements();
   }, []);
+
+  const fetchAnnouncements = async () => {
+    try {
+      const res = await api.get("/announcements");
+      setAnnouncements(res.data.slice(0, 3));
+    } catch (error) {
+      console.error("Error fetching announcements:", error);
+    }
+  };
 
   const getStatusChip = (status) => {
     const colors = {
@@ -220,7 +234,42 @@ export default function DeveloperDashboard() {
                 <Button variant="outlined" fullWidth onClick={() => navigate("/wfh")} sx={{ justifyContent: "flex-start" }}>
                   <HomeWorkIcon sx={{ mr: 1 }} /> Request WFH
                 </Button>
+                <Button variant="contained" fullWidth onClick={() => navigate("/salary")} sx={{ justifyContent: "flex-start", background: "#16A34A" }}>
+                  <AttachMoneyIcon sx={{ mr: 1 }} /> View Payslips
+                </Button>
               </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Announcements */}
+        <Grid item xs={12} lg={4}>
+          <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
+            <CardContent>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <CampaignIcon sx={{ color: "#DC2626" }} />
+                  <Typography variant="h6" fontWeight="bold" sx={{ color: "#DC2626" }}>
+                    Announcements
+                  </Typography>
+                </Box>
+                <Button size="small" onClick={() => navigate("/announcements")}>View All</Button>
+              </Box>
+              {announcements.length === 0 ? (
+                <Typography color="text.secondary" textAlign="center">No announcements</Typography>
+              ) : (
+                announcements.map((ann) => (
+                  <Box key={ann.id} sx={{ p: 2, mb: 2, borderRadius: 2, background: "#F8FAFC", borderLeft: "4px solid #3B82F6" }}>
+                    <Typography fontWeight="600">{ann.title}</Typography>
+                    <Typography variant="body2" color="textSecondary" sx={{ mt: 0.5 }}>
+                      {ann.content?.substring(0, 80)}{ann.content?.length > 80 ? "..." : ""}
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: "block" }}>
+                      {new Date(ann.created_at).toLocaleDateString()}
+                    </Typography>
+                  </Box>
+                ))
+              )}
             </CardContent>
           </Card>
         </Grid>

@@ -18,8 +18,9 @@ import { useNavigate } from "react-router-dom";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HomeIcon from '@mui/icons-material/Home';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import api from "../services/api";
 
-const AllAttendancePage = ({ employeeId = 1 }) => {
+const AllAttendancePage = () => {
   const navigate = useNavigate();
   const [attendanceData, setAttendanceData] = useState([]);
   const [page, setPage] = useState(0);
@@ -27,8 +28,8 @@ const AllAttendancePage = ({ employeeId = 1 }) => {
 
   const fetchAllAttendance = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/attendance/history/${employeeId}`);
-      const data = await res.json();
+      const res = await api.get("/attendance/my");
+      const data = res.data.data || res.data;
       setAttendanceData(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching attendance:", error);
