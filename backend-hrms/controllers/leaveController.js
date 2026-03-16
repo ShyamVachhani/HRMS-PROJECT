@@ -1,5 +1,6 @@
 import { sequelize } from "../config/sequelize.js";
 import { QueryTypes } from "sequelize";
+import { createNotification } from "./notificationController.js";
 
 /* Apply Leave */
 export const applyLeave = async (req, res) => {
@@ -24,6 +25,17 @@ export const applyLeave = async (req, res) => {
     res.status(201).json({
       message: "Leave applied successfully"
     });
+
+    // Notify relevant managers, HR, and Admins
+    sequelize.query(
+      `SELECT id FROM employees WHERE role IN ('admin', 'hr') OR (role = 'manager' AND department_id = (SELECT department_id FROM employees WHERE id = :employee_id))`,
+      { replacements: { employee_id }, type: QueryTypes.SELECT }
+    ).then(users => {
+      users.forEach(u => {
+        createNotification(u.id, "New Leave Request", `A new leave request has been submitted.`, "leave").catch(console.error);
+      });
+    }).catch(console.error);
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Database error" });
@@ -136,6 +148,10 @@ export const updateLeaveStatus = async (req, res) => {
     res.json({
       message: "Leave status updated successfully"
     });
+
+    // Notify the employee about the status update
+    createNotification(leave.employee_id, "Leave Request Updated", `Your leave request has been ${status.toLowerCase()}.`, "leave").catch(console.error);
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Database error" });

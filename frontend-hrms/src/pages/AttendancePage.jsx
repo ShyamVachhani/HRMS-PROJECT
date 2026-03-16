@@ -342,7 +342,7 @@ const AttendancePage = () => {
             sx={{ color: "#4a5568", fontWeight: 600 }}
             startIcon={<EventAvailableIcon />}
           >
-            M-Attendance History
+            View Full History
           </Button>
         </Stack>
       </Paper>

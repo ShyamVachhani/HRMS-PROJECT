@@ -12,7 +12,7 @@ const env = process.env.NODE_ENV || "development";
 export const sequelize = new Sequelize(
   process.env.DB_NAME || config[env].database,
   process.env.DB_USER || config[env].username,
-  process.env.DB_PASS || config[env].password,
+  process.env.DB_PASSWORD || config[env].password,
   {
     host: process.env.DB_HOST || config[env].host,
     dialect: config[env].dialect

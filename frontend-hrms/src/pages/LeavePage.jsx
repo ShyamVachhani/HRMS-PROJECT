@@ -42,6 +42,7 @@ function LeavePage() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
+  const [viewMode, setViewMode] = useState("team"); // 'team' or 'my'
 
   const [applyDialogOpen, setApplyDialogOpen] = useState(false);
   const [startDate, setStartDate] = useState("");
@@ -101,7 +102,8 @@ function LeavePage() {
       if (canViewAll) {
         res = await api.get(`/leaves?${query.toString()}`);
       } else if (isManager) {
-        res = await api.get(`/leaves/team?${query.toString()}`);
+        const endpoint = viewMode === "team" ? "/leaves/team" : "/leaves/my";
+        res = await api.get(`${endpoint}?${query.toString()}`);
       } else {
         res = await api.get(`/leaves/my?${query.toString()}`);
       }
@@ -118,7 +120,7 @@ function LeavePage() {
 
   useEffect(() => {
     fetchLeaves();
-  }, [page, rowsPerPage, statusFilter]);
+  }, [page, rowsPerPage, statusFilter, viewMode]);
 
   const handleApplyOpen = () => {
     setStartDate("");
@@ -273,6 +275,26 @@ function LeavePage() {
             color="warning" 
             variant="outlined" 
           />
+          {isManager && (
+            <Stack direction="row" spacing={1}>
+              <Button 
+                variant={viewMode === "team" ? "contained" : "outlined"} 
+                size="small"
+                onClick={() => { setViewMode("team"); setPage(0); }}
+                color="warning"
+              >
+                Team Requests
+              </Button>
+              <Button 
+                variant={viewMode === "my" ? "contained" : "outlined"} 
+                size="small"
+                onClick={() => { setViewMode("my"); setPage(0); }}
+                color="warning"
+              >
+                My Requests
+              </Button>
+            </Stack>
+          )}
         </Stack>
       </Paper>
 
@@ -317,7 +339,7 @@ function LeavePage() {
                   <TableCell>{getStatusChip(leave.status)}</TableCell>
                   {canApprove && (
                     <TableCell align="center">
-                      {leave.status === "Pending" && (
+                      {leave.status === "Pending" && leave.employee_id !== employeeId && (
                         <Stack direction="row" spacing={1} justifyContent="center">
                           <Button
                             variant="contained"

@@ -9,6 +9,6 @@ router.post("/signup", signup);
 //Protected Routes
 router.get("/user/:id", verifyToken, getCurrentUser);
 router.put("/user/:id", verifyToken, updateProfile);
-router.put("/password/:id", verifyToken, changePassword);
+router.put("/change-password", verifyToken, changePassword);
 
 export default router;

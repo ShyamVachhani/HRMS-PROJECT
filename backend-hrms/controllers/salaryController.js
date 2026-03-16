@@ -1,5 +1,60 @@
 import { sequelize } from "../config/sequelize.js";
 import { QueryTypes } from "sequelize";
+import { createNotification } from "./notificationController.js";
+
+/* Get Attendance Stats for an employee in a specific month/year */
+export const getAttendanceStats = async (req, res) => {
+  const { employee_id, month, year } = req.query;
+
+  if (!employee_id || !month || !year) {
+    return res.status(400).json({ message: "employee_id, month, and year are required" });
+  }
+
+  try {
+    // 1. Get Employee Basic Salary
+    const [employee] = await sequelize.query(
+      "SELECT basic_salary FROM employees WHERE id = :employee_id",
+      { replacements: { employee_id }, type: QueryTypes.SELECT }
+    );
+
+    if (!employee) return res.status(404).json({ message: "Employee not found" });
+
+    // 2. Count Present Days (present or wfh)
+    const [attendanceStats] = await sequelize.query(
+      `SELECT 
+        COUNT(CASE WHEN work_type IN ('present', 'wfh') THEN 1 END) as present_days,
+        COUNT(CASE WHEN work_type = 'leave' THEN 1 END) as leave_days
+       FROM attendance 
+       WHERE employee_id = :employee_id 
+       AND MONTH(date) = :month 
+       AND YEAR(date) = :year`,
+      { replacements: { employee_id, month, year }, type: QueryTypes.SELECT }
+    );
+
+    // 3. Simple calculation for total working days in month (can be improved with holiday list)
+    // For now, we assume standard 22-26 days or use the month's total days
+    const totalDaysInMonth = new Date(year, month, 0).getDate();
+    
+    // Calculate weekends
+    let weekends = 0;
+    for (let i = 1; i <= totalDaysInMonth; i++) {
+      const day = new Date(year, month - 1, i).getDay();
+      if (day === 0 || day === 6) weekends++;
+    }
+    const standardWorkingDays = totalDaysInMonth - weekends;
+
+    res.json({
+      basic_salary: employee.basic_salary,
+      present_days: attendanceStats.present_days || 0,
+      leave_days: attendanceStats.leave_days || 0,
+      total_days: totalDaysInMonth,
+      standard_working_days: standardWorkingDays
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error fetching attendance stats" });
+  }
+};
 
 /* Calculate Salary for specific employee */
 export const calculateSalary = async (req, res) => {
@@ -35,6 +90,10 @@ export const calculateSalary = async (req, res) => {
         final_salary: final_salary.toFixed(2)
       }
     });
+
+    // Notify employee
+    createNotification(employee_id, "Payslip Generated", `Your payslip for ${month}/${year} has been generated.`, "salary").catch(console.error);
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Database error during salary calculation" });

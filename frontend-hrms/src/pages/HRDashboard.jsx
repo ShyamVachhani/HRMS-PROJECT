@@ -7,8 +7,12 @@ import BusinessIcon from "@mui/icons-material/Business";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import WorkIcon from "@mui/icons-material/Work";
+import HomeWorkIcon from "@mui/icons-material/HomeWork";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import RealTimeClock from "../components/dashboard/RealTimeClock";
+import AnnouncementCard from "../components/dashboard/AnnouncementCard";
+import HolidayCard from "../components/dashboard/HolidayCard";
 
 function StatCard({ title, value, icon, color, bg, loading }) {
   return (
@@ -54,13 +58,17 @@ export default function HRDashboard() {
     leaveRequests: 0,
     totalDepartments: 0,
     pendingTasks: 0,
-    wfhToday: 0
+    wfhToday: 0,
+    wfhRequests: 0
   });
   
   const [recentEmployees, setRecentEmployees] = useState([]);
   const [leaveRequests, setLeaveRequests] = useState([]);
+  const [wfhRequests, setWfhRequests] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
+  const [holidays, setHolidays] = useState([]);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -77,7 +85,10 @@ export default function HRDashboard() {
         fetchDashboardStats(),
         fetchEmployees(),
         fetchLeaves(),
-        fetchDepartments()
+        fetchWFH(),
+        fetchDepartments(),
+        fetchAnnouncements(),
+        fetchHolidays()
       ]);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -131,6 +142,18 @@ export default function HRDashboard() {
     }
   };
 
+  const fetchWFH = async () => {
+     try {
+       const res = await api.get("/wfh/all");
+       const wfh = res.data || [];
+       setWfhRequests(wfh.slice(0, 4));
+       const pending = wfh.filter(r => r.status === "pending");
+       setStats(prev => ({ ...prev, wfhRequests: pending.length }));
+     } catch (error) {
+       console.error("Error fetching WFH requests:", error);
+     }
+  };
+
   const fetchDepartments = async () => {
     try {
       const res = await api.get("/departments/all");
@@ -139,6 +162,24 @@ export default function HRDashboard() {
       setStats(prev => ({ ...prev, totalDepartments: depts.length }));
     } catch (error) {
       console.error("Error fetching departments:", error);
+    }
+  };
+
+  const fetchAnnouncements = async () => {
+    try {
+      const res = await api.get("/announcements");
+      setAnnouncements(res.data || []);
+    } catch (error) {
+      console.error("Error fetching announcements:", error);
+    }
+  };
+
+  const fetchHolidays = async () => {
+    try {
+      const res = await api.get("/holidays");
+      setHolidays(res.data || []);
+    } catch (error) {
+      console.error("Error fetching holidays:", error);
     }
   };
 
@@ -166,6 +207,24 @@ export default function HRDashboard() {
     }
   };
 
+  const handleApproveWFH = async (id) => {
+    try {
+      await api.post("/wfh/approve", { id });
+      fetchWFH();
+    } catch (error) {
+       console.error("Error approving WFH:", error);
+    }
+  };
+
+  const handleRejectWFH = async (id) => {
+    try {
+      await api.post("/wfh/reject", { id });
+      fetchWFH();
+    } catch (error) {
+      console.error("Error rejecting WFH:", error);
+    }
+  };
+
   const getStatusChip = (status) => {
     const colors = {
       Active: { bg: "#ECFDF5", color: "#059669" },
@@ -182,8 +241,8 @@ export default function HRDashboard() {
     { title: "Total Employees", value: stats.totalEmployees, icon: <PeopleIcon />, color: "#059669", bg: "#ECFDF5" },
     { title: "Present Today", value: stats.presentToday, icon: <CheckCircleIcon />, color: "#16A34A", bg: "#ECFDF5" },
     { title: "Leave Requests", value: stats.leaveRequests, icon: <BeachAccessIcon />, color: "#F59E0B", bg: "#FFFBEB" },
+    { title: "WFH Requests", value: stats.wfhRequests, icon: <HomeWorkIcon />, color: "#06B6D4", bg: "#ECFEFF" },
     { title: "Departments", value: stats.totalDepartments, icon: <BusinessIcon />, color: "#8B5CF6", bg: "#F5F3FF" },
-    { title: "WFH Today", value: stats.wfhToday, icon: <PersonAddIcon />, color: "#06B6D4", bg: "#ECFEFF" },
     { title: "Active", value: stats.totalEmployees, icon: <AssignmentIcon />, color: "#EF4444", bg: "#FEF2F2" }
   ];
 
@@ -192,7 +251,7 @@ export default function HRDashboard() {
       {/* Header */}
       <Box sx={{ mb: 4, p: 4, borderRadius: 4, background: "linear-gradient(135deg, #059669 0%, #10B981 100%)", color: "white" }}>
         <Grid container alignItems="center" spacing={2}>
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <Typography variant="h3" fontWeight="bold">
               Welcome, {user?.name || "HR"}!
             </Typography>
@@ -200,14 +259,8 @@ export default function HRDashboard() {
               Manage your organization's workforce efficiently
             </Typography>
           </Grid>
-          <Grid item xs={12} md={4} sx={{ textAlign: { xs: "left", md: "right" } }}>
-            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 2, background: "rgba(255,255,255,0.2)", p: 2, borderRadius: 3 }}>
-              <WorkIcon sx={{ fontSize: 40 }} />
-              <Box>
-                <Typography variant="h5" fontWeight="bold">HR Panel</Typography>
-                <Typography variant="caption" sx={{ opacity: 0.8 }}>Employee Management</Typography>
-              </Box>
-            </Box>
+          <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: "flex-start", md: "flex-end" }, gap: 2 }}>
+            <RealTimeClock />
           </Grid>
         </Grid>
       </Box>
@@ -215,7 +268,7 @@ export default function HRDashboard() {
       {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {hrStats.map((stat, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
             <StatCard {...stat} loading={loading} />
           </Grid>
         ))}
@@ -224,7 +277,7 @@ export default function HRDashboard() {
       {/* Main Content */}
       <Grid container spacing={3}>
         {/* Recent Employees */}
-        <Grid item xs={12} lg={6}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
@@ -278,7 +331,7 @@ export default function HRDashboard() {
         </Grid>
 
         {/* Leave Requests */}
-        <Grid item xs={12} lg={6}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
@@ -329,8 +382,64 @@ export default function HRDashboard() {
           </Card>
         </Grid>
 
+        {/* WFH Requests */}
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
+            <CardContent>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                <Typography variant="h6" fontWeight="bold" sx={{ color: "#06B6D4" }}>
+                  WFH Requests
+                </Typography>
+                <Button size="small" onClick={() => navigate("/wfh")}>View All</Button>
+              </Box>
+              
+              {loading ? (
+                <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+                  <CircularProgress sx={{ color: "#06B6D4" }} />
+                </Box>
+              ) : wfhRequests.length === 0 ? (
+                <Typography color="text.secondary" textAlign="center" sx={{ py: 4 }}>
+                  No WFH requests
+                </Typography>
+              ) : (
+                wfhRequests.map((req, i) => (
+                  <Box key={req.id || i} sx={{ p: 2, mb: 2, borderRadius: 2, background: "#F8FAFC", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Box>
+                      <Typography fontWeight="600">{req.name}</Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        {req.start_date?.split("T")[0]} to {req.end_date?.split("T")[0]}
+                      </Typography>
+                      {req.reason && (
+                        <Typography variant="caption" display="block" color="textSecondary">
+                          Reason: {req.reason}
+                        </Typography>
+                      )}
+                    </Box>
+                    {req.status === "pending" ? (
+                      <Box sx={{ display: "flex", gap: 1 }}>
+                        <Button size="small" variant="contained" color="success" onClick={() => handleApproveWFH(req.id)}>
+                          Approve
+                        </Button>
+                        <Button size="small" variant="outlined" color="error" onClick={() => handleRejectWFH(req.id)}>
+                          Reject
+                        </Button>
+                      </Box>
+                    ) : (
+                      <Chip 
+                        label={req.status.charAt(0).toUpperCase() + req.status.slice(1)} 
+                        size="small" 
+                        color={req.status === "approved" ? "success" : "error"} 
+                      />
+                    )}
+                  </Box>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
         {/* Department Overview */}
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
@@ -378,6 +487,13 @@ export default function HRDashboard() {
               )}
             </CardContent>
           </Card>
+        </Grid>
+        {/* Announcements & Holidays */}
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <AnnouncementCard announcements={announcements} loading={loading} />
+        </Grid>
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <HolidayCard holidays={holidays} loading={loading} />
         </Grid>
       </Grid>
     </Box>

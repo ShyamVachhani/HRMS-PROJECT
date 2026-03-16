@@ -94,6 +94,26 @@ const SalaryPage = () => {
     resetCalculateForm();
   };
 
+  const fetchStats = async () => {
+    if (!employeeId || !month || !year) return;
+    
+    try {
+      const res = await api.get(`/salary/stats?employee_id=${employeeId}&month=${month}&year=${year}`);
+      const data = res.data;
+      setMonthlySalary(data.basic_salary);
+      setWorkingDays(data.standard_working_days);
+      setLeaveDays(data.leave_days);
+    } catch (err) {
+      console.error("Error fetching stats:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (calculateDialogOpen && employeeId && month && year) {
+      fetchStats();
+    }
+  }, [employeeId, month, year, calculateDialogOpen]);
+
   const calculateSalary = async () => {
     if (!employeeId || !month || !year || !monthlySalary || !workingDays || leaveDays === "") {
       showSnackbar("Please fill all required fields", "error");
@@ -123,21 +143,28 @@ const SalaryPage = () => {
   };
 
   const fetchHistory = async () => {
-    if (!historyEmployeeId) {
-      showSnackbar("Please select an employee", "error");
-      return;
-    }
+    if (!historyEmployeeId) return;
+    
     setLoading(true);
     try {
       const res = await api.get(`/salary/history/${historyEmployeeId}`);
-      setHistory(res.data);
+      setHistory(Array.isArray(res.data) ? res.data : (res.data.data || []));
     } catch (err) {
-      console.error(err);
+      console.error("History Fetch Error:", err);
       showSnackbar("Failed to load salary history", "error");
+      setHistory([]);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (historyEmployeeId) {
+      fetchHistory();
+    } else {
+      setHistory([]);
+    }
+  }, [historyEmployeeId]);
 
   const fetchReport = async () => {
     if (!reportMonth || !reportYear) {
@@ -156,6 +183,13 @@ const SalaryPage = () => {
     }
   };
 
+  useEffect(() => {
+    if (reportMonth && reportYear) {
+      fetchReport();
+    } else {
+      setReport([]);
+    }
+  }, [reportMonth, reportYear]);
   const getEmployeeName = (id) => {
     const emp = employees.find(e => e.id === parseInt(id));
     return emp ? emp.name : "";
@@ -231,9 +265,9 @@ const SalaryPage = () => {
                 variant="contained" 
                 onClick={fetchHistory}
                 disabled={!historyEmployeeId || loading}
-                startIcon={loading ? <CircularProgress size={20} /> : <HistoryIcon />}
+                startIcon={loading ? <CircularProgress size={20} /> : <RefreshIcon />}
               >
-                View History
+                Refresh
               </Button>
               {historyEmployeeId && (
                 <Chip 
@@ -275,19 +309,19 @@ const SalaryPage = () => {
                           />
                         </TableCell>
                         <TableCell>{rec.year}</TableCell>
-                        <TableCell align="right">${parseFloat(rec.basic_salary).toLocaleString()}</TableCell>
+                        <TableCell align="right">₹{parseFloat(rec.basic_salary).toLocaleString()}</TableCell>
                         <TableCell align="center">{rec.working_days}</TableCell>
                         <TableCell align="center">{rec.present_days}</TableCell>
                         <TableCell align="center">
                           <Chip label={rec.leave_days} size="small" color={rec.leave_days > 0 ? "warning" : "default"} />
                         </TableCell>
-                        <TableCell align="right">${parseFloat(rec.per_day_salary).toFixed(2)}</TableCell>
+                        <TableCell align="right">₹{parseFloat(rec.per_day_salary).toFixed(2)}</TableCell>
                         <TableCell align="right" sx={{ color: "error.main" }}>
-                          -${parseFloat(rec.deduction).toFixed(2)}
+                          -₹{parseFloat(rec.deduction).toFixed(2)}
                         </TableCell>
                         <TableCell align="right">
                           <Typography sx={{ fontWeight: "bold", color: "success.main" }}>
-                            ${parseFloat(rec.final_salary).toLocaleString()}
+                            ₹{parseFloat(rec.final_salary).toLocaleString()}
                           </Typography>
                         </TableCell>
                       </TableRow>
@@ -375,7 +409,7 @@ const SalaryPage = () => {
                     <CardContent>
                       <Typography color="text.secondary" gutterBottom>Total Payout</Typography>
                       <Typography variant="h4" color="success.main">
-                        ${report.reduce((sum, r) => sum + parseFloat(r.final_salary || 0), 0).toLocaleString()}
+                        ₹{report.reduce((sum, r) => sum + parseFloat(r.final_salary || 0), 0).toLocaleString()}
                       </Typography>
                     </CardContent>
                   </Card>
@@ -385,7 +419,7 @@ const SalaryPage = () => {
                     <CardContent>
                       <Typography color="text.secondary" gutterBottom>Average Salary</Typography>
                       <Typography variant="h4" color="warning.main">
-                        ${(report.reduce((sum, r) => sum + parseFloat(r.final_salary || 0), 0) / report.length).toFixed(2)}
+                        ₹{(report.reduce((sum, r) => sum + parseFloat(r.final_salary || 0), 0) / report.length).toFixed(2)}
                       </Typography>
                     </CardContent>
                   </Card>
@@ -419,7 +453,7 @@ const SalaryPage = () => {
                           <TableCell>{rec.year}</TableCell>
                           <TableCell align="right">
                             <Typography sx={{ fontWeight: "bold", color: "success.main" }}>
-                              ${parseFloat(rec.final_salary).toLocaleString()}
+                              ₹{parseFloat(rec.final_salary).toLocaleString()}
                             </Typography>
                           </TableCell>
                         </TableRow>
@@ -506,7 +540,7 @@ const SalaryPage = () => {
             </Stack>
 
             <TextField
-              label="Monthly Salary ($)"
+              label="Monthly Salary (₹)"
               value={monthlySalary}
               onChange={(e) => setMonthlySalary(e.target.value)}
               type="number"
@@ -522,6 +556,7 @@ const SalaryPage = () => {
                 type="number"
                 fullWidth
                 required
+                helperText="Standard working days (mon-fri)"
               />
 
               <TextField
@@ -531,8 +566,30 @@ const SalaryPage = () => {
                 type="number"
                 fullWidth
                 required
+                helperText="Fetched from attendance records"
               />
             </Stack>
+
+            {employeeId && month && (
+              <Box sx={{ p: 2, bgcolor: "#f8fafc", borderRadius: 1, border: "1px solid #e2e8f0" }}>
+                <Typography variant="subtitle2" sx={{ color: "#059669", mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <AssessmentIcon fontSize="small" />
+                  Attendance Summary for {getEmployeeName(employeeId)}
+                </Typography>
+                <Grid container spacing={1}>
+                  <Grid item xs={6}>
+                    <Typography variant="caption" color="text.secondary">Present Days</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: "bold" }}>{workingDays - leaveDays} Days</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="caption" color="text.secondary">Leave Days</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: "bold", color: leaveDays > 0 ? "error.main" : "text.primary" }}>
+                      {leaveDays} Days
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 2, pt: 0 }}>

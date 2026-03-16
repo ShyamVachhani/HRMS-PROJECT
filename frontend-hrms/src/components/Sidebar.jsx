@@ -19,7 +19,7 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import PeopleIcon from "@mui/icons-material/People";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import BeachAccessIcon from "@mui/icons-material/BeachAccess";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import PolicyIcon from "@mui/icons-material/Policy";
 import HomeWorkIcon from "@mui/icons-material/HomeWork";
@@ -37,7 +37,7 @@ const roleMenuItems = {
     { text: "Employees", path: "/employees", icon: <PeopleIcon /> },
     { text: "Attendance", path: "/attendance", icon: <CheckCircleIcon /> },
     { text: "Leave", path: "/leave", icon: <BeachAccessIcon /> },
-    { text: "Salary", path: "/salary", icon: <AttachMoneyIcon /> },
+    { text: "Salary", path: "/salary", icon: <CurrencyRupeeIcon /> },
     { text: "Tasks", path: "/tasks", icon: <AssignmentIcon /> },
     { text: "Policies", path: "/policies", icon: <PolicyIcon /> },
     { text: "WFH", path: "/wfh", icon: <HomeWorkIcon /> },
@@ -49,12 +49,10 @@ const roleMenuItems = {
   ],
   manager: [
     { text: "Dashboard", path: "/manager", icon: <DashboardIcon /> },
-    { text: "Employees", path: "/employees", icon: <PeopleIcon /> },
     { text: "Attendance", path: "/attendance", icon: <CheckCircleIcon /> },
     { text: "Leave", path: "/leave", icon: <BeachAccessIcon /> },
     { text: "Tasks", path: "/tasks", icon: <AssignmentIcon /> },
     { text: "WFH", path: "/wfh", icon: <HomeWorkIcon /> },
-    { text: "Department", path: "/departments", icon: <BusinessIcon /> },
     { text: "Announcements", path: "/announcements", icon: <CampaignIcon /> },
     { text: "Reports", path: "/reports", icon: <AssessmentIcon /> }
   ],
@@ -63,8 +61,9 @@ const roleMenuItems = {
     { text: "Employees", path: "/employees", icon: <PeopleIcon /> },
     { text: "Attendance", path: "/attendance", icon: <CheckCircleIcon /> },
     { text: "Leave", path: "/leave", icon: <BeachAccessIcon /> },
-    { text: "Salary", path: "/salary", icon: <AttachMoneyIcon /> },
+    { text: "Salary", path: "/salary", icon: <CurrencyRupeeIcon /> },
     { text: "Policies", path: "/policies", icon: <PolicyIcon /> },
+    { text: "WFH", path: "/wfh", icon: <HomeWorkIcon /> },
     { text: "Department", path: "/departments", icon: <BusinessIcon /> },
     { text: "Holidays", path: "/holidays", icon: <EventIcon /> },
     { text: "Announcements", path: "/announcements", icon: <CampaignIcon /> }

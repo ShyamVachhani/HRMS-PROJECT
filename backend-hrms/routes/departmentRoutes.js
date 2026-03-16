@@ -11,7 +11,7 @@ import { authorizeRoles } from "../middleware/roleMiddleware.js";
 const router = express.Router();
 
 router.post("/add", verifyToken, authorizeRoles("admin", "hr"), addDepartment);
-router.get("/all", verifyToken, getDepartments);
+router.get("/all", verifyToken, authorizeRoles("admin", "hr", "manager"), getDepartments);
 router.put("/update/:id", verifyToken, authorizeRoles("admin", "hr"), updateDepartment);
 router.delete("/delete/:id", verifyToken, authorizeRoles("admin", "hr"), deleteDepartment);
 

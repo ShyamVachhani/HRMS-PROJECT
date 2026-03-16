@@ -35,6 +35,12 @@ import AssignmentIcon from "@mui/icons-material/Assignment";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PauseIcon from "@mui/icons-material/Pause";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import CommentIcon from "@mui/icons-material/Comment";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
+import SendIcon from "@mui/icons-material/Send";
+import DownloadIcon from "@mui/icons-material/Download";
+import { Tabs, Tab, List, ListItem, ListItemText, ListItemSecondaryAction, Divider, Avatar } from "@mui/material";
 import api from "../services/api";
 
 const TaskPage = () => {
@@ -65,6 +71,14 @@ const TaskPage = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [deleteTitle, setDeleteTitle] = useState("");
 
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [activeTab, setActiveTab] = useState(0);
+  const [comments, setComments] = useState([]);
+  const [attachments, setAttachments] = useState([]);
+  const [newComment, setNewComment] = useState("");
+  const [uploadLoading, setUploadLoading] = useState(false);
+
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   const user = JSON.parse(localStorage.getItem("user"));
@@ -74,6 +88,7 @@ const TaskPage = () => {
   const canCreateTask = ["admin", "manager"].includes(userRole);
   const canDeleteTask = ["admin", "manager"].includes(userRole);
   const canViewAll = ["admin", "manager", "hr"].includes(userRole);
+  const isMonitorOnly = ["admin", "manager"].includes(userRole);
 
   const priorityOptions = [
     { value: "high", label: "High", color: "error" },
@@ -255,6 +270,92 @@ const TaskPage = () => {
       setLoading(false);
     }
   };
+  
+  const handleViewClick = async (task) => {
+    setSelectedTask(task);
+    setDetailDialogOpen(true);
+    setActiveTab(0);
+    fetchComments(task.id);
+    fetchAttachments(task.id);
+  };
+
+  const fetchComments = async (taskId) => {
+    try {
+      const res = await api.get(`/tasks/${taskId}/comments`);
+      setComments(res.data || []);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+    }
+  };
+
+  const fetchAttachments = async (taskId) => {
+    try {
+      const res = await api.get(`/tasks/${taskId}/attachments`);
+      setAttachments(res.data || []);
+    } catch (error) {
+      console.error("Error fetching attachments:", error);
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return;
+    try {
+      await api.post(`/tasks/${selectedTask.id}/comments`, {
+        employee_id: employeeId,
+        comment: newComment
+      });
+      setNewComment("");
+      fetchComments(selectedTask.id);
+      showSnackbar("Comment added");
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      showSnackbar("Failed to add comment", "error");
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await api.delete(`/tasks/comments/${commentId}`);
+      fetchComments(selectedTask.id);
+      showSnackbar("Comment deleted");
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      showSnackbar("Failed to delete comment", "error");
+    }
+  };
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    setUploadLoading(true);
+    try {
+      await api.post(`/tasks/${selectedTask.id}/attachments`, formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      fetchAttachments(selectedTask.id);
+      showSnackbar("File uploaded successfully");
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      showSnackbar("Failed to upload file", "error");
+    } finally {
+      setUploadLoading(false);
+    }
+  };
+
+  const handleDeleteAttachment = async (attachmentId) => {
+    try {
+      await api.delete(`/tasks/attachments/${attachmentId}`);
+      fetchAttachments(selectedTask.id);
+      showSnackbar("Attachment removed");
+    } catch (error) {
+      console.error("Error removing attachment:", error);
+      showSnackbar("Failed to remove attachment", "error");
+    }
+  };
 
   const getPriorityColor = (priority) => {
     const option = priorityOptions.find(p => p.value === priority?.toLowerCase());
@@ -398,34 +499,47 @@ const TaskPage = () => {
                     <TableCell>{task.due_date?.split("T")[0] || "-"}</TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={0.5} justifyContent="center">
-                        <Tooltip title="Start Task">
+                        <Tooltip title="View Details">
                           <IconButton 
                             size="small" 
-                            color="primary"
-                            onClick={() => updateStatus(task.id, "in_progress")}
-                            disabled={task.status === "completed"}
+                            color="info"
+                            onClick={() => handleViewClick(task)}
                           >
-                            <PlayArrowIcon fontSize="small" />
+                            <VisibilityIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Mark Complete">
-                          <IconButton 
-                            size="small" 
-                            color="success"
-                            onClick={() => updateStatus(task.id, "completed")}
-                          >
-                            <CheckCircleIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Mark Pending">
-                          <IconButton 
-                            size="small" 
-                            color="warning"
-                            onClick={() => updateStatus(task.id, "pending")}
-                          >
-                            <PauseIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                        {!isMonitorOnly && (
+                          <>
+                            <Tooltip title="Start Task">
+                              <IconButton 
+                                size="small" 
+                                color="primary"
+                                onClick={() => updateStatus(task.id, "in_progress")}
+                                disabled={task.status === "completed"}
+                              >
+                                <PlayArrowIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Mark Complete">
+                              <IconButton 
+                                size="small" 
+                                color="success"
+                                onClick={() => updateStatus(task.id, "completed")}
+                              >
+                                <CheckCircleIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Mark Pending">
+                              <IconButton 
+                                size="small" 
+                                color="warning"
+                                onClick={() => updateStatus(task.id, "pending")}
+                              >
+                                <PauseIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </>
+                        )}
                         {canCreateTask && (
                           <>
                             <Tooltip title="Edit">
@@ -643,6 +757,225 @@ const TaskPage = () => {
             startIcon={loading ? <CircularProgress size={20} /> : <DeleteIcon />}
           >
             Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Task Detail Dialog */}
+      <Dialog 
+        open={detailDialogOpen} 
+        onClose={() => setDetailDialogOpen(false)} 
+        maxWidth="md" 
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 2, minHeight: '60vh' } }}
+      >
+        <DialogTitle sx={{ bgcolor: "#6D28D9", color: "white", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <VisibilityIcon />
+            <Typography variant="h6">Task Details: {selectedTask?.title}</Typography>
+          </Box>
+          <Chip 
+            label={selectedTask?.status || "pending"} 
+            size="small" 
+            sx={{ bgcolor: "white", color: "#6D28D9", fontWeight: "bold" }} 
+          />
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs 
+              value={activeTab} 
+              onChange={(e, val) => setActiveTab(val)} 
+              variant="fullWidth"
+              textColor="secondary"
+              indicatorColor="secondary"
+            >
+              <Tab icon={<AssignmentIcon />} label="DETAILS" />
+              <Tab icon={<CommentIcon />} label={`COMMENTS (${comments.length})`} />
+              <Tab icon={<AttachFileIcon />} label={`ATTACHMENTS (${attachments.length})`} />
+            </Tabs>
+          </Box>
+
+          <Box sx={{ p: 3 }}>
+            {/* Tab 0: Details */}
+            {activeTab === 0 && (
+              <Stack spacing={3}>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>Description</Typography>
+                  <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', bgcolor: '#f8fafc', p: 2, borderRadius: 1 }}>
+                    {selectedTask?.description || "No description provided."}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                  <Paper variant="outlined" sx={{ p: 2 }}>
+                    <Typography variant="caption" color="text.secondary">Assigned To</Typography>
+                    <Typography variant="body1" fontWeight="500">{selectedTask?.assigned_to_name}</Typography>
+                  </Paper>
+                  <Paper variant="outlined" sx={{ p: 2 }}>
+                    <Typography variant="caption" color="text.secondary">Assigned By</Typography>
+                    <Typography variant="body1" fontWeight="500">{selectedTask?.assigned_by_name}</Typography>
+                  </Paper>
+                  <Paper variant="outlined" sx={{ p: 2 }}>
+                    <Typography variant="caption" color="text.secondary">Priority</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                      <Chip 
+                        label={selectedTask?.priority} 
+                        color={getPriorityColor(selectedTask?.priority)} 
+                        size="small" 
+                      />
+                    </Box>
+                  </Paper>
+                  <Paper variant="outlined" sx={{ p: 2 }}>
+                    <Typography variant="caption" color="text.secondary">Due Date</Typography>
+                    <Typography variant="body1" fontWeight="500">
+                      {selectedTask?.due_date ? new Date(selectedTask.due_date).toLocaleDateString() : "-"}
+                    </Typography>
+                  </Paper>
+                </Box>
+              </Stack>
+            )}
+
+            {/* Tab 1: Comments */}
+            {activeTab === 1 && (
+              <Box>
+                <List sx={{ maxHeight: 300, overflow: 'auto', mb: 2 }}>
+                  {comments.length === 0 ? (
+                    <Typography align="center" color="text.secondary" sx={{ py: 4 }}>No comments yet.</Typography>
+                  ) : (
+                    comments.map((comment, index) => (
+                      <React.Fragment key={comment.id}>
+                        <ListItem alignItems="flex-start" sx={{ px: 0 }}>
+                          <Avatar sx={{ mr: 2, bgcolor: index % 2 === 0 ? '#8B5CF6' : '#EC4899' }}>
+                            {comment.employee_name?.charAt(0)}
+                          </Avatar>
+                          <ListItemText
+                            primary={
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="subtitle2" component="span" fontWeight="bold">
+                                  {comment.employee_name}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {new Date(comment.created_at).toLocaleString()}
+                                </Typography>
+                              </Box>
+                            }
+                            secondary={
+                              <Typography variant="body2" color="text.primary" sx={{ mt: 0.5 }}>
+                                {comment.comment}
+                              </Typography>
+                            }
+                          />
+                          {comment.employee_id === employeeId && (
+                            <ListItemSecondaryAction>
+                              <IconButton edge="end" size="small" onClick={() => handleDeleteComment(comment.id)}>
+                                <DeleteIcon fontSize="inherit" color="error" />
+                              </IconButton>
+                            </ListItemSecondaryAction>
+                          )}
+                        </ListItem>
+                        {index < comments.length - 1 && <Divider variant="inset" component="li" />}
+                      </React.Fragment>
+                    ))
+                  )}
+                </List>
+                <Divider sx={{ mb: 2 }} />
+                <Stack direction="row" spacing={1}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    placeholder="Write a comment..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
+                  />
+                  <Button 
+                    variant="contained" 
+                    color="secondary" 
+                    onClick={handleAddComment}
+                    disabled={!newComment.trim()}
+                    endIcon={<SendIcon />}
+                  >
+                    Post
+                  </Button>
+                </Stack>
+              </Box>
+            )}
+
+            {/* Tab 2: Attachments */}
+            {activeTab === 2 && (
+              <Box>
+                <Box sx={{ mb: 3, p: 2, border: '2px dashed #e2e8f0', borderRadius: 2, textAlign: 'center' }}>
+                  <input
+                    type="file"
+                    id="task-file-upload"
+                    hidden
+                    onChange={handleFileUpload}
+                  />
+                  <label htmlFor="task-file-upload">
+                    <Button
+                      variant="outlined"
+                      component="span"
+                      startIcon={uploadLoading ? <CircularProgress size={20} /> : <AttachFileIcon />}
+                      disabled={uploadLoading}
+                    >
+                      {uploadLoading ? "Uploading..." : "Click to Upload File"}
+                    </Button>
+                  </label>
+                  <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
+                    Images, PDFs, and Documents up to 10MB
+                  </Typography>
+                </Box>
+
+                <List>
+                  {attachments.length === 0 ? (
+                    <Typography align="center" color="text.secondary" sx={{ py: 2 }}>No attachments found.</Typography>
+                  ) : (
+                    attachments.map((file) => (
+                      <Paper variant="outlined" key={file.id} sx={{ mb: 1.5, overflow: 'hidden' }}>
+                        <ListItem>
+                          <Avatar sx={{ bgcolor: '#f1f5f9', color: '#64748b', mr: 2 }}>
+                            <AttachFileIcon />
+                          </Avatar>
+                          <ListItemText 
+                            primary={file.file_url.split('-').slice(1).join('-')}
+                            secondary={new Date(file.uploaded_at).toLocaleString()}
+                            primaryTypographyProps={{ variant: 'body2', noWrap: true }}
+                          />
+                          <Stack direction="row" spacing={1}>
+                            <Tooltip title="Download">
+                              <IconButton 
+                                size="small" 
+                                component="a" 
+                                href={`${api.defaults.baseURL.replace('/api', '')}${file.file_url}`} 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <DownloadIcon fontSize="small" color="primary" />
+                              </IconButton>
+                            </Tooltip>
+                            {/* Allow deletion of attachments by those who can delete tasks (admin/manager) or owners? 
+                                Actually, keep it simple: admin/manager can always delete attachments if they are monitors?
+                                User said "not able to add", let's enable delete for them too if they are admin/manager.
+                            */}
+                            {canDeleteTask && (
+                              <Tooltip title="Delete">
+                                <IconButton size="small" onClick={() => handleDeleteAttachment(file.id)}>
+                                  <DeleteIcon fontSize="small" color="error" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                          </Stack>
+                        </ListItem>
+                      </Paper>
+                    ))
+                  )}
+                </List>
+              </Box>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setDetailDialogOpen(false)} variant="contained" color="secondary">
+            Close
           </Button>
         </DialogActions>
       </Dialog>

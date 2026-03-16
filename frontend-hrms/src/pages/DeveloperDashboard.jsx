@@ -12,6 +12,9 @@ import CampaignIcon from "@mui/icons-material/Campaign";
 import PendingActionsIcon from "@mui/icons-material/PendingActions";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import RealTimeClock from "../components/dashboard/RealTimeClock";
+import AnnouncementCard from "../components/dashboard/AnnouncementCard";
+import HolidayCard from "../components/dashboard/HolidayCard";
 
 function StatCard({ title, value, icon, color, bg, loading }) {
   return (
@@ -76,6 +79,7 @@ export default function DeveloperDashboard() {
   const [myTasks, setMyTasks] = useState([]);
   const [attendanceHistory, setAttendanceHistory] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
+  const [holidays, setHolidays] = useState([]);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -92,6 +96,7 @@ export default function DeveloperDashboard() {
         fetchTasks(),
         fetchAttendance(),
         fetchAnnouncements(),
+        fetchHolidays(),
         fetchLeaveBalance()
       ]);
     } catch (error) {
@@ -130,7 +135,7 @@ export default function DeveloperDashboard() {
       const employeeId = userData?.employee_id || userData?.id;
       
       const res = await api.get(`/attendance/history/${employeeId}`);
-      const attendance = res.data || [];
+      const attendance = Array.isArray(res.data) ? res.data : [];
       
       const formattedAttendance = attendance.slice(0, 7).map(att => ({
         date: att.date?.split("T")[0],
@@ -169,6 +174,15 @@ export default function DeveloperDashboard() {
       setAnnouncements(res.data?.slice(0, 3) || []);
     } catch (error) {
       console.error("Error fetching announcements:", error);
+    }
+  };
+
+  const fetchHolidays = async () => {
+    try {
+      const res = await api.get("/holidays");
+      setHolidays(res.data || []);
+    } catch (error) {
+      console.error("Error fetching holidays:", error);
     }
   };
 
@@ -224,7 +238,7 @@ export default function DeveloperDashboard() {
       {/* Header */}
       <Box sx={{ mb: 4, p: 4, borderRadius: 4, background: "linear-gradient(135deg, #DC2626 0%, #EF4444 100%)", color: "white" }}>
         <Grid container alignItems="center" spacing={2}>
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <Typography variant="h3" fontWeight="bold">
               Hello, {user?.name || "Developer"}!
             </Typography>
@@ -232,14 +246,8 @@ export default function DeveloperDashboard() {
               Track your tasks and stay productive
             </Typography>
           </Grid>
-          <Grid item xs={12} md={4} sx={{ textAlign: { xs: "left", md: "right" } }}>
-            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 2, background: "rgba(255,255,255,0.2)", p: 2, borderRadius: 3 }}>
-              <CodeIcon sx={{ fontSize: 40 }} />
-              <Box>
-                <Typography variant="h5" fontWeight="bold">Developer</Typography>
-                <Typography variant="caption" sx={{ opacity: 0.8 }}>Personal Workspace</Typography>
-              </Box>
-            </Box>
+          <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: "flex-start", md: "flex-end" }, gap: 2 }}>
+            <RealTimeClock />
           </Grid>
         </Grid>
       </Box>
@@ -247,7 +255,7 @@ export default function DeveloperDashboard() {
       {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {developerStats.map((stat, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
             <StatCard {...stat} loading={loading} />
           </Grid>
         ))}
@@ -256,7 +264,7 @@ export default function DeveloperDashboard() {
       {/* Main Content */}
       <Grid container spacing={3}>
         {/* My Tasks */}
-        <Grid item xs={12} lg={8}>
+        <Grid size={{ xs: 12, lg: 8 }}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
@@ -302,7 +310,7 @@ export default function DeveloperDashboard() {
         </Grid>
 
         {/* Upcoming Deadlines & Quick Actions */}
-        <Grid item xs={12} lg={4}>
+        <Grid size={{ xs: 12, lg: 4 }}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)", height: "100%" }}>
             <CardContent>
               <Typography variant="h6" fontWeight="bold" sx={{ color: "#DC2626", mb: 3 }}>
@@ -343,99 +351,17 @@ export default function DeveloperDashboard() {
                 <Button variant="outlined" fullWidth onClick={() => navigate("/wfh")} sx={{ justifyContent: "flex-start" }}>
                   <HomeWorkIcon sx={{ mr: 1 }} /> Request WFH
                 </Button>
-                <Button variant="contained" fullWidth onClick={() => navigate("/salary")} sx={{ justifyContent: "flex-start", background: "#16A34A" }}>
-                  <AttachMoneyIcon sx={{ mr: 1 }} /> View Payslips
-                </Button>
               </Box>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Announcements */}
-        <Grid item xs={12} lg={4}>
-          <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
-            <CardContent>
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <CampaignIcon sx={{ color: "#DC2626" }} />
-                  <Typography variant="h6" fontWeight="bold" sx={{ color: "#DC2626" }}>
-                    Announcements
-                  </Typography>
-                </Box>
-                <Button size="small" onClick={() => navigate("/announcements")}>View All</Button>
-              </Box>
-              {announcements.length === 0 ? (
-                <Typography color="text.secondary" textAlign="center">No announcements</Typography>
-              ) : (
-                announcements.map((ann) => (
-                  <Box key={ann.id} sx={{ p: 2, mb: 2, borderRadius: 2, background: "#F8FAFC", borderLeft: "4px solid #3B82F6" }}>
-                    <Typography fontWeight="600">{ann.title}</Typography>
-                    <Typography variant="body2" color="textSecondary" sx={{ mt: 0.5 }}>
-                      {ann.content?.substring(0, 80)}{ann.content?.length > 80 ? "..." : ""}
-                    </Typography>
-                    <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: "block" }}>
-                      {new Date(ann.created_at).toLocaleDateString()}
-                    </Typography>
-                  </Box>
-                ))
-              )}
-            </CardContent>
-          </Card>
+        {/* Announcements & Holidays */}
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <AnnouncementCard announcements={announcements} loading={loading} />
         </Grid>
-
-        {/* Attendance History */}
-        <Grid item xs={12} lg={8}>
-          <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
-            <CardContent>
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                <Typography variant="h6" fontWeight="bold" sx={{ color: "#DC2626" }}>
-                  Recent Attendance
-                </Typography>
-                <Button size="small" onClick={() => navigate("/attendance")}>View Full History</Button>
-              </Box>
-              
-              {loading ? (
-                <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
-                  <CircularProgress />
-                </Box>
-              ) : attendanceHistory.length === 0 ? (
-                <Typography color="text.secondary" textAlign="center" sx={{ py: 4 }}>
-                  No attendance records found
-                </Typography>
-              ) : (
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow sx={{ background: "#F8FAFC" }}>
-                        <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }}>Check In</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }}>Check Out</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }}>Total Hours</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {attendanceHistory.map((att, i) => (
-                        <TableRow key={i} sx={{ "&:hover": { background: "#F8FAFC" } }}>
-                          <TableCell>{att.date}</TableCell>
-                          <TableCell>{getStatusChip(att.status)}</TableCell>
-                          <TableCell>{att.checkIn}</TableCell>
-                          <TableCell>{att.checkOut}</TableCell>
-                          <TableCell>
-                            <Chip 
-                              label={`${att.hours} hrs`} 
-                              size="small" 
-                              sx={{ background: att.hours >= 8 ? "#ECFDF5" : "#FEF2F2", color: att.hours >= 8 ? "#059669" : "#DC2626" }} 
-                            />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-            </CardContent>
-          </Card>
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <HolidayCard holidays={holidays} loading={loading} />
         </Grid>
       </Grid>
     </Box>

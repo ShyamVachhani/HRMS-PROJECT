@@ -170,6 +170,28 @@ export const getAllAttendance = (req, res) => {
   });
 };
 
+/* Get Month Attendance (Current User) */
+export const getMonthAttendance = (req, res) => {
+  const employeeId = req.user.employee_id;
+  const { month, year } = req.query;
+
+  if (!month || !year) {
+    return res.status(400).json({ message: "Month and year are required" });
+  }
+
+  const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+  const endDate = new Date(year, month, 0).toISOString().slice(0, 10);
+
+  db.query(
+    "SELECT * FROM attendance WHERE employee_id=? AND date BETWEEN ? AND ? ORDER BY date ASC",
+    [employeeId, startDate, endDate],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
+      res.json(result);
+    }
+  );
+};
+
 /* Get My Attendance (Current User) */
 export const getMyAttendance = (req, res) => {
   const employeeId = req.user.employee_id;

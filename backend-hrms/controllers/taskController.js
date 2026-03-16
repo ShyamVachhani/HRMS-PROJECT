@@ -1,4 +1,5 @@
 import db from "../config/db.js";
+import { createNotification } from "./notificationController.js";
 
 export const createTask = (req, res) => {
   const { title, description, assigned_to, assigned_by, priority, due_date } = req.body;
@@ -16,25 +17,36 @@ export const createTask = (req, res) => {
       if (err) return res.status(500).json(err);
 
       res.json({ message: "Task created", taskId: result.insertId });
+
+      // Notify the assignee
+      createNotification(assigned_to, "New Task Assigned", `You have been assigned a new task: ${title}`, "task").catch(console.error);
     }
   );
 };
 
 export const getAllTasks = (req, res) => {
+  const userRole = req.user.role;
+  const employeeId = req.user.employee_id;
 
-  const sql = `
+  let sql = `
   SELECT t.*, 
   e1.name AS assigned_to_name,
   e2.name AS assigned_by_name
   FROM tasks t
   JOIN employees e1 ON t.assigned_to = e1.id
   JOIN employees e2 ON t.assigned_by = e2.id
-  ORDER BY t.created_at DESC
   `;
 
-  db.query(sql, (err, result) => {
-    if (err) return res.status(500).json(err);
+  const params = [];
+  if (userRole === "manager") {
+    sql += " WHERE t.assigned_by = ?";
+    params.push(employeeId);
+  }
 
+  sql += " ORDER BY t.created_at DESC";
+
+  db.query(sql, params, (err, result) => {
+    if (err) return res.status(500).json(err);
     res.json(result);
   });
 };
@@ -72,6 +84,15 @@ export const updateTaskStatus = (req, res) => {
     if (err) return res.status(500).json(err);
 
     res.json({ message: "Task status updated" });
+
+    // Notify the assigner and assignee
+    db.query("SELECT title, assigned_by, assigned_to FROM tasks WHERE id = ?", [id], (err, taskResult) => {
+      if (!err && taskResult.length > 0) {
+        const task = taskResult[0];
+        createNotification(task.assigned_by, "Task Status Updated", `Status of task '${task.title}' updated to ${status}.`, "task").catch(console.error);
+        createNotification(task.assigned_to, "Task Status Updated", `Status of task '${task.title}' updated to ${status}.`, "task").catch(console.error);
+      }
+    });
   });
 };
 

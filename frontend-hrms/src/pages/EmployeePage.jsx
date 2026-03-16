@@ -67,6 +67,9 @@ const EmployeePage = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [deleteName, setDeleteName] = useState("");
+  
+  const user = JSON.parse(localStorage.getItem("user"));
+  const canManage = ["admin", "hr"].includes(user?.role);
 
   const showSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
@@ -261,14 +264,16 @@ const EmployeePage = () => {
             </Box>
           </Box>
           <Box sx={{ display: "flex", gap: 2 }}>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleAddOpen}
-              sx={{ bgcolor: "white", color: "#1E3A8A", "&:hover": { bgcolor: "#f0f0f0" } }}
-            >
-              Add Employee
-            </Button>
+            {canManage && (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleAddOpen}
+                sx={{ bgcolor: "white", color: "#1E3A8A", "&:hover": { bgcolor: "#f0f0f0" } }}
+              >
+                Add Employee
+              </Button>
+            )}
             <Tooltip title="Refresh">
               <IconButton onClick={fetchEmployees} sx={{ color: "white" }}>
                 <RefreshIcon />
@@ -321,7 +326,8 @@ const EmployeePage = () => {
               <TableCell sx={{ fontWeight: "bold" }}>Position</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Department</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Join Date</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }} align="center">Actions</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }} align="right">Basic Salary</TableCell>
+              {canManage && <TableCell sx={{ fontWeight: "bold" }} align="center">Actions</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -344,19 +350,22 @@ const EmployeePage = () => {
                       <Chip label={emp.position} size="small" color="primary" variant="outlined" />
                     </TableCell>
                     <TableCell>{emp.department_name || "Not Assigned"}</TableCell>
-                    <TableCell>{emp.join_date || "-"}</TableCell>
-                    <TableCell align="center">
-                      <Tooltip title="Edit">
-                        <IconButton color="primary" onClick={() => handleEditClick(emp)} size="small">
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton color="error" onClick={() => handleDeleteClick(emp)} size="small">
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
+                    <TableCell>{emp.join_date}</TableCell>
+                    <TableCell align="right">₹{parseFloat(emp.basic_salary || 0).toLocaleString()}</TableCell>
+                    {canManage && (
+                      <TableCell align="center">
+                        <Tooltip title="Edit">
+                          <IconButton color="primary" onClick={() => handleEditClick(emp)} size="small">
+                            <EditIcon />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete">
+                          <IconButton color="error" onClick={() => handleDeleteClick(emp)} size="small">
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
             )}

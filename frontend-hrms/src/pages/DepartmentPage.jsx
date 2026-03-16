@@ -55,6 +55,8 @@ const DepartmentPage = () => {
   const [deleteName, setDeleteName] = useState("");
 
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const user = JSON.parse(localStorage.getItem("user"));
+  const canManage = ["admin", "hr"].includes(user?.role);
 
   const showSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
@@ -105,7 +107,8 @@ const DepartmentPage = () => {
       showSnackbar("Department added successfully");
       fetchDepartments();
     } catch (error) {
-      showSnackbar("Failed to add department", "error");
+      const msg = error.response?.data?.message || error.response?.data?.error || "Failed to add department";
+      showSnackbar(msg, "error");
     } finally {
       setLoading(false);
     }
@@ -136,7 +139,8 @@ const DepartmentPage = () => {
       showSnackbar("Department updated successfully");
       fetchDepartments();
     } catch (error) {
-      showSnackbar("Failed to update department", "error");
+      const msg = error.response?.data?.message || error.response?.data?.error || "Failed to update department";
+      showSnackbar(msg, "error");
     } finally {
       setLoading(false);
     }
@@ -162,7 +166,8 @@ const DepartmentPage = () => {
       showSnackbar("Department deleted successfully");
       fetchDepartments();
     } catch (error) {
-      showSnackbar("Failed to delete department", "error");
+      const msg = error.response?.data?.message || error.response?.data?.error || "Failed to delete department";
+      showSnackbar(msg, "error");
     } finally {
       setLoading(false);
     }
@@ -190,14 +195,16 @@ const DepartmentPage = () => {
             </Box>
           </Box>
           <Box sx={{ display: "flex", gap: 2 }}>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleAddOpen}
-              sx={{ bgcolor: "white", color: "#EA580C", "&:hover": { bgcolor: "#f0f0f0" } }}
-            >
-              Add Department
-            </Button>
+            {canManage && (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleAddOpen}
+                sx={{ bgcolor: "white", color: "#EA580C", "&:hover": { bgcolor: "#f0f0f0" } }}
+              >
+                Add Department
+              </Button>
+            )}
             <Tooltip title="Refresh">
               <IconButton onClick={fetchDepartments} sx={{ color: "white" }}>
                 <RefreshIcon />
@@ -245,7 +252,7 @@ const DepartmentPage = () => {
               <TableCell sx={{ fontWeight: "bold" }}>ID</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Description</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }} align="center">Actions</TableCell>
+              {canManage && <TableCell sx={{ fontWeight: "bold" }} align="center">Actions</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -268,18 +275,20 @@ const DepartmentPage = () => {
                       </Box>
                     </TableCell>
                     <TableCell>{dept.description || "-"}</TableCell>
-                    <TableCell align="center">
-                      <Tooltip title="Edit">
-                        <IconButton color="primary" onClick={() => handleEditClick(dept)} size="small">
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton color="error" onClick={() => handleDeleteClick(dept)} size="small">
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
+                    {canManage && (
+                      <TableCell align="center">
+                        <Tooltip title="Edit">
+                          <IconButton color="primary" onClick={() => handleEditClick(dept)} size="small">
+                            <EditIcon />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete">
+                          <IconButton color="error" onClick={() => handleDeleteClick(dept)} size="small">
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
             )}

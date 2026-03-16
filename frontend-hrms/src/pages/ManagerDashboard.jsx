@@ -10,6 +10,9 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import RealTimeClock from "../components/dashboard/RealTimeClock";
+import AnnouncementCard from "../components/dashboard/AnnouncementCard";
+import HolidayCard from "../components/dashboard/HolidayCard";
 
 function StatCard({ title, value, icon, color, bg, loading }) {
   return (
@@ -62,6 +65,8 @@ export default function ManagerDashboard() {
   const [pendingTasks, setPendingTasks] = useState([]);
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
+  const [holidays, setHolidays] = useState([]);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -78,7 +83,9 @@ export default function ManagerDashboard() {
         fetchEmployees(),
         fetchTasks(),
         fetchLeaves(),
-        fetchWFHRequests()
+        fetchWFHRequests(),
+        fetchAnnouncements(),
+        fetchHolidays()
       ]);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -144,6 +151,24 @@ export default function ManagerDashboard() {
     }
   };
 
+  const fetchAnnouncements = async () => {
+    try {
+      const res = await api.get("/announcements");
+      setAnnouncements(res.data || []);
+    } catch (error) {
+      console.error("Error fetching announcements:", error);
+    }
+  };
+
+  const fetchHolidays = async () => {
+    try {
+      const res = await api.get("/holidays");
+      setHolidays(res.data || []);
+    } catch (error) {
+      console.error("Error fetching holidays:", error);
+    }
+  };
+
   const getEmployeeName = (id) => {
     if (!id) return "-";
     const emp = employees.find(e => e.id === parseInt(id) || e.id === id);
@@ -197,7 +222,7 @@ export default function ManagerDashboard() {
       {/* Header */}
       <Box sx={{ mb: 4, p: 4, borderRadius: 4, background: "linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%)", color: "white" }}>
         <Grid container alignItems="center" spacing={2}>
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <Typography variant="h3" fontWeight="bold">
               Good {new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 18 ? "Afternoon" : "Evening"}, {user?.name || "Manager"}!
             </Typography>
@@ -205,14 +230,8 @@ export default function ManagerDashboard() {
               Here's your team overview for today
             </Typography>
           </Grid>
-          <Grid item xs={12} md={4} sx={{ textAlign: { xs: "left", md: "right" } }}>
-            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 2, background: "rgba(255,255,255,0.2)", p: 2, borderRadius: 3 }}>
-              <SupervisedUserCircleIcon sx={{ fontSize: 40 }} />
-              <Box>
-                <Typography variant="h5" fontWeight="bold">Manager Panel</Typography>
-                <Typography variant="caption" sx={{ opacity: 0.8 }}>Team Management</Typography>
-              </Box>
-            </Box>
+          <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: "flex-start", md: "flex-end" }, gap: 2 }}>
+            <RealTimeClock />
           </Grid>
         </Grid>
       </Box>
@@ -220,7 +239,7 @@ export default function ManagerDashboard() {
       {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {managerStats.map((stat, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
             <StatCard {...stat} loading={loading} />
           </Grid>
         ))}
@@ -229,7 +248,7 @@ export default function ManagerDashboard() {
       {/* Main Content */}
       <Grid container spacing={3}>
         {/* Team Members */}
-        <Grid item xs={12} lg={6}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
@@ -272,7 +291,7 @@ export default function ManagerDashboard() {
         </Grid>
 
         {/* Team Tasks */}
-        <Grid item xs={12} lg={6}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
@@ -313,7 +332,7 @@ export default function ManagerDashboard() {
         </Grid>
 
         {/* Pending Leave Requests */}
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
@@ -334,7 +353,7 @@ export default function ManagerDashboard() {
               ) : (
                 <Grid container spacing={2}>
                   {leaveRequests.map((leave, i) => (
-                    <Grid item xs={12} md={6} lg={4} key={leave.id || i}>
+                    <Grid size={{ xs: 12, md: 6, lg: 4 }} key={leave.id || i}>
                       <Box sx={{ p: 2, borderRadius: 2, background: "#F8FAFC", border: "1px solid #E5E7EB" }}>
                         <Typography fontWeight="600">{leave.name || getEmployeeName(leave.employee_id)}</Typography>
                         <Typography variant="caption" color="textSecondary" display="block">
@@ -360,6 +379,13 @@ export default function ManagerDashboard() {
               )}
             </CardContent>
           </Card>
+        </Grid>
+        {/* Announcements & Holidays */}
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <AnnouncementCard announcements={announcements} loading={loading} />
+        </Grid>
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <HolidayCard holidays={holidays} loading={loading} />
         </Grid>
       </Grid>
     </Box>

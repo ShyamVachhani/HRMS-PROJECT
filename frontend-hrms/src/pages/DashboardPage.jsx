@@ -7,9 +7,15 @@ import HomeWorkIcon from "@mui/icons-material/HomeWork";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import EventIcon from "@mui/icons-material/Event";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import { useNavigate } from "react-router-dom";
+import api from "../services/api";
+import RealTimeClock from "../components/dashboard/RealTimeClock";
+import AnnouncementCard from "../components/dashboard/AnnouncementCard";
+import HolidayCard from "../components/dashboard/HolidayCard";
+import BusinessIcon from "@mui/icons-material/Business";
 
 // Role-based stats configuration
 const roleStats = {
@@ -132,9 +138,9 @@ function StatCard({ title, value, icon, color, bg }) {
               {value}
             </Typography>
           </Box>
-          <Box sx={{ 
-            p: 1.5, 
-            borderRadius: 2, 
+          <Box sx={{
+            p: 1.5,
+            borderRadius: 2,
             background: bg,
             display: "flex",
             alignItems: "center",
@@ -151,13 +157,13 @@ function StatCard({ title, value, icon, color, bg }) {
 // Task Progress Component
 function TaskProgress({ task, status, deadline, progress }) {
   const getStatusColor = (status) => {
-    switch(status) {
+    switch (status) {
       case "Completed": return "success";
       case "In Progress": return "warning";
       default: return "default";
     }
   };
-  
+
   return (
     <Box sx={{ mb: 2 }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
@@ -176,15 +182,37 @@ function TaskProgress({ task, status, deadline, progress }) {
 export default function DashboardPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [announcements, setAnnouncements] = useState([]);
+  const [holidays, setHolidays] = useState([]);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
+      fetchAnnouncements();
+      fetchHolidays();
     }
     setLoading(false);
   }, []);
+
+  const fetchAnnouncements = async () => {
+    try {
+      const res = await api.get("/announcements");
+      setAnnouncements(res.data || []);
+    } catch (error) {
+      console.error("Error fetching announcements:", error);
+    }
+  };
+
+  const fetchHolidays = async () => {
+    try {
+      const res = await api.get("/holidays");
+      setHolidays(res.data || []);
+    } catch (error) {
+      console.error("Error fetching holidays:", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -202,13 +230,20 @@ export default function DashboardPage() {
   return (
     <Box sx={{ p: 3, background: "#F8FAFC", minHeight: "100vh" }}>
       {/* Header */}
-      <Box sx={{ mb: 4, p: 3, borderRadius: 3, background: roleInfo.bg }}>
-        <Typography variant="h4" fontWeight="bold" sx={{ color: roleInfo.color }}>
-          {roleInfo.title}
-        </Typography>
-        <Typography variant="body1" color="textSecondary">
-          {roleInfo.subtitle}
-        </Typography>
+      <Box sx={{ mb: 4, p: 4, borderRadius: 4, background: `linear-gradient(135deg, ${roleInfo.color} 0%, #64748B 100%)`, color: "white" }}>
+        <Grid container alignItems="center" spacing={2}>
+          <Grid item xs={12} md={8}>
+            <Typography variant="h3" fontWeight="bold">
+              {roleInfo.title}
+            </Typography>
+            <Typography variant="h6" sx={{ opacity: 0.9, mt: 1 }}>
+              {roleInfo.subtitle}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={4} sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: "flex-start", md: "flex-end" }, gap: 2 }}>
+            <RealTimeClock />
+          </Grid>
+        </Grid>
       </Box>
 
       {/* Stats Cards */}
@@ -317,10 +352,10 @@ export default function DashboardPage() {
                           <TableRow key={i}>
                             <TableCell>{att.name}</TableCell>
                             <TableCell>
-                              <Chip 
-                                label={att.status} 
-                                size="small" 
-                                color={att.status === "Present" ? "success" : att.status === "WFH" ? "info" : "warning"} 
+                              <Chip
+                                label={att.status}
+                                size="small"
+                                color={att.status === "Present" ? "success" : att.status === "WFH" ? "info" : "warning"}
                               />
                             </TableCell>
                             <TableCell>{att.time}</TableCell>
@@ -398,10 +433,10 @@ export default function DashboardPage() {
                         <Typography fontWeight="500">{leave.employee}</Typography>
                         <Typography variant="caption" color="textSecondary">{leave.type} - {leave.days} day(s)</Typography>
                       </Box>
-                      <Chip 
-                        label={leave.status} 
-                        size="small" 
-                        color={leave.status === "Approved" ? "success" : "warning"} 
+                      <Chip
+                        label={leave.status}
+                        size="small"
+                        color={leave.status === "Approved" ? "success" : "warning"}
                       />
                     </Box>
                   ))}
@@ -426,6 +461,13 @@ export default function DashboardPage() {
             </Card>
           </Grid>
         )}
+        {/* Announcements & Holidays */}
+        <Grid item xs={12} lg={6}>
+          <AnnouncementCard announcements={announcements} loading={loading} />
+        </Grid>
+        <Grid item xs={12} lg={6}>
+          <HolidayCard holidays={holidays} loading={loading} />
+        </Grid>
       </Grid>
     </Box>
   );

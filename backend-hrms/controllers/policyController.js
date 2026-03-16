@@ -1,4 +1,5 @@
 import db from "../config/db.js";
+import { createNotification } from "./notificationController.js";
 
 export const addPolicy = (req,res)=>{
 
@@ -11,6 +12,16 @@ db.query(
 if(err) return res.status(500).json(err);
 
 res.json({message:"Policy added"});
+
+// Notify all employees
+db.query("SELECT id FROM employees", (err, employees) => {
+  if (!err && employees.length > 0) {
+    employees.forEach(emp => {
+      createNotification(emp.id, "New Policy", `A new policy has been added: ${title}`, "policy").catch(console.error);
+    });
+  }
+});
+
 }
 );
 

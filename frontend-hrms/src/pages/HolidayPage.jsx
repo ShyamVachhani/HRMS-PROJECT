@@ -58,6 +58,10 @@ const HolidayPage = () => {
 
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
+  const user = JSON.parse(localStorage.getItem("user"));
+  const canManage = ["admin", "hr"].includes(user?.role);
+  const isIntern = user?.role === "intern";
+
   const showSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
   };
@@ -197,6 +201,20 @@ const HolidayPage = () => {
     today.setHours(0, 0, 0, 0);
     return holidayDate >= today;
   };
+  const getStatusChip = (status) => {
+    const isUpcomingStatus = status === "Upcoming";
+    return (
+      <Chip
+        label={status}
+        size="small"
+        sx={{
+          bgcolor: isUpcomingStatus ? "#ECFDF5" : "#F1F5F9",
+          color: isUpcomingStatus ? "#059669" : "#64748B",
+          fontWeight: "bold",
+        }}
+      />
+    );
+  };
 
   return (
     <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
@@ -215,14 +233,16 @@ const HolidayPage = () => {
             </Box>
           </Box>
           <Box sx={{ display: "flex", gap: 2 }}>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleAddOpen}
-              sx={{ bgcolor: "white", color: "#DB2777", "&:hover": { bgcolor: "#f0f0f0" } }}
-            >
-              Add Holiday
-            </Button>
+            {canManage && (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleAddOpen}
+                sx={{ bgcolor: "white", color: "#DB2777", "&:hover": { bgcolor: "#f0f0f0" } }}
+              >
+                Add Holiday
+              </Button>
+            )}
             <Tooltip title="Refresh">
               <IconButton onClick={fetchHolidays} sx={{ color: "white" }}>
                 <RefreshIcon />
@@ -271,7 +291,7 @@ const HolidayPage = () => {
               <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Description</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }} align="center">Actions</TableCell>
+              {!isIntern && <TableCell sx={{ fontWeight: "bold" }} align="center">Actions</TableCell>}
             </TableRow>
           </TableHead>
 
@@ -297,33 +317,29 @@ const HolidayPage = () => {
                       />
                     </TableCell>
                     <TableCell>{h.description || "-"}</TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={isUpcoming(h.holiday_date) ? "Upcoming" : "Past"} 
-                        size="small"
-                        color={isUpcoming(h.holiday_date) ? "success" : "default"}
-                      />
-                    </TableCell>
-                    <TableCell align="center">
-                      <Tooltip title="Edit">
-                        <IconButton
-                          color="primary"
-                          onClick={() => handleEditClick(h)}
-                          size="small"
-                        >
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton
-                          color="error"
-                          onClick={() => handleDeleteClick(h)}
-                          size="small"
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
+                    <TableCell>{getStatusChip(isUpcoming(h.holiday_date) ? "Upcoming" : "Past")}</TableCell>
+                    {canManage && (
+                      <TableCell align="center">
+                        <Tooltip title="Edit">
+                          <IconButton
+                            color="primary"
+                            onClick={() => handleEditClick(h)}
+                            size="small"
+                          >
+                            <EditIcon />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete">
+                          <IconButton
+                            color="error"
+                            onClick={() => handleDeleteClick(h)}
+                            size="small"
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
             )}

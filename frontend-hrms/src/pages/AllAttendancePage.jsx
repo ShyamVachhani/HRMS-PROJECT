@@ -77,7 +77,7 @@ const AllAttendancePage = () => {
             Back
           </Button>
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            All Attendance Here
+            Attendance History
           </Typography>
         </Stack>
 

@@ -20,6 +20,8 @@ import WFHPage from "./pages/WFHPage";
 import HolidayPage from "./pages/HolidayPage";
 import DepartmentPage from "./pages/DepartmentPage";
 import AnnouncementsPage from "./pages/AnnouncementsPage";
+import ProfilePage from "./pages/ProfilePage";
+import SettingsPage from "./pages/SettingsPage";
 import Layout from "./components/Layout";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
@@ -29,10 +31,10 @@ import ProtectedRoute from "./components/ProtectedRoute";
 // Role-based route access configuration
 const roleRoutes = {
   admin: ["/admin", "/employees", "/attendance", "/all-attendance", "/tasks", "/reports", "/users", "/leave", "/salary", "/policies", "/wfh", "/holidays", "/departments"],
-  manager: ["/manager", "/employees", "/attendance", "/tasks", "/reports", "/leave", "/wfh", "/departments"],
-  hr: ["/hr", "/employees", "/attendance", "/leave", "/holidays", "/departments"],
-  developer: ["/developer", "/attendance", "/leave", "/tasks", "/wfh"],
-  intern: ["/intern", "/attendance", "/tasks"]
+  manager: ["/manager", "/attendance", "/tasks", "/reports", "/leave", "/wfh"],
+  hr: ["/hr", "/employees", "/attendance", "/all-attendance", "/leave", "/salary", "/policies", "/wfh", "/holidays", "/departments", "/announcements"],
+  developer: ["/developer", "/attendance", "/all-attendance", "/leave", "/tasks", "/wfh", "/policies", "/holidays", "/announcements"],
+  intern: ["/intern", "/attendance", "/all-attendance", "/tasks", "/policies", "/holidays", "/announcements"]
 };
 
 function App() {
@@ -100,7 +102,7 @@ function App() {
             <Route 
               path="/employees" 
               element={
-                <ProtectedRoute allowedRoles={["admin", "manager", "hr"]}>
+                <ProtectedRoute allowedRoles={["admin", "hr"]}>
                   <EmployeePage />
                 </ProtectedRoute>
               } 
@@ -116,7 +118,7 @@ function App() {
             <Route 
               path="/all-attendance" 
               element={
-                <ProtectedRoute allowedRoles={["admin", "manager", "hr"]}>
+                <ProtectedRoute allowedRoles={["admin", "manager", "hr", "developer", "intern"]}>
                   <AllAttendancePage />
                 </ProtectedRoute>
               } 
@@ -188,7 +190,7 @@ function App() {
             <Route 
               path="/departments" 
               element={
-                <ProtectedRoute allowedRoles={["admin", "manager", "hr"]}>
+                <ProtectedRoute allowedRoles={["admin", "hr"]}>
                   <DepartmentPage />
                 </ProtectedRoute>
               } 
@@ -198,6 +200,22 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={["admin", "manager", "hr", "developer", "intern"]}>
                   <AnnouncementsPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute>
+                  <SettingsPage />
                 </ProtectedRoute>
               } 
             />

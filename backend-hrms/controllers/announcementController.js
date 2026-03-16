@@ -1,4 +1,5 @@
 import db from "../config/db.js";
+import { createNotification } from "./notificationController.js";
 
 export const getAnnouncements = (req, res) => {
   const sql = `
@@ -45,6 +46,16 @@ export const createAnnouncement = (req, res) => {
       message: "Announcement posted successfully", 
       id: result ? result.insertId : null 
     });
+
+    // Notify all employees about the new announcement
+    db.query("SELECT id FROM employees", (err, employees) => {
+      if (!err && employees.length > 0) {
+        employees.forEach(emp => {
+          createNotification(emp.id, "New Announcement", `A new announcement has been posted: ${title.trim()}`, "announcement").catch(console.error);
+        });
+      }
+    });
+
   });
 };
 

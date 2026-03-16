@@ -12,7 +12,7 @@ import { authorizeRoles } from "../middleware/roleMiddleware.js";
 
 const router = express.Router();
 
-router.get("/", verifyToken, authorizeRoles("admin", "hr", "manager"), getEmployees);
+router.get("/", verifyToken, authorizeRoles("admin", "hr"), getEmployees);
 router.get("/team", verifyToken, authorizeRoles("manager"), getTeamEmployees);
 router.get("/:id", verifyToken, getEmployeeById);
 router.post("/add", verifyToken, authorizeRoles("admin", "hr"), addEmployee);

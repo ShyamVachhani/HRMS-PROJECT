@@ -12,6 +12,9 @@ import HomeWorkIcon from "@mui/icons-material/HomeWork";
 import PendingActionsIcon from "@mui/icons-material/PendingActions";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import RealTimeClock from "../components/dashboard/RealTimeClock";
+import AnnouncementCard from "../components/dashboard/AnnouncementCard";
+import HolidayCard from "../components/dashboard/HolidayCard";
 
 function StatCard({ title, value, icon, color, bg, loading }) {
   return (
@@ -74,7 +77,7 @@ export default function InternDashboard() {
   
   const [myTasks, setMyTasks] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
-  const [attendanceHistory, setAttendanceHistory] = useState([]);
+  const [holidays, setHolidays] = useState([]);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -90,8 +93,8 @@ export default function InternDashboard() {
       await Promise.all([
         fetchTasks(),
         fetchAnnouncements(),
-        fetchLeaveBalance(),
-        fetchAttendance()
+        fetchHolidays(),
+        fetchLeaveBalance()
       ]);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -137,18 +140,6 @@ export default function InternDashboard() {
     }
   };
 
-  const fetchAttendance = async () => {
-    try {
-      const userData = JSON.parse(localStorage.getItem("user"));
-      const employeeId = userData?.employee_id || userData?.id;
-      
-      const res = await api.get(`/attendance/history/${employeeId}`);
-      const attendance = res.data || [];
-      setAttendanceHistory(attendance.slice(0, 5));
-    } catch (error) {
-      console.error("Error fetching attendance:", error);
-    }
-  };
 
   const fetchAnnouncements = async () => {
     try {
@@ -156,6 +147,15 @@ export default function InternDashboard() {
       setAnnouncements(res.data?.slice(0, 3) || []);
     } catch (error) {
       console.error("Error fetching announcements:", error);
+    }
+  };
+
+  const fetchHolidays = async () => {
+    try {
+      const res = await api.get("/holidays");
+      setHolidays(res.data || []);
+    } catch (error) {
+      console.error("Error fetching holidays:", error);
     }
   };
 
@@ -189,7 +189,7 @@ export default function InternDashboard() {
       {/* Header */}
       <Box sx={{ mb: 4, p: 4, borderRadius: 4, background: "linear-gradient(135deg, #D97706 0%, #F59E0B 100%)", color: "white" }}>
         <Grid container alignItems="center" spacing={2}>
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <Typography variant="h3" fontWeight="bold">
               Welcome, {user?.name || "Intern"}!
             </Typography>
@@ -197,14 +197,8 @@ export default function InternDashboard() {
               Track your learning journey and grow with us
             </Typography>
           </Grid>
-          <Grid item xs={12} md={4} sx={{ textAlign: { xs: "left", md: "right" } }}>
-            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 2, background: "rgba(255,255,255,0.2)", p: 2, borderRadius: 3 }}>
-              <SchoolIcon sx={{ fontSize: 40 }} />
-              <Box>
-                <Typography variant="h5" fontWeight="bold">Intern</Typography>
-                <Typography variant="caption" sx={{ opacity: 0.8 }}>Learning Phase</Typography>
-              </Box>
-            </Box>
+          <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: "flex-start", md: "flex-end" }, gap: 2 }}>
+            <RealTimeClock />
           </Grid>
         </Grid>
       </Box>
@@ -212,7 +206,7 @@ export default function InternDashboard() {
       {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {internStats.map((stat, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
             <StatCard {...stat} loading={loading} />
           </Grid>
         ))}
@@ -221,7 +215,7 @@ export default function InternDashboard() {
       {/* Main Content */}
       <Grid container spacing={3}>
         {/* My Tasks */}
-        <Grid item xs={12} lg={6}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
@@ -262,7 +256,7 @@ export default function InternDashboard() {
         </Grid>
 
         {/* Task Progress */}
-        <Grid item xs={12} lg={6}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
@@ -278,23 +272,23 @@ export default function InternDashboard() {
               <Box sx={{ mb: 3 }}>
                 <LinearProgressWithLabel value={taskCompletionRate} />
               </Box>
-
+ 
               <Grid container spacing={2}>
-                <Grid item xs={4}>
+                <Grid size={{ xs: 4 }}>
                   <Box sx={{ p: 2, background: "#ECFDF5", borderRadius: 2, textAlign: "center" }}>
                     <CheckCircleIcon sx={{ color: "#059669", fontSize: 30 }} />
                     <Typography variant="h5" fontWeight="bold" color="#059669">{stats.completedTasks}</Typography>
                     <Typography variant="caption" color="textSecondary">Completed</Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={4}>
+                <Grid size={{ xs: 4 }}>
                   <Box sx={{ p: 2, background: "#FEF3C7", borderRadius: 2, textAlign: "center" }}>
                     <AccessTimeIcon sx={{ color: "#D97706", fontSize: 30 }} />
                     <Typography variant="h5" fontWeight="bold" color="#D97706">{stats.inProgressTasks}</Typography>
                     <Typography variant="caption" color="textSecondary">In Progress</Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={4}>
+                <Grid size={{ xs: 4 }}>
                   <Box sx={{ p: 2, background: "#F3F4F6", borderRadius: 2, textAlign: "center" }}>
                     <PendingActionsIcon sx={{ color: "#6B7280", fontSize: 30 }} />
                     <Typography variant="h5" fontWeight="bold" color="#6B7280">{stats.pendingTasks}</Typography>
@@ -306,52 +300,9 @@ export default function InternDashboard() {
           </Card>
         </Grid>
 
-        {/* Recent Attendance */}
-        <Grid item xs={12} lg={6}>
-          <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
-            <CardContent>
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                <Typography variant="h6" fontWeight="bold" sx={{ color: "#D97706" }}>
-                  Recent Attendance
-                </Typography>
-                <Button size="small" onClick={() => navigate("/attendance")}>Mark Attendance</Button>
-              </Box>
-              
-              {loading ? (
-                <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
-                  <CircularProgress sx={{ color: "#D97706" }} />
-                </Box>
-              ) : attendanceHistory.length === 0 ? (
-                <Typography color="text.secondary" textAlign="center" sx={{ py: 4 }}>
-                  No attendance records yet
-                </Typography>
-              ) : (
-                attendanceHistory.map((att, i) => (
-                  <Box key={i} sx={{ p: 2, mb: 1, borderRadius: 2, background: "#F8FAFC", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <Box>
-                      <Typography fontWeight="500">{att.date?.split("T")[0]}</Typography>
-                      <Typography variant="caption" color="textSecondary">
-                        {att.time_in ? new Date(att.time_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "-"} - 
-                        {att.time_out ? new Date(att.time_out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "-"}
-                      </Typography>
-                    </Box>
-                    <Chip 
-                      label={att.work_type === "present" ? "Present" : att.work_type === "wfh" ? "WFH" : att.work_type} 
-                      size="small"
-                      sx={{ 
-                        background: att.work_type === "present" ? "#ECFDF5" : "#EDE9FE",
-                        color: att.work_type === "present" ? "#059669" : "#7C3AED"
-                      }}
-                    />
-                  </Box>
-                ))
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
 
         {/* Quick Actions */}
-        <Grid item xs={12} lg={6}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Typography variant="h6" fontWeight="bold" sx={{ color: "#D97706", mb: 3 }}>
@@ -359,7 +310,7 @@ export default function InternDashboard() {
               </Typography>
               
               <Grid container spacing={2}>
-                <Grid item xs={6}>
+                <Grid size={{ xs: 6 }}>
                   <Button 
                     variant="outlined" 
                     fullWidth 
@@ -370,7 +321,7 @@ export default function InternDashboard() {
                     <Typography variant="body2">Mark Attendance</Typography>
                   </Button>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={{ xs: 6 }}>
                   <Button 
                     variant="outlined" 
                     fullWidth 
@@ -381,7 +332,7 @@ export default function InternDashboard() {
                     <Typography variant="body2">View Tasks</Typography>
                   </Button>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={{ xs: 6 }}>
                   <Button 
                     variant="outlined" 
                     fullWidth 
@@ -392,7 +343,7 @@ export default function InternDashboard() {
                     <Typography variant="body2">Request Leave</Typography>
                   </Button>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={{ xs: 6 }}>
                   <Button 
                     variant="outlined" 
                     fullWidth 
@@ -408,40 +359,9 @@ export default function InternDashboard() {
           </Card>
         </Grid>
 
-        {/* Announcements */}
-        <Grid item xs={12} lg={6}>
-          <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
-            <CardContent>
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <CampaignIcon sx={{ color: "#D97706" }} />
-                  <Typography variant="h6" fontWeight="bold" sx={{ color: "#D97706" }}>
-                    Announcements
-                  </Typography>
-                </Box>
-                <Button size="small" onClick={() => navigate("/announcements")}>View All</Button>
-              </Box>
-              {announcements.length === 0 ? (
-                <Typography color="text.secondary" textAlign="center">No announcements</Typography>
-              ) : (
-                announcements.map((ann) => (
-                  <Box key={ann.id} sx={{ p: 2, mb: 2, borderRadius: 2, background: "#F8FAFC", borderLeft: "4px solid #3B82F6" }}>
-                    <Typography fontWeight="600">{ann.title}</Typography>
-                    <Typography variant="body2" color="textSecondary" sx={{ mt: 0.5 }}>
-                      {ann.content?.substring(0, 80)}{ann.content?.length > 80 ? "..." : ""}
-                    </Typography>
-                    <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: "block" }}>
-                      {new Date(ann.created_at).toLocaleDateString()}
-                    </Typography>
-                  </Box>
-                ))
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
 
         {/* Profile Info */}
-        <Grid item xs={12} lg={6}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
@@ -453,25 +373,25 @@ export default function InternDashboard() {
               
               <Box sx={{ p: 3, background: "#F8FAFC", borderRadius: 2 }}>
                 <Grid container spacing={2}>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <Typography variant="caption" color="textSecondary">Name</Typography>
                     <Typography fontWeight="500">{user?.name || "-"}</Typography>
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <Typography variant="caption" color="textSecondary">Email</Typography>
                     <Typography fontWeight="500">{user?.email || "-"}</Typography>
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <Typography variant="caption" color="textSecondary">Role</Typography>
                     <Chip label={user?.role || "Intern"} size="small" sx={{ mt: 0.5, textTransform: "capitalize" }} />
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <Typography variant="caption" color="textSecondary">Leave Balance</Typography>
                     <Typography fontWeight="500">{stats.leaveBalance} days</Typography>
                   </Grid>
                 </Grid>
               </Box>
-
+ 
               <Box sx={{ mt: 3, p: 2, borderRadius: 2, background: "#FEF3C7", textAlign: "center" }}>
                 <Typography fontWeight="600" color="#D97706">
                   Keep up the great work!
@@ -485,7 +405,7 @@ export default function InternDashboard() {
         </Grid>
 
         {/* Learning Resources */}
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
@@ -495,7 +415,7 @@ export default function InternDashboard() {
                 </Typography>
               </Box>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <Button 
                     variant="outlined" 
                     fullWidth 
@@ -507,7 +427,7 @@ export default function InternDashboard() {
                     <Typography variant="caption" color="textSecondary">View guidelines</Typography>
                   </Button>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <Button 
                     variant="outlined" 
                     fullWidth 
@@ -519,7 +439,7 @@ export default function InternDashboard() {
                     <Typography variant="caption" color="textSecondary">View calendar</Typography>
                   </Button>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <Button 
                     variant="outlined" 
                     fullWidth 
@@ -531,7 +451,7 @@ export default function InternDashboard() {
                     <Typography variant="caption" color="textSecondary">Stay updated</Typography>
                   </Button>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <Button 
                     variant="outlined" 
                     fullWidth 
@@ -546,6 +466,13 @@ export default function InternDashboard() {
               </Grid>
             </CardContent>
           </Card>
+        </Grid>
+        {/* Announcements & Holidays */}
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <AnnouncementCard announcements={announcements} loading={loading} />
+        </Grid>
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <HolidayCard holidays={holidays} loading={loading} />
         </Grid>
       </Grid>
     </Box>

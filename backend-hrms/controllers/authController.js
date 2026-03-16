@@ -203,7 +203,8 @@ export const updateProfile = (req, res) => {
 
 /* CHANGE PASSWORD */
 export const changePassword = async (req, res) => {
-  const { id } = req.params;
+  // Use the ID from the JWT token for security
+  const id = req.user.id;
   const { currentPassword, newPassword } = req.body;
 
   if (!currentPassword || !newPassword) {

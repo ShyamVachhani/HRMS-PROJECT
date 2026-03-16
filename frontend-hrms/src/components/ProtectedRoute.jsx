@@ -17,7 +17,9 @@ const roleAccess = {
     "/wfh",
     "/holidays",
     "/departments",
-    "/announcements"
+    "/announcements",
+    "/profile",
+    "/settings"
   ],
   manager: [
     "/",
@@ -27,8 +29,9 @@ const roleAccess = {
     "/reports",
     "/leave",
     "/wfh",
-    "/departments",
-    "/announcements"
+    "/announcements",
+    "/profile",
+    "/settings"
   ],
   hr: [
     "/",
@@ -37,9 +40,12 @@ const roleAccess = {
     "/leave",
     "/salary",
     "/policies",
+    "/wfh",
     "/holidays",
     "/departments",
-    "/announcements"
+    "/announcements",
+    "/profile",
+    "/settings"
   ],
   developer: [
     "/",
@@ -47,13 +53,23 @@ const roleAccess = {
     "/leave",
     "/tasks",
     "/wfh",
-    "/announcements"
+    "/policies",
+    "/holidays",
+    "/announcements",
+    "/all-attendance",
+    "/profile",
+    "/settings"
   ],
   intern: [
     "/",
     "/attendance",
     "/tasks",
-    "/announcements"
+    "/policies",
+    "/holidays",
+    "/announcements",
+    "/all-attendance",
+    "/profile",
+    "/settings"
   ]
 };
 

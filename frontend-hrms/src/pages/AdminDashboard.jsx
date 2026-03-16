@@ -10,6 +10,9 @@ import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import BusinessIcon from "@mui/icons-material/Business";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import RealTimeClock from "../components/dashboard/RealTimeClock";
+import AnnouncementCard from "../components/dashboard/AnnouncementCard";
+import HolidayCard from "../components/dashboard/HolidayCard";
 
 function StatCard({ title, value, icon, color, bg, loading }) {
   return (
@@ -63,6 +66,8 @@ export default function AdminDashboard() {
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
+  const [holidays, setHolidays] = useState([]);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -80,7 +85,9 @@ export default function AdminDashboard() {
         fetchEmployees(),
         fetchTasks(),
         fetchLeaves(),
-        fetchDepartments()
+        fetchDepartments(),
+        fetchAnnouncements(),
+        fetchHolidays()
       ]);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -158,6 +165,24 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchAnnouncements = async () => {
+    try {
+      const res = await api.get("/announcements");
+      setAnnouncements(res.data || []);
+    } catch (error) {
+      console.error("Error fetching announcements:", error);
+    }
+  };
+
+  const fetchHolidays = async () => {
+    try {
+      const res = await api.get("/holidays");
+      setHolidays(res.data || []);
+    } catch (error) {
+      console.error("Error fetching holidays:", error);
+    }
+  };
+
   const getEmployeeName = (id) => {
     if (!id) return "-";
     const emp = employees.find(e => e.id === parseInt(id) || e.id === id);
@@ -204,7 +229,7 @@ export default function AdminDashboard() {
       {/* Header */}
       <Box sx={{ mb: 4, p: 4, borderRadius: 4, background: "linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)", color: "white" }}>
         <Grid container alignItems="center" spacing={2}>
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <Typography variant="h3" fontWeight="bold">
               Welcome back, {user?.name || "Admin"}!
             </Typography>
@@ -212,14 +237,8 @@ export default function AdminDashboard() {
               Here's what's happening with your organization today
             </Typography>
           </Grid>
-          <Grid item xs={12} md={4} sx={{ textAlign: { xs: "left", md: "right" } }}>
-            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 2, background: "rgba(255,255,255,0.2)", p: 2, borderRadius: 3 }}>
-              <AdminPanelSettingsIcon sx={{ fontSize: 40 }} />
-              <Box>
-                <Typography variant="h5" fontWeight="bold">Admin Panel</Typography>
-                <Typography variant="caption" sx={{ opacity: 0.8 }}>Full System Access</Typography>
-              </Box>
-            </Box>
+          <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: "flex-start", md: "flex-end" }, gap: 2 }}>
+            <RealTimeClock />
           </Grid>
         </Grid>
       </Box>
@@ -227,7 +246,7 @@ export default function AdminDashboard() {
       {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {adminStats.map((stat, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
             <StatCard {...stat} loading={loading} />
           </Grid>
         ))}
@@ -236,7 +255,7 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <Grid container spacing={3}>
         {/* Recent Employees */}
-        <Grid item xs={12} lg={6}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
@@ -292,7 +311,7 @@ export default function AdminDashboard() {
         </Grid>
 
         {/* Pending Tasks */}
-        <Grid item xs={12} lg={6}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
@@ -328,7 +347,7 @@ export default function AdminDashboard() {
         </Grid>
 
         {/* Leave Requests */}
-        <Grid item xs={12} lg={6}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
@@ -376,7 +395,7 @@ export default function AdminDashboard() {
         </Grid>
 
         {/* Department Overview */}
-        <Grid item xs={12} lg={6}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
@@ -418,6 +437,14 @@ export default function AdminDashboard() {
               )}
             </CardContent>
           </Card>
+        </Grid>
+
+        {/* Announcements & Holidays */}
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <AnnouncementCard announcements={announcements} loading={loading} />
+        </Grid>
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <HolidayCard holidays={holidays} loading={loading} />
         </Grid>
       </Grid>
     </Box>

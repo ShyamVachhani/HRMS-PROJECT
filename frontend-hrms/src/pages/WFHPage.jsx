@@ -39,6 +39,7 @@ const WFHPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [viewMode, setViewMode] = useState("team"); // 'team' or 'my'
 
   const [applyDialogOpen, setApplyDialogOpen] = useState(false);
   const [startDate, setStartDate] = useState("");
@@ -52,7 +53,8 @@ const WFHPage = () => {
   const employeeId = user?.employee_id || user?.id;
   
   const canApprove = ["admin", "hr", "manager"].includes(userRole);
-  const canViewAll = ["admin", "hr", "manager"].includes(userRole);
+  const canViewAll = ["admin", "hr"].includes(userRole);
+  const isManager = userRole === "manager";
 
   const showSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
@@ -64,6 +66,9 @@ const WFHPage = () => {
       let res;
       if (canViewAll) {
         res = await api.get("/wfh/all");
+      } else if (isManager) {
+        const endpoint = viewMode === "team" ? "/wfh/team" : "/wfh/my";
+        res = await api.get(endpoint);
       } else {
         res = await api.get("/wfh/my");
       }
@@ -78,7 +83,7 @@ const WFHPage = () => {
 
   useEffect(() => {
     fetchHistory();
-  }, []);
+  }, [viewMode]);
 
   const resetForm = () => {
     setStartDate("");
@@ -198,7 +203,7 @@ const WFHPage = () => {
                 Work From Home
               </Typography>
               <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)" }}>
-                {canViewAll ? "Manage WFH requests" : "Apply and track your WFH requests"}
+                {canViewAll || isManager ? "Manage WFH requests" : "Apply and track your WFH requests"}
               </Typography>
             </Box>
           </Box>
@@ -242,6 +247,26 @@ const WFHPage = () => {
             color="info" 
             variant="outlined" 
           />
+          {isManager && (
+            <Stack direction="row" spacing={1}>
+              <Button 
+                variant={viewMode === "team" ? "contained" : "outlined"} 
+                size="small"
+                onClick={() => setViewMode("team")}
+                color="info"
+              >
+                Team Requests
+              </Button>
+              <Button 
+                variant={viewMode === "my" ? "contained" : "outlined"} 
+                size="small"
+                onClick={() => setViewMode("my")}
+                color="info"
+              >
+                My Requests
+              </Button>
+            </Stack>
+          )}
         </Stack>
       </Paper>
 
@@ -256,7 +281,7 @@ const WFHPage = () => {
         <Table>
           <TableHead>
             <TableRow sx={{ backgroundColor: "#f8fafc" }}>
-              {canViewAll && <TableCell sx={{ fontWeight: "bold" }}>Employee</TableCell>}
+              {(canViewAll || (isManager && viewMode === "team")) && <TableCell sx={{ fontWeight: "bold" }}>Employee</TableCell>}
               <TableCell sx={{ fontWeight: "bold" }}>Date Range</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Reason</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
@@ -276,13 +301,13 @@ const WFHPage = () => {
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((rec) => (
                   <TableRow key={rec.id} hover>
-                    {canViewAll && <TableCell sx={{ fontWeight: 500 }}>{rec.name}</TableCell>}
+                    {(canViewAll || (isManager && viewMode === "team")) && <TableCell sx={{ fontWeight: 500 }}>{rec.name}</TableCell>}
                     <TableCell>{displayDateRange(rec)}</TableCell>
                     <TableCell>{rec.reason || "-"}</TableCell>
                     <TableCell>{getStatusChip(rec.status)}</TableCell>
                     {canApprove && (
                       <TableCell align="center">
-                        {rec.status === "pending" && (
+                        {rec.status === "pending" && rec.employee_id !== employeeId && (
                           <Stack direction="row" spacing={1} justifyContent="center">
                             <Button
                               variant="contained"

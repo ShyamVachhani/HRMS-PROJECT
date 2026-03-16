@@ -6,7 +6,8 @@ import {
   getAttendanceHistory,
   getAllAttendance,
   getMyAttendance,
-  getTeamAttendance
+  getTeamAttendance,
+  getMonthAttendance
 } from "../controllers/attendanceController.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
@@ -19,6 +20,7 @@ router.get("/my", verifyToken, getMyAttendance);
 router.get("/team", verifyToken, authorizeRoles("manager"), getTeamAttendance);
 router.get("/today/:employee_id", verifyToken, getTodayAttendance);
 router.get("/history/:employee_id", verifyToken, getAttendanceHistory);
+router.get("/month", verifyToken, getMonthAttendance);
 router.get("/all", verifyToken, authorizeRoles("admin", "hr"), getAllAttendance);
 
 export default router;

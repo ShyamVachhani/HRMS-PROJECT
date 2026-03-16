@@ -59,6 +59,10 @@ const PolicyPage = () => {
 
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
+  const user = JSON.parse(localStorage.getItem("user"));
+  const canManage = ["admin", "hr"].includes(user?.role);
+  const isIntern = user?.role === "intern";
+
   const showSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
   };
@@ -190,14 +194,16 @@ const PolicyPage = () => {
             </Box>
           </Box>
           <Box sx={{ display: "flex", gap: 2 }}>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleAddOpen}
-              sx={{ bgcolor: "white", color: "#4F46E5", "&:hover": { bgcolor: "#f0f0f0" } }}
-            >
-              Add Policy
-            </Button>
+            {canManage && (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleAddOpen}
+                sx={{ bgcolor: "white", color: "#4F46E5", "&:hover": { bgcolor: "#f0f0f0" } }}
+              >
+                Add Policy
+              </Button>
+            )}
             <Tooltip title="Refresh">
               <IconButton onClick={fetchPolicies} sx={{ color: "white" }}>
                 <RefreshIcon />
@@ -255,7 +261,7 @@ const PolicyPage = () => {
             <TableRow sx={{ backgroundColor: "#f8fafc" }}>
               <TableCell sx={{ fontWeight: "bold" }}>Title</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Description</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }} align="center">Actions</TableCell>
+              {canManage && <TableCell sx={{ fontWeight: "bold" }} align="center">Actions</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -272,17 +278,19 @@ const PolicyPage = () => {
                   <TableRow key={policy.id} hover>
                     <TableCell sx={{ fontWeight: 500 }}>{policy.title}</TableCell>
                     <TableCell>{policy.description}</TableCell>
-                    <TableCell align="center">
-                      <Tooltip title="Delete">
-                        <IconButton
-                          color="error"
-                          onClick={() => handleDeleteClick(policy)}
-                          size="small"
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
+                    {canManage && (
+                      <TableCell align="center">
+                        <Tooltip title="Delete">
+                          <IconButton
+                            color="error"
+                            onClick={() => handleDeleteClick(policy)}
+                            size="small"
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
             )}
