@@ -27,7 +27,7 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ForgetPassword from "./pages/ForgetPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
-
+import ChangePasswordPage from "./pages/ChangePasswordPage";
 // Role-based route access configuration
 const roleRoutes = {
   admin: ["/admin", "/employees", "/attendance", "/all-attendance", "/tasks", "/reports", "/users", "/leave", "/salary", "/policies", "/wfh", "/holidays", "/departments"],
@@ -219,7 +219,14 @@ function App() {
                 </ProtectedRoute>
               } 
             />
-
+            <Route
+              path="/change-password"
+              element={
+                <ProtectedRoute>
+                  <ChangePasswordPage />
+                </ProtectedRoute>
+              }
+            />
             {/* Catch all - redirect to login */}
             <Route path="*" element={<Navigate to="/login" />} />
           </Route>

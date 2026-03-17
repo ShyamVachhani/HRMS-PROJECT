@@ -20,7 +20,7 @@ export const getEmployees = async (req, res) => {
 
   try {
     const employees = await sequelize.query(
-      `SELECT e.id, e.name, e.email, e.phone, e.position, e.department_id, d.name AS department_name, e.join_date, e.created_at
+      `SELECT e.id, e.name, e.email, e.phone, e.position, e.department_id, e.basic_salary, d.name AS department_name, e.join_date, e.created_at
        ${baseQuery} ${where} ORDER BY e.id DESC LIMIT :limit OFFSET :offset`,
       { replacements: { ...replacements, limit, offset }, type: QueryTypes.SELECT }
     );
@@ -49,7 +49,7 @@ export const getEmployeeById = async (req, res) => {
   const { id } = req.params;
   try {
     const employee = await sequelize.query(
-      `SELECT e.id, e.name, e.email, e.phone, e.position, e.department_id, d.name AS department_name, e.join_date
+      `SELECT e.id, e.name, e.email, e.phone, e.position, e.department_id, e.basic_salary, d.name AS department_name, e.join_date
        FROM employees e LEFT JOIN departments d ON e.department_id = d.id WHERE e.id = :id`,
       { replacements: { id }, type: QueryTypes.SELECT }
     );
@@ -65,14 +65,14 @@ export const getEmployeeById = async (req, res) => {
 
 /* ADD EMPLOYEE */
 export const addEmployee = async (req, res) => {
-  const { name, email, phone, position, department_id, join_date } = req.body;
+  const { name, email, phone, position, department_id, join_date, basic_salary } = req.body;
   if (!name || !email) return res.status(400).json({ message: "Name and Email are required" });
 
   try {
     const result = await sequelize.query(
-      `INSERT INTO employees (name,email,phone,position,department_id,join_date)
-       VALUES (:name, :email, :phone, :position, :department_id, :join_date)`,
-      { replacements: { name, email, phone, position, department_id, join_date }, type: QueryTypes.INSERT }
+      `INSERT INTO employees (name,email,phone,position,department_id,join_date,basic_salary)
+       VALUES (:name, :email, :phone, :position, :department_id, :join_date, :basic_salary)`,
+      { replacements: { name, email, phone, position, department_id, join_date, basic_salary }, type: QueryTypes.INSERT }
     );
 
     res.status(201).json({ message: "Employee created successfully", employeeId: result[0] });
@@ -85,12 +85,12 @@ export const addEmployee = async (req, res) => {
 /* UPDATE EMPLOYEE */
 export const updateEmployee = async (req, res) => {
   const { id } = req.params;
-  const { name, email, phone, position, department_id, join_date } = req.body;
+  const { name, email, phone, position, department_id, join_date, basic_salary } = req.body;
 
   try {
     await sequelize.query(
-      `UPDATE employees SET name=:name, email=:email, phone=:phone, position=:position, department_id=:department_id, join_date=:join_date WHERE id=:id`,
-      { replacements: { id, name, email, phone, position, department_id, join_date }, type: QueryTypes.UPDATE }
+      `UPDATE employees SET name=:name, email=:email, phone=:phone, position=:position, department_id=:department_id, join_date=:join_date, basic_salary=:basic_salary WHERE id=:id`,
+      { replacements: { id, name, email, phone, position, department_id, join_date, basic_salary }, type: QueryTypes.UPDATE }
     );
     res.json({ message: "Employee updated successfully" });
   } catch (err) {
@@ -129,7 +129,7 @@ export const getTeamEmployees = async (req, res) => {
 
   try {
     const employees = await sequelize.query(
-      `SELECT e.id, e.name, e.email, e.phone, e.position, e.department_id, d.name AS department_name, e.join_date, e.created_at
+      `SELECT e.id, e.name, e.email, e.phone, e.position, e.department_id, e.basic_salary, d.name AS department_name, e.join_date, e.created_at
        FROM employees e 
        LEFT JOIN departments d ON e.department_id = d.id 
        ${where} 

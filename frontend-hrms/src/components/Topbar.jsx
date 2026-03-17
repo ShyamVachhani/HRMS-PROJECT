@@ -307,6 +307,12 @@ export default function Topbar({ onMenuClick }){
                     </ListItemIcon>
                     Settings
                 </MenuItem>
+                <MenuItem onClick={() => handleMenuNavigation('/change-password')}>
+                    <ListItemIcon>
+                        <SettingsIcon fontSize="small" color="primary" />
+                    </ListItemIcon>
+                    Change Password
+                </MenuItem>
                 <Divider />
                 <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
                     <ListItemIcon>

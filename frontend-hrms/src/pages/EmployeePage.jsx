@@ -52,6 +52,7 @@ const EmployeePage = () => {
   const [position, setPosition] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [joinDate, setJoinDate] = useState("");
+  const [salary, setSalary] = useState("");
   
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   
@@ -63,6 +64,7 @@ const EmployeePage = () => {
   const [editPosition, setEditPosition] = useState("");
   const [editDepartmentId, setEditDepartmentId] = useState("");
   const [editJoinDate, setEditJoinDate] = useState("");
+  const [editSalary, setEditSalary] = useState("");
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
@@ -70,6 +72,8 @@ const EmployeePage = () => {
   
   const user = JSON.parse(localStorage.getItem("user"));
   const canManage = ["admin", "hr"].includes(user?.role);
+
+  const positionsList = ["Junior Developer", "Senior Developer", "Intern", "Project Manager"];
 
   const showSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
@@ -108,17 +112,17 @@ const EmployeePage = () => {
     }
   };
 
-  const fetchPositions = async () => {
-    try {
-      const res = await api.get("/employees");
-      const data = res.data;
-      let employeesArray = Array.isArray(data) ? data : (data.employees || []);
-      const uniquePositions = [...new Set(employeesArray.map(emp => emp.position).filter(Boolean))];
-      setPositions(uniquePositions);
-    } catch (error) {
-      console.error("Error fetching positions:", error);
-    }
-  };
+  // const fetchPositions = async () => {
+  //   try {
+  //     const res = await api.get("/employees");
+  //     const data = res.data;
+  //     let employeesArray = Array.isArray(data) ? data : (data.employees || []);
+  //     const uniquePositions = [...new Set(employeesArray.map(emp => emp.position).filter(Boolean))];
+  //     setPositions(uniquePositions);
+  //   } catch (error) {
+  //     console.error("Error fetching positions:", error);
+  //   }
+  // };
 
   const resetAddForm = () => {
     setName("");
@@ -127,6 +131,7 @@ const EmployeePage = () => {
     setPosition("");
     setDepartmentId("");
     setJoinDate("");
+    setSalary("");
   };
 
   const handleAddOpen = () => {
@@ -140,7 +145,7 @@ const EmployeePage = () => {
   };
 
   const addEmployee = async () => {
-    if (!name || !email || !position) {
+    if (!name || !email || !position || !salary ) {
       showSnackbar("Please fill in required fields (Name, Email, Position)", "error");
       return;
     }
@@ -153,7 +158,8 @@ const EmployeePage = () => {
         phone, 
         position, 
         department_id: departmentId || null, 
-        join_date: joinDate 
+        join_date: joinDate,
+        basic_salary: parseFloat(salary)
       });
       
       handleAddClose();
@@ -174,6 +180,7 @@ const EmployeePage = () => {
     setEditPosition(emp.position);
     setEditDepartmentId(emp.department_id || "");
     setEditJoinDate(emp.join_date);
+    setEditSalary(emp.basic_salary || "");
     setEditOpen(true);
   };
 
@@ -183,7 +190,7 @@ const EmployeePage = () => {
   };
 
   const handleEditSave = async () => {
-    if (!editName || !editEmail || !editPosition) {
+    if (!editName || !editEmail || !editPosition || !editSalary) {
       showSnackbar("Please fill in required fields", "error");
       return;
     }
@@ -196,7 +203,8 @@ const EmployeePage = () => {
         phone: editPhone,
         position: editPosition,
         department_id: editDepartmentId || null,
-        join_date: editJoinDate
+        join_date: editJoinDate,
+        basic_salary: parseFloat(editSalary)
       });
 
       handleEditClose();
@@ -238,7 +246,7 @@ const EmployeePage = () => {
   useEffect(() => {
     fetchEmployees();
     fetchDepartments();
-    fetchPositions();
+    // fetchPositions();
   }, []);
 
   const filteredEmployees = employees.filter(emp => 
@@ -419,14 +427,20 @@ const EmployeePage = () => {
               fullWidth
             />
             <TextField
+              select
               label="Position"
               value={position}
               onChange={(e) => setPosition(e.target.value)}
               fullWidth
               required
-              placeholder="e.g. Developer, Manager, Intern"
-              helperText={positions.length > 0 ? `Existing: ${positions.slice(0, 5).join(", ")}` : ""}
-            />
+            >
+              <MenuItem value="">Select Position</MenuItem>
+              {positionsList.map((pos) => (
+                <MenuItem key={pos} value={pos}>
+                  {pos}
+                </MenuItem>
+              ))}
+            </TextField>
             <TextField
               select
               label="Department"
@@ -446,6 +460,17 @@ const EmployeePage = () => {
               onChange={(e) => setJoinDate(e.target.value)}
               InputLabelProps={{ shrink: true }}
               fullWidth
+            />
+            <TextField
+              label="Basic Salary"
+              type="number"
+              value={salary}
+              onChange={e => setSalary(e.target.value)}
+              fullWidth
+              required
+              InputProps={{
+                startAdornment: <InputAdornment position="start">₹</InputAdornment>
+              }}
             />
           </Stack>
         </DialogContent>
@@ -494,14 +519,20 @@ const EmployeePage = () => {
               fullWidth 
             />
             <TextField
+              select
               label="Position"
-              value={editPosition}
-              onChange={(e) => setEditPosition(e.target.value)}
+              value={position}
+              onChange={(e) => setPosition(e.target.value)}
               fullWidth
               required
-              placeholder="e.g. Developer, Manager, Intern"
-              helperText={positions.length > 0 ? `Existing: ${positions.slice(0, 5).join(", ")}` : ""}
-            />
+            >
+              <MenuItem value="">Select Position</MenuItem>
+              {positionsList.map((pos) => (
+                <MenuItem key={pos} value={pos}>
+                  {pos}
+                </MenuItem>
+              ))}
+            </TextField>
             <TextField
               select
               label="Department"
@@ -521,6 +552,17 @@ const EmployeePage = () => {
               onChange={(e) => setEditJoinDate(e.target.value)}
               InputLabelProps={{ shrink: true }}
               fullWidth
+            />
+            <TextField
+              label="Basic Salary"
+              type="number"
+              value={editSalary}
+              onChange={e => setEditSalary(e.target.value)}
+              fullWidth
+              required
+              InputProps={{
+                startAdornment: <InputAdornment position="start">₹</InputAdornment>
+              }}
             />
           </Stack>
         </DialogContent>

@@ -65,6 +65,19 @@ const AllAttendancePage = () => {
     }
   };
 
+  const formatDateTime = (date) => {
+    if (!date) return "-"; // handle null/undefined
+    const d = new Date(date);
+    return d.toLocaleString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    });
+  };
   return (
     <Container sx={{ mt: 3 }}>
       <Paper sx={{ p: 3, mb: 3 }}>
@@ -102,11 +115,22 @@ const AllAttendancePage = () => {
             ) : (
               paginatedData.map((rec) => (
                 <TableRow key={rec.id} hover>
-                  <TableCell>{rec.date}</TableCell>
+                  {/* Date + Time */}
+                  <TableCell>
+                    {rec.time_in ? formatDateTime(rec.time_in) : "-"}
+                  </TableCell>
                   <TableCell>{rec.name}</TableCell>
-                  <TableCell>{rec.time_in ? new Date(rec.time_in).toLocaleTimeString() : "-"}</TableCell>
-                  <TableCell>{rec.time_out ? new Date(rec.time_out).toLocaleTimeString() : "-"}</TableCell>
-                  <TableCell>{rec.total_hours ? Number(rec.total_hours).toFixed(2) : "-"}</TableCell>
+                  {/* Time In */}
+                  <TableCell>
+                    {rec.time_in ? formatDateTime(rec.time_in) : "-"}
+                  </TableCell>
+                  {/* Time Out */}
+                  <TableCell>
+                    {rec.time_out ? formatDateTime(rec.time_out) : "-"}
+                  </TableCell>
+                  <TableCell>
+                    {rec.total_hours ? Number(rec.total_hours).toFixed(2) : "-"}
+                  </TableCell>
                   <TableCell>{getStatusChip(rec.work_type)}</TableCell>
                 </TableRow>
               ))
