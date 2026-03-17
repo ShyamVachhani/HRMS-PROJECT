@@ -9,26 +9,43 @@ import {
 } from "../controllers/employeeController.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
-import uploadProfile from "../middleware/uploadProfile.js";
-
+import upload from "../middleware/uploadProfile.js"; 
 const router = express.Router();
 
-router.post("/upload-profile/:id", uploadProfile.single("profile"), async (req, res) => {
-  try {
-    const filePath = req.file.path;
+router.post(
+  "/upload-profile/:id",
+  upload.single("profile"),
+  async (req, res) => {
+    try {
+      console.log("FILE:", req.file);
 
-    await db.query(
-      "UPDATE employees SET profile_image = ? WHERE id = ?",
-      [filePath, req.params.id]
-    );
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
 
-    res.json({ message: "Profile image uploaded", path: filePath });
+      const filePath = req.file.path;
 
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Upload failed" });
+      await sequelize.query(
+        `UPDATE employees SET profile_image = :path WHERE id = :id`,
+        {
+          replacements: {
+            path: filePath,
+            id: req.params.id
+          }
+        }
+      );
+
+      res.json({
+        message: "Uploaded successfully",
+        path: filePath
+      });
+
+    } catch (error) {
+      console.error("UPLOAD ERROR:", error);
+      res.status(500).json({ message: error.message });
+    }
   }
-});
+);
 router.get("/", verifyToken, authorizeRoles("admin", "hr"), getEmployees);
 router.get("/team", verifyToken, authorizeRoles("manager"), getTeamEmployees);
 router.get("/:id", verifyToken, getEmployeeById);

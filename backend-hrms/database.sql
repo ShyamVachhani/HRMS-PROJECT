@@ -209,3 +209,4 @@ INSERT INTO announcements (title, content, created_by) VALUES
 ('Welcome to HRMS', 'Welcome to our new HR Management System. Please update your profile information.', 1),
 ('Office Timing Update', 'Starting next month, office hours will be 9 AM to 6 PM.', 1);
 
+ALTER TABLE employees ADD profile_image VARCHAR(255);
