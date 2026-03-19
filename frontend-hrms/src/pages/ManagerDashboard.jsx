@@ -85,17 +85,23 @@ export default function ManagerDashboard() {
     fetchAllData();
   }, []);
 
+  useEffect(() => {
+    if (user) {
+      fetchManagerChartData();
+    }
+  }, [user]);
+
   const fetchAllData = async () => {
     setLoading(true);
     try {
       await Promise.all([
-        fetchEmployees(),
+        // fetchEmployees(),
         fetchTasks(),
         fetchLeaves(),
         fetchWFHRequests(),
         fetchAnnouncements(),
         fetchHolidays(),
-        fetchManagerChartData()
+        // fetchManagerChartData()
       ]);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -229,15 +235,10 @@ export default function ManagerDashboard() {
 
   const fetchManagerChartData = async () => {
     try {
-      // 🔹 Fetch all data
-      const empRes = await api.get("/employees");
-      const taskRes = await api.get("/tasks");
-      const leaveRes = await api.get("/leaves");
+      if (!user) return;
 
-      // ✅ SAFE extraction (VERY IMPORTANT)
-      const employees = Array.isArray(empRes.data)
-        ? empRes.data
-        : empRes.data?.employees || [];
+      const taskRes = await api.get("/tasks/my");
+      const leaveRes = await api.get("/leaves/my");
 
       const tasks = Array.isArray(taskRes.data)
         ? taskRes.data
@@ -247,38 +248,8 @@ export default function ManagerDashboard() {
         ? leaveRes.data
         : leaveRes.data?.data || [];
 
-      // 🔥 Filter only manager team
-      const managerId = user?.id;
-
-      const teamEmployees = employees.filter(
-        emp => emp.manager_id === managerId
-      );
-
-      const teamIds = teamEmployees.map(emp => emp.id);
-
       // =========================
-      // 📊 1. Team Attendance Pie
-      // =========================
-      const attendanceMap = {
-        Present: 0,
-        Absent: 0,
-        Leave: 0
-      };
-
-      // If you don’t have attendance API yet → fallback
-      teamEmployees.forEach(emp => {
-        if (emp.status === "Active") attendanceMap.Present++;
-        else if (emp.status === "Leave") attendanceMap.Leave++;
-        else attendanceMap.Absent++;
-      });
-
-      const attendanceData = Object.keys(attendanceMap).map(key => ({
-        name: key,
-        value: attendanceMap[key]
-      }));
-
-      // =========================
-      // 📊 2. Task Status Pie
+      // 📊 Task Status
       // =========================
       const taskMap = {
         Completed: 0,
@@ -287,10 +258,10 @@ export default function ManagerDashboard() {
       };
 
       tasks.forEach(task => {
-        if (!teamIds.includes(task.assigned_to)) return;
+        const status = task.status?.toLowerCase();
 
-        if (task.status === "completed") taskMap.Completed++;
-        else if (task.status === "in_progress") taskMap["In Progress"]++;
+        if (status === "completed") taskMap.Completed++;
+        else if (status === "in_progress") taskMap["In Progress"]++;
         else taskMap.Pending++;
       });
 
@@ -300,18 +271,17 @@ export default function ManagerDashboard() {
       }));
 
       // =========================
-      // 📈 3. Productivity (Tasks Completed Over Time)
+      // 📈 Productivity
       // =========================
       const productivityMap = {};
 
       tasks.forEach(task => {
-        if (!teamIds.includes(task.assigned_to)) return;
-        if (task.status !== "completed") return;
+        if (task.status?.toLowerCase() !== "completed") return;
 
-        const date = new Date(task.updated_at || task.completed_at);
-        const label = date.toLocaleString("default", { month: "short" });
+        const date = new Date(task.updated_at || task.created_at);
+        const month = date.toLocaleString("default", { month: "short" });
 
-        productivityMap[label] = (productivityMap[label] || 0) + 1;
+        productivityMap[month] = (productivityMap[month] || 0) + 1;
       });
 
       const productivityData = Object.keys(productivityMap).map(key => ({
@@ -320,13 +290,11 @@ export default function ManagerDashboard() {
       }));
 
       // =========================
-      // 📊 4. Leave Requests (Monthly)
+      // 📊 Leave Requests
       // =========================
       const leaveMap = {};
 
       leaves.forEach(leave => {
-        if (!teamIds.includes(leave.employee_id)) return;
-
         const date = new Date(leave.start_date);
         const month = date.toLocaleString("default", { month: "short" });
 
@@ -339,8 +307,20 @@ export default function ManagerDashboard() {
       }));
 
       // =========================
-      // ✅ SET DATA
+      // 📊 Dummy Attendance (TEMP)
       // =========================
+      const attendanceData = [
+        { name: "Present", value: 10 },
+        { name: "Absent", value: 3 },
+        { name: "Leave", value: 2 }
+      ];
+
+      console.log("MANAGER CHART DATA:", {
+        taskStatusData,
+        productivityData,
+        leaveData
+      });
+
       setChartData({
         attendanceData,
         taskStatusData,
@@ -381,59 +361,39 @@ export default function ManagerDashboard() {
         ))}
       </Grid>
 
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+  <Grid container spacing={3} sx={{ mb: 4 }}>
 
-  {/* Attendance Pie */}
   <Grid size={{ xs: 12, md: 6 }}>
     <Card sx={{ borderRadius: 3 }}>
       <CardContent>
-        <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: "#1E3A8A" }}>
-          Team Attendance
-        </Typography>
-
-        {chartData.attendanceData.length === 0 ? (
-          <Typography textAlign="center">No data</Typography>
-        ) : (
-          <PieChartBox data={chartData.attendanceData} />
-        )}
+        <Typography variant="h6">Team Attendance</Typography>
+        <PieChartBox data={chartData.attendanceData} />
       </CardContent>
     </Card>
   </Grid>
 
-  {/* Task Status */}
   <Grid size={{ xs: 12, md: 6 }}>
     <Card sx={{ borderRadius: 3 }}>
       <CardContent>
-        <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: "#1E3A8A" }}>
-          Task Status
-        </Typography>
-
+        <Typography variant="h6">Task Status</Typography>
         <PieChartBox data={chartData.taskStatusData} />
       </CardContent>
     </Card>
   </Grid>
 
-  {/* Productivity */}
   <Grid size={{ xs: 12, md: 6 }}>
     <Card sx={{ borderRadius: 3 }}>
       <CardContent>
-        <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: "#1E3A8A" }}>
-          Team Productivity
-        </Typography>
-
+        <Typography variant="h6">Productivity</Typography>
         <LineChartBox data={chartData.productivityData} />
       </CardContent>
     </Card>
   </Grid>
 
-  {/* Leaves */}
   <Grid size={{ xs: 12, md: 6 }}>
     <Card sx={{ borderRadius: 3 }}>
       <CardContent>
-        <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: "#1E3A8A" }}>
-          Leave Requests
-        </Typography>
-
+        <Typography variant="h6">Leave Requests</Typography>
         <BarChartBox data={chartData.leaveData} />
       </CardContent>
     </Card>

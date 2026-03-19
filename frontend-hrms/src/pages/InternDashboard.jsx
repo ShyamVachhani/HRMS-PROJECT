@@ -95,15 +95,20 @@ export default function InternDashboard() {
     fetchAllData();
   }, []);
 
+  useEffect(() => {
+    if (user) {
+      fetchInternData();
+    }
+  }, [user]);
+
   const fetchAllData = async () => {
     setLoading(true);
     try {
       await Promise.all([
-        fetchTasks(),
+        // fetchTasks(),
         fetchAnnouncements(),
         fetchHolidays(),
         fetchLeaveBalance(),
-        fetchInternData()
       ]);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -195,35 +200,32 @@ export default function InternDashboard() {
 
   const fetchInternData = async () => {
     try {
-      const taskRes = await api.get("/tasks"); // change later to /tasks/my if needed
-      const empRes = await api.get("/employees");
+      if (!user) return;
 
-      // ✅ SAFE extraction
-      const tasks = Array.isArray(taskRes.data)
-        ? taskRes.data
-        : taskRes.data?.tasks || [];
+      const res = await api.get("/tasks/my");
 
-      const employees = Array.isArray(empRes.data)
-        ? empRes.data
-        : empRes.data?.employees || [];
+      const tasks = Array.isArray(res.data)
+        ? res.data
+        : res.data?.tasks || [];
 
-      const userId = user?.id;
+      const userId = user?.employee_id || user?.id;
 
-      // 🔥 My tasks
-      const myTasks = tasks.filter(task => task.assigned_to === userId);
+      const filteredTasks = tasks.filter(
+        task => Number(task.assigned_to) === Number(userId)
+      );
 
-      // =========================
-      // 📊 Task Status Pie
-      // =========================
+      // 📊 Task Status
       const taskMap = {
         Completed: 0,
         "In Progress": 0,
         Pending: 0
       };
 
-      myTasks.forEach(task => {
-        if (task.status === "completed") taskMap.Completed++;
-        else if (task.status === "in_progress") taskMap["In Progress"]++;
+      filteredTasks.forEach(task => {
+        const status = task.status?.toLowerCase();
+
+        if (status === "completed") taskMap.Completed++;
+        else if (status === "in_progress") taskMap["In Progress"]++;
         else taskMap.Pending++;
       });
 
@@ -232,15 +234,13 @@ export default function InternDashboard() {
         value: taskMap[key]
       }));
 
-      // =========================
-      // 📈 Weekly Progress
-      // =========================
+      // 📈 Weekly
       const weeklyMap = {};
 
-      myTasks.forEach(task => {
-        if (task.status !== "completed") return;
+      filteredTasks.forEach(task => {
+        if (task.status?.toLowerCase() !== "completed") return;
 
-        const date = new Date(task.updated_at || task.completed_at);
+        const date = new Date(task.updated_at || task.created_at);
         const week = `Week ${Math.ceil(date.getDate() / 7)}`;
 
         weeklyMap[week] = (weeklyMap[week] || 0) + 1;
@@ -251,26 +251,22 @@ export default function InternDashboard() {
         value: weeklyMap[key]
       }));
 
-      // =========================
       // 🧾 Stats
-      // =========================
-      const completed = myTasks.filter(t => t.status === "completed").length;
-      const pending = myTasks.length - completed;
+      const completed = filteredTasks.filter(
+        t => t.status?.toLowerCase() === "completed"
+      ).length;
 
-      // 👨‍🏫 Mentor (manager)
-      const me = employees.find(e => e.id === userId);
-      const mentor = me?.manager_name || "Not Assigned";
+      const pending = filteredTasks.length - completed;
 
-      setStats({
-        assigned: myTasks.length,
-        completed,
-        pending,
-        mentor
-      });
+      setStats(prev => ({
+        ...prev,
+        totalTasks: filteredTasks.length,
+        completedTasks: completed,
+        pendingTasks: pending
+      }));
 
-      // =========================
-      // ✅ SET DATA
-      // =========================
+      setMyTasks(filteredTasks);
+
       setChartData({
         taskStatusData,
         weeklyData
@@ -309,36 +305,62 @@ export default function InternDashboard() {
         ))}
       </Grid>
 
+      {/* <Grid container spacing={3} sx={{ mb: 4 }}>
+
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <StatCard title="Assigned Tasks" value={stats.assigned} color="#3B82F6" />
+        </Grid>
+
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <StatCard title="Completed Tasks" value={stats.completed} color="#16A34A" />
+        </Grid>
+
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <StatCard title="Pending Tasks" value={stats.pending} color="#F59E0B" />
+        </Grid>
+
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <StatCard title="Mentor" value={stats.mentor} color="#8B5CF6" />
+        </Grid>
+
+      </Grid> */}
+
       <Grid container spacing={3}>
+        {/* Task Status
+        <Grid container spacing={3}> */}
 
-        {/* Task Status */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Card sx={{ borderRadius: 3 }}>
-            <CardContent>
-              <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: "#1E3A8A" }}>
-                Task Status
-              </Typography>
+          {/* Task Status */}
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Card sx={{ borderRadius: 3 }}>
+              <CardContent>
+                <Typography variant="h6">Task Status</Typography>
 
-              <PieChartBox data={chartData.taskStatusData} />
-            </CardContent>
-          </Card>
+                {chartData.taskStatusData.length === 0 ? (
+                  <Typography textAlign="center">No tasks</Typography>
+                ) : (
+                  <PieChartBox data={chartData.taskStatusData} />
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Weekly Progress */}
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Card sx={{ borderRadius: 3 }}>
+              <CardContent>
+                <Typography variant="h6">Weekly Progress</Typography>
+
+                {chartData.weeklyData.length === 0 ? (
+                  <Typography textAlign="center">No data</Typography>
+                ) : (
+                  <LineChartBox data={chartData.weeklyData} />
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+
         </Grid>
-
-        {/* Weekly Progress */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Card sx={{ borderRadius: 3 }}>
-            <CardContent>
-              <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: "#1E3A8A" }}>
-                Weekly Task Progress
-              </Typography>
-
-              <LineChartBox data={chartData.weeklyData} />
-            </CardContent>
-          </Card>
-        </Grid>
-
-      </Grid>
-
+        <br></br>        
       {/* Main Content */}
       <Grid container spacing={3}>
         {/* My Tasks */}
