@@ -162,21 +162,18 @@ export default function ProfilePage() {
         }
       );
 
-      // ✅ Update local state
-      setEmployee((prev) => {
-        const updated = { ...prev, profile_image: res.data.path };
+      // ✅ Update UI instantly
+      setEmployee((prev) => ({
+        ...prev,
+        profile_image: res.data.path + "?t=" + new Date().getTime()
+      }));
 
-        const user = JSON.parse(localStorage.getItem("user"));
-        if (user) {
-          user.profile_image = res.data.path;
-          localStorage.setItem("user", JSON.stringify(user));
-        }
-
-        return updated;
-      });
-
-      // ✅ FORCE PROFILE REFRESH
-      await fetchEmployee();
+      // ✅ Update localStorage (for Topbar)
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (user) {
+        user.profile_image = res.data.path;
+        localStorage.setItem("user", JSON.stringify(user));
+      }
 
       // ✅ Notify Topbar
       window.dispatchEvent(new Event("profileUpdated"));
@@ -222,7 +219,7 @@ export default function ProfilePage() {
               src={
                 preview
                   ? preview
-                  : employee?.profile_image
+                  : employee && employee.profile_image
                     ? `http://localhost:5000/${employee.profile_image}?t=${new Date().getTime()}`
                     : ""
               }

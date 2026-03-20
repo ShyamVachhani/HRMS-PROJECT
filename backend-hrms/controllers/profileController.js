@@ -13,6 +13,7 @@ export const getEmployeeById = async (req, res) => {
             e.phone,
             e.join_date,
             e.position,
+            e.profile_image,
             d.name AS department_name
         FROM employees e
         LEFT JOIN departments d ON e.department_id = d.id

@@ -86,23 +86,33 @@ export default function ManagerDashboard() {
   }, []);
 
   useEffect(() => {
-    if (user) {
+    if (user && teamMembers.length > 0) {
       fetchManagerChartData();
     }
-  }, [user]);
+  }, [user, teamMembers]);
 
   const fetchAllData = async () => {
     setLoading(true);
     try {
+      // ✅ STEP 1: get team FIRST
+      const teamRes = await api.get("/employees/team");
+
+      const team = Array.isArray(teamRes.data)
+        ? teamRes.data
+        : teamRes.data?.data || [];
+
+      setTeamMembers(team);
+      console.log("TEAM DATA:", team);
+      // ✅ STEP 2: use team immediately
       await Promise.all([
-        // fetchEmployees(),
-        fetchTasks(),
+        fetchTasks(team),
         fetchLeaves(),
         fetchWFHRequests(),
         fetchAnnouncements(),
         fetchHolidays(),
-        // fetchManagerChartData()
+        fetchManagerChartData(team) // ✅ pass team here
       ]);
+
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -123,20 +133,33 @@ export default function ManagerDashboard() {
     }
   };
 
-  const fetchTasks = async () => {
+  const fetchTasks = async (team) => {
     try {
       const res = await api.get("/tasks");
       const tasks = res.data || [];
-      
-      const pending = tasks.filter(t => t.status === "pending" || t.status === "in_progress");
-      const completed = tasks.filter(t => t.status === "completed");
-      
+
+      const teamIds = team.map(emp => emp.id);
+
+      const pending = tasks.filter(
+        t =>
+          teamIds.includes(t.assigned_to) &&
+          (t.status === "pending" || t.status === "in_progress")
+      );
+
+      const completed = tasks.filter(
+        t =>
+          teamIds.includes(t.assigned_to) &&
+          t.status === "completed"
+      );
+
       setPendingTasks(pending.slice(0, 4));
-      setStats(prev => ({ 
-        ...prev, 
+
+      setStats(prev => ({
+        ...prev,
         activeTasks: pending.length,
         completedTasks: completed.length
       }));
+
     } catch (error) {
       console.error("Error fetching tasks:", error);
     }
@@ -187,7 +210,7 @@ export default function ManagerDashboard() {
 
   const getEmployeeName = (id) => {
     if (!id) return "-";
-    const emp = employees.find(e => e.id === parseInt(id) || e.id === id);
+    const emp = teamMembers.find(e => e.id === parseInt(id) || e.id === id);
     return emp ? emp.name : `ID: ${id}`;
   };
 
@@ -224,6 +247,25 @@ export default function ManagerDashboard() {
     return priority === "high" ? "error" : priority === "medium" ? "warning" : "info";
   };
 
+  const fetchTeam = async () => {
+    try {
+      const res = await api.get("/employees/team");
+      const team = Array.isArray(res.data)
+        ? res.data
+        : res.data?.data || res.data?.employees || [];
+
+      setTeamMembers(team);
+      console.log("TEAM DATA:", team);
+      setStats(prev => ({
+        ...prev,
+        teamMembers: team.length   // ✅ FIX
+      }));
+
+    } catch (error) {
+      console.error("Error fetching team:", error);
+    }
+  };
+
   const managerStats = [
     { title: "Team Members", value: stats.teamMembers, icon: <PeopleIcon />, color: "#7C3AED", bg: "#F5F3FF" },
     { title: "Pending Leaves", value: stats.pendingLeaves, icon: <BeachAccessIcon />, color: "#F59E0B", bg: "#FFFBEB" },
@@ -237,17 +279,26 @@ export default function ManagerDashboard() {
     try {
       if (!user) return;
 
-      const taskRes = await api.get("/tasks/my");
-      const leaveRes = await api.get("/leaves/my");
+      const taskRes = await api.get("/tasks");
+      const leaveRes = await api.get("/leaves/team");
 
       const tasks = Array.isArray(taskRes.data)
         ? taskRes.data
         : taskRes.data?.tasks || [];
 
+      console.log("TASK API:", tasks);
+
       const leaves = Array.isArray(leaveRes.data)
         ? leaveRes.data
         : leaveRes.data?.data || [];
 
+
+      const teamIds = teamMembers.map(emp => emp.id);
+      console.log("TEAM IDS:", teamIds);
+      const teamTasks = tasks.filter(task =>
+        teamIds.includes(Number(task.assigned_to))
+      );
+      console.log("TEAM TASKS:", teamTasks);
       // =========================
       // 📊 Task Status
       // =========================
@@ -257,7 +308,7 @@ export default function ManagerDashboard() {
         Pending: 0
       };
 
-      tasks.forEach(task => {
+      teamTasks.forEach(task => {
         const status = task.status?.toLowerCase();
 
         if (status === "completed") taskMap.Completed++;
@@ -321,6 +372,11 @@ export default function ManagerDashboard() {
         leaveData
       });
 
+      console.log("FINAL CHART DATA:", {
+        taskStatusData,
+        productivityData,
+        leaveData
+      });
       setChartData({
         attendanceData,
         taskStatusData,
@@ -423,7 +479,7 @@ export default function ManagerDashboard() {
                   No team members found
                 </Typography>
               ) : (
-                teamMembers.map((member, i) => (
+                (Array.isArray(teamMembers) ? teamMembers : []).map((member, i) => (
                   <Box key={member.id || i} sx={{ p: 2, mb: 2, borderRadius: 2, background: "#F8FAFC", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                       <Avatar sx={{ background: "#7C3AED" }}>
