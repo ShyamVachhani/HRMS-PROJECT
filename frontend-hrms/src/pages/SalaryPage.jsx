@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTheme } from "@mui/material";
 import {
   Container,
   Typography,
@@ -202,6 +203,9 @@ const SalaryPage = () => {
 
   const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i);
 
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+
   return (
     <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
       {/* Page Header */}
@@ -283,7 +287,7 @@ const SalaryPage = () => {
             <Paper sx={{ overflow: "hidden" }}>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ backgroundColor: "#f8fafc" }}>
+                 <TableRow sx={{ backgroundColor: isDark ? "#1E293B" : "#f8fafc" }}>
                     <TableCell sx={{ fontWeight: "bold" }}>Month</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Year</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }} align="right">Basic Salary</TableCell>

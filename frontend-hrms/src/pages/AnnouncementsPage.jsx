@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import { useTheme } from "@mui/material";
 import {
   Container,
   Typography,
@@ -167,6 +168,9 @@ const AnnouncementsPage = () => {
     return (now - date) < (1000 * 60 * 60 * 24); // Within 24 hours
   };
 
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+
   return (
     <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
       {/* Page Header - Consistent with other modules */}
@@ -263,7 +267,7 @@ const AnnouncementsPage = () => {
             sx={{ 
               p: 10, 
               textAlign: "center", 
-              bgcolor: "#f8fafc"
+               bgcolor: isDark ? "#1e293b" : "#f8fafc"
             }}
           >
             <SpeakerNotesOffIcon sx={{ fontSize: 64, color: "#cbd5e0", mb: 2 }} />
@@ -287,13 +291,33 @@ const AnnouncementsPage = () => {
             {filteredAnnouncements.map((announcement) => {
               const isRecent = isNew(announcement.created_at);
               return (
+                // <Box 
+                //   key={announcement.id} 
+                //   sx={{ 
+                //     p: 4, 
+                //     transition: "all 0.2s",
+                //     position: "relative",
+                //     "&:hover": { bgcolor: isDark ? "#334155" : "#f1f5f9" }, 
+                //     "&::before": isRecent ? {
+                //       content: '""',
+                //       position: "absolute",
+                //       left: 0,
+                //       top: 0,
+                //       bottom: 0,
+                //       width: 4,
+                //       background: "#3b82f6"
+                //     } : {}
+                //   }}
+                // >
+
                 <Box 
                   key={announcement.id} 
                   sx={{ 
                     p: 4, 
                     transition: "all 0.2s",
                     position: "relative",
-                    "&:hover": { bgcolor: "#f1f5f9" },
+                    bgcolor: isDark ? "#1e293b" : "white",
+                    "&:hover": { bgcolor: isDark ? "#334155" : "#f1f5f9" },
                     "&::before": isRecent ? {
                       content: '""',
                       position: "absolute",
@@ -305,6 +329,7 @@ const AnnouncementsPage = () => {
                     } : {}
                   }}
                 >
+
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
                     <Box sx={{ flex: 1 }}>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
@@ -388,7 +413,7 @@ const AnnouncementsPage = () => {
               required
               variant="filled"
               placeholder="E.g. Team Meeting Tomorrow"
-              InputProps={{ disableUnderline: true, sx: { borderRadius: 2, bgcolor: "#f8fafc" } }}
+              InputProps={{ disableUnderline: true, sx: { borderRadius: 2, bgcolor: "#334155" } }}
             />
             <TextField
               label="Message Body"
@@ -399,7 +424,7 @@ const AnnouncementsPage = () => {
               fullWidth
               variant="filled"
               placeholder="Provide more details here..."
-              InputProps={{ disableUnderline: true, sx: { borderRadius: 2, bgcolor: "#f8fafc" } }}
+              InputProps={{ disableUnderline: true, sx: { borderRadius: 2, bgcolor: "#334155" } }}
             />
           </Stack>
         </DialogContent>
@@ -469,3 +494,5 @@ const AnnouncementsPage = () => {
 };
 
 export default AnnouncementsPage;
+
+

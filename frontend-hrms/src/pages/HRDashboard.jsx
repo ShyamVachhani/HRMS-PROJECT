@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTheme } from "@mui/material";
 import { Box, Grid, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Avatar, CircularProgress } from "@mui/material";
 import PeopleIcon from "@mui/icons-material/People";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -364,8 +365,11 @@ export default function HRDashboard() {
     { title: "Active", value: stats.totalEmployees, icon: <AssignmentIcon />, color: "#EF4444", bg: "#FEF2F2" }
   ];
 
+    const theme = useTheme();
+    const isDark = theme.palette.mode === "dark";
+
   return (
-    <Box sx={{ p: 3, background: "#F8FAFC", minHeight: "100vh" }}>
+    <Box sx={{ p: 3,    backgroundColor: isDark ? "#1E293B" : "#f8fafc", minHeight: "100vh" }}>
       {/* Header */}
       <Box sx={{ mb: 4, p: 4, borderRadius: 4, background: "linear-gradient(135deg, #059669 0%, #10B981 100%)", color: "white" }}>
         <Grid container alignItems="center" spacing={2}>
@@ -474,7 +478,7 @@ export default function HRDashboard() {
                 <TableContainer>
                   <Table>
                     <TableHead>
-                      <TableRow sx={{ background: "#F8FAFC" }}>
+                      <TableRow sx={{    backgroundColor: isDark ? "#1E293B" : "#f8fafc" }}>
                         <TableCell sx={{ fontWeight: "bold" }}>Employee</TableCell>
                         <TableCell sx={{ fontWeight: "bold" }}>Position</TableCell>
                         <TableCell sx={{ fontWeight: "bold" }}>Department</TableCell>
@@ -482,7 +486,7 @@ export default function HRDashboard() {
                     </TableHead>
                     <TableBody>
                       {recentEmployees.map((emp, i) => (
-                        <TableRow key={emp.id || i} sx={{ "&:hover": { background: "#F8FAFC" } }}>
+                        <TableRow key={emp.id || i} sx={{ "&:hover": {   backgroundColor: isDark ? "#1E293B" : "#f8fafc" } }}>
                           <TableCell>
                             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                               <Avatar sx={{ width: 32, height: 32, background: "#059669", fontSize: "0.8rem" }}>
@@ -493,7 +497,7 @@ export default function HRDashboard() {
                           </TableCell>
                           <TableCell>{emp.position || "-"}</TableCell>
                           <TableCell>
-                            <Chip label={emp.department_name || "Not Assigned"} size="small" sx={{ background: "#ECFDF5", color: "#059669" }} />
+                            <Chip label={emp.department_name || "Not Assigned"} size="small" sx={{    backgroundColor: isDark ? "#1E293B" : "#f8fafc", color: "#059669" }} />
                           </TableCell>
                         </TableRow>
                       ))}
@@ -526,7 +530,7 @@ export default function HRDashboard() {
                 </Typography>
               ) : (
                 leaveRequests.map((leave, i) => (
-                  <Box key={leave.id || i} sx={{ p: 2, mb: 2, borderRadius: 2, background: "#F8FAFC", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <Box key={leave.id || i} sx={{ p: 2, mb: 2, borderRadius: 2,    backgroundColor: isDark ? "#1E293B" : "#f8fafc", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <Box>
                       <Typography fontWeight="600">{leave.name || getEmployeeName(leave.employee_id)}</Typography>
                       <Typography variant="caption" color="textSecondary">
@@ -578,7 +582,7 @@ export default function HRDashboard() {
                 </Typography>
               ) : (
                 wfhRequests.map((req, i) => (
-                  <Box key={req.id || i} sx={{ p: 2, mb: 2, borderRadius: 2, background: "#F8FAFC", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <Box key={req.id || i} sx={{ p: 2, mb: 2, borderRadius: 2,    backgroundColor: isDark ? "#1E293B" : "#f8fafc", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <Box>
                       <Typography fontWeight="600">{req.name}</Typography>
                       <Typography variant="caption" color="textSecondary">
@@ -636,7 +640,7 @@ export default function HRDashboard() {
                 <TableContainer>
                   <Table>
                     <TableHead>
-                      <TableRow sx={{ background: "#F8FAFC" }}>
+                      <TableRow sx={{   backgroundColor: isDark ? "#1E293B" : "#f8fafc" }}>
                         <TableCell sx={{ fontWeight: "bold" }}>Department</TableCell>
                         <TableCell sx={{ fontWeight: "bold" }}>Description</TableCell>
                         <TableCell sx={{ fontWeight: "bold" }}>Action</TableCell>
@@ -644,9 +648,9 @@ export default function HRDashboard() {
                     </TableHead>
                     <TableBody>
                       {departments.map((dept, i) => (
-                        <TableRow key={dept.id || i} sx={{ "&:hover": { background: "#F8FAFC" } }}>
+                        <TableRow key={dept.id || i} sx={{ "&:hover": {    backgroundColor: isDark ? "#1E293B" : "#f8fafc" } }}>
                           <TableCell>
-                            <Chip label={dept.name} size="small" sx={{ background: "#ECFDF5", color: "#059669", fontWeight: "bold" }} />
+                            <Chip label={dept.name} size="small" sx={{    backgroundColor: isDark ? "#1E293B" : "#f8fafc", color: "#059669", fontWeight: "bold" }} />
                           </TableCell>
                           <TableCell>{dept.description || "-"}</TableCell>
                           <TableCell>

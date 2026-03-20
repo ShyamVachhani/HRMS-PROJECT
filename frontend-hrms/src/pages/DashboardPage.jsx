@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTheme } from "@mui/material";
 import { Box, Grid, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, Avatar, LinearProgress, Divider } from "@mui/material";
 import PeopleIcon from "@mui/icons-material/People";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -227,6 +228,10 @@ export default function DashboardPage() {
   const stats = roleStats[role] || roleStats.developer;
   const data = sampleData[role] || sampleData.developer;
 
+  
+    const theme = useTheme();
+    const isDark = theme.palette.mode === "dark";
+  
   return (
     <Box sx={{ p: 3, background: "#F8FAFC", minHeight: "100vh" }}>
       {/* Header */}
@@ -298,7 +303,7 @@ export default function DashboardPage() {
                     Pending Tasks
                   </Typography>
                   {data.pendingTasks.map((task, i) => (
-                    <Box key={i} sx={{ p: 1.5, mb: 1, borderRadius: 1, background: "#F8FAFC" }}>
+                    <Box key={i} sx={{ p: 1.5, mb: 1, borderRadius: 1, backgroundColor:"#f8fafc"  }}>
                       <Typography fontWeight="500">{task.task}</Typography>
                       <Typography variant="caption" color="textSecondary">
                         Assigned to: {task.assignedTo} | Priority: {task.priority} | Due: {task.deadline}

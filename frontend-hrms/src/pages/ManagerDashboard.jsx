@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTheme } from "@mui/material";
 import { Box, Grid, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Avatar, LinearProgress, CircularProgress } from "@mui/material";
 import PeopleIcon from "@mui/icons-material/People";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -389,8 +390,11 @@ export default function ManagerDashboard() {
     }
   };
 
+    const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+
   return (
-    <Box sx={{ p: 3, background: "#F8FAFC", minHeight: "100vh" }}>
+    <Box sx={{ p: 3,    backgroundColor: isDark ? "#1E293B" : "#f8fafc", minHeight: "100vh" }}>
       {/* Header */}
       <Box sx={{ mb: 4, p: 4, borderRadius: 4, background: "linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%)", color: "white" }}>
         <Grid container alignItems="center" spacing={2}>
@@ -480,7 +484,7 @@ export default function ManagerDashboard() {
                 </Typography>
               ) : (
                 (Array.isArray(teamMembers) ? teamMembers : []).map((member, i) => (
-                  <Box key={member.id || i} sx={{ p: 2, mb: 2, borderRadius: 2, background: "#F8FAFC", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <Box key={member.id || i} sx={{ p: 2, mb: 2, borderRadius: 2,   backgroundColor: isDark ? "#1E293B" : "#f8fafc", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                       <Avatar sx={{ background: "#7C3AED" }}>
                         {member.name?.split(" ").map(n => n[0]).join("").substring(0, 2)}
@@ -493,7 +497,7 @@ export default function ManagerDashboard() {
                     <Chip 
                       label={member.department_name || "Not Assigned"} 
                       size="small" 
-                      sx={{ background: "#F5F3FF", color: "#7C3AED" }} 
+                      sx={{    backgroundColor: isDark ? "#1E293B" : "#f8fafc", color: "#7C3AED" }} 
                     />
                   </Box>
                 ))
@@ -523,7 +527,7 @@ export default function ManagerDashboard() {
                 </Typography>
               ) : (
                 pendingTasks.map((task, i) => (
-                  <Box key={task.id || i} sx={{ p: 2, mb: 2, borderRadius: 2, background: "#F8FAFC", border: "1px solid #E5E7EB" }}>
+                  <Box key={task.id || i} sx={{ p: 2, mb: 2, borderRadius: 2,    backgroundColor: isDark ? "#1E293B" : "#f8fafc", border: "1px solid #E5E7EB" }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
                       <Typography fontWeight="600">{task.title}</Typography>
                       <Chip label={task.priority || "medium"} size="small" color={getPriorityColor(task.priority)} />
@@ -566,7 +570,7 @@ export default function ManagerDashboard() {
                 <Grid container spacing={2}>
                   {leaveRequests.map((leave, i) => (
                     <Grid size={{ xs: 12, md: 6, lg: 4 }} key={leave.id || i}>
-                      <Box sx={{ p: 2, borderRadius: 2, background: "#F8FAFC", border: "1px solid #E5E7EB" }}>
+                      <Box sx={{ p: 2, borderRadius: 2,    backgroundColor: isDark ? "#1E293B" : "#f8fafc", border: "1px solid #E5E7EB" }}>
                         <Typography fontWeight="600">{leave.name || getEmployeeName(leave.employee_id)}</Typography>
                         <Typography variant="caption" color="textSecondary" display="block">
                           {leave.start_date?.split("T")[0]} to {leave.end_date?.split("T")[0]}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTheme } from "@mui/material";
 import {
   Container,
   Paper,
@@ -191,6 +192,9 @@ const WFHPage = () => {
     rec.reason?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+
   return (
     <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
       {/* Page Header */}
@@ -280,7 +284,7 @@ const WFHPage = () => {
 
         <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: "#f8fafc" }}>
+            <TableRow sx={{ backgroundColor: isDark ? "#1E293B" : "#f8fafc" }}>
               {(canViewAll || (isManager && viewMode === "team")) && <TableCell sx={{ fontWeight: "bold" }}>Employee</TableCell>}
               <TableCell sx={{ fontWeight: "bold" }}>Date Range</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Reason</TableCell>

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useTheme } from "@mui/material";
+
 import { Box, Grid, Card, CardContent, Typography, Button, Chip, LinearProgress, CircularProgress } from "@mui/material";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -277,8 +279,12 @@ export default function InternDashboard() {
     }
   };
 
+    const theme = useTheme();
+    const isDark = theme.palette.mode === "dark";
+
+
   return (
-    <Box sx={{ p: 3, background: "#F8FAFC", minHeight: "100vh" }}>
+    <Box sx={{ p: 3,   backgroundColor: isDark ? "#1E293B" : "#f8fafc", minHeight: "100vh" }}>
       {/* Header */}
       <Box sx={{ mb: 4, p: 4, borderRadius: 4, background: "linear-gradient(135deg, #D97706 0%, #F59E0B 100%)", color: "white" }}>
         <Grid container alignItems="center" spacing={2}>
@@ -384,7 +390,7 @@ export default function InternDashboard() {
                 </Typography>
               ) : (
                 myTasks.slice(0, 4).map((task, i) => (
-                  <Box key={task.id || i} sx={{ p: 2, mb: 2, borderRadius: 2, background: "#F8FAFC", border: "1px solid #E5E7EB" }}>
+                  <Box key={task.id || i} sx={{ p: 2, mb: 2, borderRadius: 2,    backgroundColor: isDark ? "#1E293B" : "#f8fafc", border: "1px solid #E5E7EB" }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                         <Typography fontWeight="600">{task.title}</Typography>
@@ -414,7 +420,7 @@ export default function InternDashboard() {
                 </Typography>
                 <Chip 
                   label={`${stats.completedTasks}/${stats.totalTasks} Completed`} 
-                  sx={{ background: "#ECFDF5", color: "#059669", fontWeight: "bold" }} 
+                  sx={{   backgroundColor: isDark ? "#1E293B" : "#f8fafc", color: "#059669", fontWeight: "bold" }} 
                 />
               </Box>
               
@@ -424,7 +430,7 @@ export default function InternDashboard() {
  
               <Grid container spacing={2}>
                 <Grid size={{ xs: 4 }}>
-                  <Box sx={{ p: 2, background: "#ECFDF5", borderRadius: 2, textAlign: "center" }}>
+                  <Box sx={{ p: 2,   backgroundColor: isDark ? "#1E293B" : "#f8fafc", borderRadius: 2, textAlign: "center" }}>
                     <CheckCircleIcon sx={{ color: "#059669", fontSize: 30 }} />
                     <Typography variant="h5" fontWeight="bold" color="#059669">{stats.completedTasks}</Typography>
                     <Typography variant="caption" color="textSecondary">Completed</Typography>
@@ -438,7 +444,7 @@ export default function InternDashboard() {
                   </Box>
                 </Grid>
                 <Grid size={{ xs: 4 }}>
-                  <Box sx={{ p: 2, background: "#F3F4F6", borderRadius: 2, textAlign: "center" }}>
+                  <Box sx={{ p: 2,   backgroundColor: isDark ? "#1E293B" : "#f8fafc", borderRadius: 2, textAlign: "center" }}>
                     <PendingActionsIcon sx={{ color: "#6B7280", fontSize: 30 }} />
                     <Typography variant="h5" fontWeight="bold" color="#6B7280">{stats.pendingTasks}</Typography>
                     <Typography variant="caption" color="textSecondary">Pending</Typography>
@@ -520,7 +526,7 @@ export default function InternDashboard() {
                 </Typography>
               </Box>
               
-              <Box sx={{ p: 3, background: "#F8FAFC", borderRadius: 2 }}>
+              <Box sx={{ p: 3,    backgroundColor: isDark ? "#1E293B" : "#f8fafc", borderRadius: 2 }}>
                 <Grid container spacing={2}>
                   <Grid size={{ xs: 6 }}>
                     <Typography variant="caption" color="textSecondary">Name</Typography>
