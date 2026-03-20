@@ -199,6 +199,57 @@ export const getMyLeaves = async (req, res) => {
 };
 
 /* Get Team Leaves (Manager) */
+// export const getTeamLeaves = async (req, res) => {
+//   const managerId = req.user.employee_id;
+//   const page = parseInt(req.query.page) || 1;
+//   const limit = parseInt(req.query.limit) || 10;
+//   const status = req.query.status;
+//   const offset = (page - 1) * limit;
+
+//   let whereClauses = [
+//     "e.department_id = (SELECT department_id FROM employees WHERE id = :managerId)"
+//   ];
+//   let replacements = { managerId, limit, offset };
+
+//   if (status) {
+//     whereClauses.push("l.status = :status");
+//     replacements.status = status;
+//   }
+
+//   try {
+//     const leaves = await sequelize.query(
+//       `SELECT l.id, e.name, d.name AS department, l.start_date, l.end_date, l.reason, l.status
+//        FROM leaves l
+//        JOIN employees e ON l.employee_id = e.id
+//        LEFT JOIN departments d ON e.department_id = d.id
+//        WHERE ${whereClauses.join(" AND ")}
+//        ORDER BY l.created_at DESC
+//        LIMIT :limit OFFSET :offset`,
+//       { replacements, type: QueryTypes.SELECT }
+//     );
+
+//     const countResult = await sequelize.query(
+//       `SELECT COUNT(*) as total
+//        FROM leaves l
+//        JOIN employees e ON l.employee_id = e.id
+//        WHERE ${whereClauses.join(" AND ")}`,
+//       { replacements, type: QueryTypes.SELECT }
+//     );
+
+//     const total = countResult[0].total;
+
+//     res.json({
+//       data: leaves,
+//       currentPage: page,
+//       totalPages: Math.ceil(total / limit),
+//       total
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: "Database error" });
+//   }
+// };
+
 export const getTeamLeaves = async (req, res) => {
   const managerId = req.user.employee_id;
   const page = parseInt(req.query.page) || 1;
@@ -207,8 +258,9 @@ export const getTeamLeaves = async (req, res) => {
   const offset = (page - 1) * limit;
 
   let whereClauses = [
-    "e.department_id = (SELECT department_id FROM employees WHERE id = :managerId)"
+    "e.manager_id = :managerId"   // ✅ FIXED
   ];
+
   let replacements = { managerId, limit, offset };
 
   if (status) {
@@ -218,7 +270,14 @@ export const getTeamLeaves = async (req, res) => {
 
   try {
     const leaves = await sequelize.query(
-      `SELECT l.id, e.name, d.name AS department, l.start_date, l.end_date, l.reason, l.status
+      `SELECT 
+         l.id, 
+         e.name, 
+         d.name AS department, 
+         l.start_date, 
+         l.end_date, 
+         l.reason, 
+         l.status
        FROM leaves l
        JOIN employees e ON l.employee_id = e.id
        LEFT JOIN departments d ON e.department_id = d.id
@@ -238,14 +297,17 @@ export const getTeamLeaves = async (req, res) => {
 
     const total = countResult[0].total;
 
+    console.log("TEAM LEAVES:", leaves); // ✅ debug
+
     res.json({
       data: leaves,
       currentPage: page,
       totalPages: Math.ceil(total / limit),
       total
     });
+
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching team leaves:", err);
     res.status(500).json({ message: "Database error" });
   }
 };

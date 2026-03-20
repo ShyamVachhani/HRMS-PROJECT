@@ -309,9 +309,17 @@ export default function DeveloperDashboard() {
       const taskTrendMap = {};
 
       myTasks.forEach(task => {
-        if (task.status !== "completed") return;
+        const status = task.status?.toLowerCase().trim();
 
-        const date = new Date(task.updated_at || task.completed_at);
+        // ✅ FIX 1: normalize status
+        if (status !== "completed") return;
+
+        // ✅ FIX 2: correct date fallback
+        const date = new Date(task.updated_at || task.created_at);
+
+        if (isNaN(date)) return; // skip invalid
+
+        // ✅ FIX 3: week grouping
         const week = `Week ${Math.ceil(date.getDate() / 7)}`;
 
         taskTrendMap[week] = (taskTrendMap[week] || 0) + 1;
@@ -321,6 +329,8 @@ export default function DeveloperDashboard() {
         week: key,
         value: taskTrendMap[key]
       }));
+
+      console.log("TASK TREND:", taskTrendData);
 
       // // =========================
       // // 📊 4. Bug Fix Trend
@@ -430,7 +440,11 @@ export default function DeveloperDashboard() {
               Tasks Completed Over Time
             </Typography>
 
-            <LineChartBox data={chartData.taskTrendData} />
+            {chartData.taskTrendData.length < 2 ? (
+              <Typography textAlign="center">Not enough data</Typography>
+            ) : (
+              <LineChartBox data={chartData.taskTrendData} />
+            )}
           </CardContent>
         </Card>
       </Grid>

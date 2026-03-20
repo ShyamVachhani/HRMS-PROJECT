@@ -311,13 +311,17 @@ export default function AdminDashboard() {
 
       attendance.forEach(att => {
         const date = new Date(att.date);
+
+        if (isNaN(date)) return;
+
         const month = date.toLocaleString("default", { month: "short" });
 
         if (!attendanceMap[month]) {
           attendanceMap[month] = { present: 0, total: 0 };
         }
 
-        if (att.status === "Present") {
+        // ✅ FIX: use time_in instead of status
+        if (att.time_in) {
           attendanceMap[month].present++;
         }
 
@@ -326,11 +330,17 @@ export default function AdminDashboard() {
 
       const attendanceData = Object.keys(attendanceMap).map(month => ({
         month,
-        value: Math.round(
-          (attendanceMap[month].present / attendanceMap[month].total) * 100
-        )
+        value:
+          attendanceMap[month].total > 0
+            ? Math.round(
+                (attendanceMap[month].present /
+                  attendanceMap[month].total) *
+                  100
+              )
+            : 0
       }));
 
+      console.log("FINAL ATTENDANCE DATA:", attendanceData);
       // =========================
       // ✅ SET DATA
       // =========================

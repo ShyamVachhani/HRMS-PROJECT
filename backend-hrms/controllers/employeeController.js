@@ -112,45 +112,74 @@ export const deleteEmployee = async (req, res) => {
 };
 
 /* GET TEAM EMPLOYEES (Manager) */
+// export const getTeamEmployees = async (req, res) => {
+//   const managerId = req.user.employee_id;
+//   const page = parseInt(req.query.page) || 1;
+//   const limit = parseInt(req.query.limit) || 10;
+//   const search = req.query.search || "";
+//   const offset = (page - 1) * limit;
+
+//   let where = "WHERE e.department_id = (SELECT department_id FROM employees WHERE id = :managerId)";
+//   let replacements = { managerId, limit, offset };
+
+//   if (search) {
+//     where += " AND e.name LIKE :search";
+//     replacements.search = `%${search}%`;
+//   }
+
+//   try {
+//     const employees = await sequelize.query(
+//       `SELECT e.id, e.name, e.email, e.phone, e.position, e.department_id, e.basic_salary, d.name AS department_name, e.join_date, e.created_at
+//        FROM employees e 
+//        LEFT JOIN departments d ON e.department_id = d.id 
+//        ${where} 
+//        ORDER BY e.id DESC 
+//        LIMIT :limit OFFSET :offset`,
+//       { replacements, type: QueryTypes.SELECT }
+//     );
+
+//     const countResult = await sequelize.query(
+//       `SELECT COUNT(*) AS total FROM employees e ${where}`,
+//       { replacements, type: QueryTypes.SELECT }
+//     );
+
+//     res.json({
+//       employees,
+//       pagination: {
+//         currentPage: page,
+//         totalPages: Math.ceil(countResult[0].total / limit),
+//         totalEmployees: countResult[0].total
+//       }
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: "Database error" });
+//   }
+// };
+
 export const getTeamEmployees = async (req, res) => {
   const managerId = req.user.employee_id;
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-  const search = req.query.search || "";
-  const offset = (page - 1) * limit;
-
-  let where = "WHERE e.department_id = (SELECT department_id FROM employees WHERE id = :managerId)";
-  let replacements = { managerId, limit, offset };
-
-  if (search) {
-    where += " AND e.name LIKE :search";
-    replacements.search = `%${search}%`;
-  }
 
   try {
     const employees = await sequelize.query(
-      `SELECT e.id, e.name, e.email, e.phone, e.position, e.department_id, e.basic_salary, d.name AS department_name, e.join_date, e.created_at
+      `SELECT e.id, e.name, e.email, e.phone, e.position, 
+              e.department_id, e.basic_salary, 
+              d.name AS department_name, 
+              e.join_date, e.created_at
        FROM employees e 
        LEFT JOIN departments d ON e.department_id = d.id 
-       ${where} 
-       ORDER BY e.id DESC 
-       LIMIT :limit OFFSET :offset`,
-      { replacements, type: QueryTypes.SELECT }
-    );
-
-    const countResult = await sequelize.query(
-      `SELECT COUNT(*) AS total FROM employees e ${where}`,
-      { replacements, type: QueryTypes.SELECT }
-    );
-
-    res.json({
-      employees,
-      pagination: {
-        currentPage: page,
-        totalPages: Math.ceil(countResult[0].total / limit),
-        totalEmployees: countResult[0].total
+       WHERE e.manager_id = :managerId
+       ORDER BY e.id DESC`,
+      {
+        replacements: { managerId },
+        type: QueryTypes.SELECT
       }
-    });
+    );
+
+    console.log("TEAM RESULT:", employees);
+
+    res.json(employees);
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Database error" });
