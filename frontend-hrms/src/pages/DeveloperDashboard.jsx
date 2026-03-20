@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTheme } from "@mui/material";
 import { Box, Grid, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, LinearProgress, Divider, CircularProgress } from "@mui/material";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -366,8 +367,11 @@ export default function DeveloperDashboard() {
     { title: "Hours (Week)", value: stats.totalHours, icon: <TimerIcon />, color: "#3B82F6", bg: "#EBF5FF" }
   ];
 
+    const theme = useTheme();
+    const isDark = theme.palette.mode === "dark";
+
   return (
-    <Box sx={{ p: 3, background: "#F8FAFC", minHeight: "100vh" }}>
+    <Box sx={{ p: 3,   backgroundColor: isDark ? "#1E293B" : "#f8fafc", minHeight: "100vh" }}>
       {/* Header */}
       <Box sx={{ mb: 4, p: 4, borderRadius: 4, background: "linear-gradient(135deg, #DC2626 0%, #EF4444 100%)", color: "white" }}>
         <Grid container alignItems="center" spacing={2}>
@@ -473,7 +477,7 @@ export default function DeveloperDashboard() {
                 </Typography>
               ) : (
                 myTasks.slice(0, 5).map((task, i) => (
-                  <Box key={task.id || i} sx={{ p: 2, mb: 2, borderRadius: 2, background: "#F8FAFC", border: "1px solid #E5E7EB" }}>
+                  <Box key={task.id || i} sx={{ p: 2, mb: 2, borderRadius: 2,    backgroundColor: isDark ? "#1E293B" : "#f8fafc", border: "1px solid #E5E7EB" }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                         <Typography fontWeight="600">{task.title}</Typography>
@@ -516,7 +520,7 @@ export default function DeveloperDashboard() {
                 </Typography>
               ) : (
                 upcomingDeadlines.map((item, i) => (
-                  <Box key={item.id || i} sx={{ p: 2, mb: 2, borderRadius: 2, background: "#F8FAFC", borderLeft: `4px solid ${getDaysLeftColor(item.daysLeft)}` }}>
+                  <Box key={item.id || i} sx={{ p: 2, mb: 2, borderRadius: 2,    backgroundColor: isDark ? "#1E293B" : "#f8fafc", borderLeft: `4px solid ${getDaysLeftColor(item.daysLeft)}` }}>
                     <Typography fontWeight="600">{item.title}</Typography>
                     <Typography variant="caption" color="textSecondary">
                       Due: {item.due_date?.split("T")[0]}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTheme } from "@mui/material";
 import {
   Container,
   Typography,
@@ -178,6 +179,9 @@ const DepartmentPage = () => {
     dept.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+
   return (
     <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
       {/* Page Header */}
@@ -248,7 +252,7 @@ const DepartmentPage = () => {
 
         <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: "#f8fafc" }}>
+            <TableRow sx={{ backgroundColor: isDark ? "#1E293B" : "#f8fafc" }}>
               <TableCell sx={{ fontWeight: "bold" }}>ID</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Description</TableCell>

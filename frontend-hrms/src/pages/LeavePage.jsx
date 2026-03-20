@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTheme } from "@mui/material";
 import {
   Container,
   Typography,
@@ -209,7 +210,8 @@ function LeavePage() {
     if (isManager) return "Manage team leave requests";
     return "Apply and track your leave requests";
   };
-
+const theme = useTheme();
+const isDark = theme.palette.mode === "dark";
   return (
     <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
       {/* Page Header */}
@@ -308,7 +310,7 @@ function LeavePage() {
 
         <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: "#f8fafc" }}>
+           <TableRow sx={{ backgroundColor: isDark ? "#1E293B" : "#f8fafc" }}>
               <TableCell sx={{ fontWeight: "bold" }}>ID</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Employee</TableCell>
               {(canViewAll || isManager) && <TableCell sx={{ fontWeight: "bold" }}>Department</TableCell>}

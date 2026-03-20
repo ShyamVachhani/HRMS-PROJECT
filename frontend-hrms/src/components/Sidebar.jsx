@@ -1,4 +1,253 @@
 
+// import React, { useState, useEffect } from "react";
+// import {
+//   Drawer,
+//   List,
+//   ListItemButton,
+//   ListItemText,
+//   IconButton,
+//   Box,
+//   Button,
+//   useMediaQuery,
+//   useTheme,
+//   Divider,
+//   Typography
+// } from "@mui/material";
+// import MenuIcon from "@mui/icons-material/Menu";
+// import LogoutIcon from "@mui/icons-material/Logout";
+// import DashboardIcon from "@mui/icons-material/Dashboard";
+// import PeopleIcon from "@mui/icons-material/People";
+// import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+// import BeachAccessIcon from "@mui/icons-material/BeachAccess";
+// import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
+// import AssignmentIcon from "@mui/icons-material/Assignment";
+// import PolicyIcon from "@mui/icons-material/Policy";
+// import HomeWorkIcon from "@mui/icons-material/HomeWork";
+// import EventIcon from "@mui/icons-material/Event";
+// import BusinessIcon from "@mui/icons-material/Business";
+// import AssessmentIcon from "@mui/icons-material/Assessment";
+// import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+// import CampaignIcon from "@mui/icons-material/Campaign";
+// import { useNavigate, useLocation } from "react-router-dom";
+
+// // Role-based menu items - redirects to role-specific dashboard
+// const roleMenuItems = {
+//   admin: [
+//     { text: "Dashboard", path: "/admin", icon: <DashboardIcon /> },
+//     { text: "Employees", path: "/employees", icon: <PeopleIcon /> },
+//     { text: "Attendance", path: "/attendance", icon: <CheckCircleIcon /> },
+//     { text: "Leave", path: "/leave", icon: <BeachAccessIcon /> },
+//     { text: "Salary", path: "/salary", icon: <CurrencyRupeeIcon /> },
+//     { text: "Tasks", path: "/tasks", icon: <AssignmentIcon /> },
+//     { text: "Policies", path: "/policies", icon: <PolicyIcon /> },
+//     { text: "WFH", path: "/wfh", icon: <HomeWorkIcon /> },
+//     { text: "Holidays", path: "/holidays", icon: <EventIcon /> },
+//     { text: "Department", path: "/departments", icon: <BusinessIcon /> },
+//     { text: "Announcements", path: "/announcements", icon: <CampaignIcon /> },
+//     { text: "Reports", path: "/reports", icon: <AssessmentIcon /> },
+//     { text: "Users", path: "/users", icon: <AdminPanelSettingsIcon /> }
+//   ],
+//   manager: [
+//     { text: "Dashboard", path: "/manager", icon: <DashboardIcon /> },
+//     { text: "Attendance", path: "/attendance", icon: <CheckCircleIcon /> },
+//     { text: "Leave", path: "/leave", icon: <BeachAccessIcon /> },
+//     { text: "Tasks", path: "/tasks", icon: <AssignmentIcon /> },
+//     { text: "WFH", path: "/wfh", icon: <HomeWorkIcon /> },
+//     { text: "Announcements", path: "/announcements", icon: <CampaignIcon /> },
+//     { text: "Reports", path: "/reports", icon: <AssessmentIcon /> }
+//   ],
+//   hr: [
+//     { text: "Dashboard", path: "/hr", icon: <DashboardIcon /> },
+//     { text: "Employees", path: "/employees", icon: <PeopleIcon /> },
+//     { text: "Attendance", path: "/attendance", icon: <CheckCircleIcon /> },
+//     { text: "Leave", path: "/leave", icon: <BeachAccessIcon /> },
+//     { text: "Salary", path: "/salary", icon: <CurrencyRupeeIcon /> },
+//     { text: "Policies", path: "/policies", icon: <PolicyIcon /> },
+//     { text: "WFH", path: "/wfh", icon: <HomeWorkIcon /> },
+//     { text: "Department", path: "/departments", icon: <BusinessIcon /> },
+//     { text: "Holidays", path: "/holidays", icon: <EventIcon /> },
+//     { text: "Announcements", path: "/announcements", icon: <CampaignIcon /> }
+//   ],
+//   developer: [
+//     { text: "Dashboard", path: "/developer", icon: <DashboardIcon /> },
+//     { text: "Attendance", path: "/attendance", icon: <CheckCircleIcon /> },
+//     { text: "Leave", path: "/leave", icon: <BeachAccessIcon /> },
+//     { text: "Tasks", path: "/tasks", icon: <AssignmentIcon /> },
+//     { text: "WFH", path: "/wfh", icon: <HomeWorkIcon /> },
+//     { text: "Announcements", path: "/announcements", icon: <CampaignIcon /> }
+//   ],
+//   intern: [
+//     { text: "Dashboard", path: "/intern", icon: <DashboardIcon /> },
+//     { text: "Attendance", path: "/attendance", icon: <CheckCircleIcon /> },
+//     { text: "Tasks", path: "/tasks", icon: <AssignmentIcon /> },
+//     { text: "Announcements", path: "/announcements", icon: <CampaignIcon /> }
+//   ]
+// };
+
+// // Get role colors
+// const getRoleColor = (role) => {
+//   const colors = {
+//     admin: { bg: "#EEF2FF", text: "#1E3A8A", border: "#3B82F6" },
+//     manager: { bg: "#F5F3FF", text: "#7C3AED", border: "#8B5CF6" },
+//     hr: { bg: "#ECFDF5", text: "#059669", border: "#10B981" },
+//     developer: { bg: "#FEF2F2", text: "#DC2626", border: "#EF4444" },
+//     intern: { bg: "#FFFBEB", text: "#D97706", border: "#F59E0B" }
+//   };
+//   return colors[role] || colors.developer;
+// };
+
+// export default function Sidebar({ mobileOpen, onDrawerToggle }) {
+//   const navigate = useNavigate();
+//   const location = useLocation();
+//   const theme = useTheme();
+//   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+//   const [user, setUser] = useState(null);
+
+//   useEffect(() => {
+//     const userData = localStorage.getItem("user");
+//     if (userData) {
+//       setUser(JSON.parse(userData));
+//     }
+//   }, []);
+
+//   const handleNavigation = (path) => {
+//     navigate(path);
+//     if (isMobile && onDrawerToggle) {
+//       onDrawerToggle();
+//     }
+//   };
+
+//   const handleLogout = () => {
+//     localStorage.removeItem("token");
+//     localStorage.removeItem("user");
+//     navigate("/login");
+//   };
+
+//   const role = user?.role || "developer";
+//   const menuItems = roleMenuItems[role] || roleMenuItems.developer;
+//   const roleColors = getRoleColor(role);
+
+//   const drawer = (
+//     <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+//       {/* Header */}
+//       <Box sx={{ p: 2, display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `3px solid ${roleColors.border}` }}>
+//         <Box>
+//           <Typography variant="h6" fontWeight="bold" sx={{ color: roleColors.text }}>
+//             HRMS
+//           </Typography>
+//           <Typography variant="caption" sx={{ color: roleColors.text, textTransform: "capitalize" }}>
+//             {role} Panel
+//           </Typography>
+//         </Box>
+//         {isMobile && onDrawerToggle && (
+//           <IconButton onClick={onDrawerToggle}>
+//             <MenuIcon />
+//           </IconButton>
+//         )}
+//       </Box>
+
+//       {/* Menu Items */}
+//       <List sx={{ flexGrow: 1, py: 2 }}>
+//         {menuItems.map((item) => (
+//           <ListItemButton
+//             key={item.text}
+//             onClick={() => handleNavigation(item.path)}
+//             selected={location.pathname === item.path}
+//             sx={{
+//               "&.Mui-selected": {
+//                 background: roleColors.bg,
+//                 borderLeft: `4px solid ${roleColors.border}`,
+//                 color: roleColors.text,
+//                 fontWeight: "bold",
+//                 "&:hover": {
+//                   background: roleColors.bg,
+//                 }
+//               },
+//               "&:hover": {
+//                 background: roleColors.bg,
+//               },
+//               mx: 1,
+//               borderRadius: 1,
+//               mb: 0.5,
+//               color: "#4B5563"
+//             }}
+//           >
+//             <Box sx={{ mr: 2, display: "flex", alignItems: "center", color: location.pathname === item.path ? roleColors.text : "#6B7280" }}>
+//               {item.icon}
+//             </Box>
+//             <ListItemText primary={item.text} />
+//           </ListItemButton>
+//         ))}
+//       </List>
+
+//       <Divider />
+
+//       {/* User Info */}
+//       {user && (
+//         <Box sx={{ p: 2, background: roleColors.bg }}>
+//           <Typography variant="body2" fontWeight="bold" sx={{ color: roleColors.text }}>
+//             {user.name || user.username}
+//           </Typography>
+//           <Typography variant="caption" sx={{ color: roleColors.text, textTransform: "capitalize" }}>
+//             {role}
+//           </Typography>
+//         </Box>
+//       )}
+
+//       {/* Logout */}
+//       <Box sx={{ p: 2 }}>
+//         <Button
+//           fullWidth
+//           variant="contained"
+//           color="error"
+//           startIcon={<LogoutIcon />}
+//           onClick={handleLogout}
+//           sx={{ fontWeight: "bold" }}
+//         >
+//           Logout
+//         </Button>
+//       </Box>
+//     </Box>
+//   );
+
+//   return (
+//     <>
+//       {/* Mobile drawer */}
+//       <Drawer
+//         variant="temporary"
+//         open={mobileOpen}
+//         onClose={onDrawerToggle}
+//         ModalProps={{ keepMounted: true }}
+//         sx={{
+//           display: { xs: "block", md: "none" },
+//           "& .MuiDrawer-paper": {
+//             width: 280,
+//             background: "#FFFFFF"
+//           }
+//         }}
+//       >
+//         {drawer}
+//       </Drawer>
+
+//       {/* Desktop drawer */}
+//       <Drawer
+//         variant="permanent"
+//         sx={{
+//           display: { xs: "none", md: "block" },
+//           width: 280,
+//           "& .MuiDrawer-paper": {
+//             width: 280,
+//             background: "#FFFFFF",
+//             borderRight: "1px solid #E5E7EB"
+//           }
+//         }}
+//       >
+//         {drawer}
+//       </Drawer>
+//     </>
+//   );
+// }
+
 import React, { useState, useEffect } from "react";
 import {
   Drawer,
@@ -30,7 +279,7 @@ import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import CampaignIcon from "@mui/icons-material/Campaign";
 import { useNavigate, useLocation } from "react-router-dom";
 
-// Role-based menu items - redirects to role-specific dashboard
+// Role-based menu items
 const roleMenuItems = {
   admin: [
     { text: "Dashboard", path: "/admin", icon: <DashboardIcon /> },
@@ -46,54 +295,14 @@ const roleMenuItems = {
     { text: "Announcements", path: "/announcements", icon: <CampaignIcon /> },
     { text: "Reports", path: "/reports", icon: <AssessmentIcon /> },
     { text: "Users", path: "/users", icon: <AdminPanelSettingsIcon /> }
-  ],
-  manager: [
-    { text: "Dashboard", path: "/manager", icon: <DashboardIcon /> },
-    { text: "Attendance", path: "/attendance", icon: <CheckCircleIcon /> },
-    { text: "Leave", path: "/leave", icon: <BeachAccessIcon /> },
-    { text: "Tasks", path: "/tasks", icon: <AssignmentIcon /> },
-    { text: "WFH", path: "/wfh", icon: <HomeWorkIcon /> },
-    { text: "Announcements", path: "/announcements", icon: <CampaignIcon /> },
-    { text: "Reports", path: "/reports", icon: <AssessmentIcon /> }
-  ],
-  hr: [
-    { text: "Dashboard", path: "/hr", icon: <DashboardIcon /> },
-    { text: "Employees", path: "/employees", icon: <PeopleIcon /> },
-    { text: "Attendance", path: "/attendance", icon: <CheckCircleIcon /> },
-    { text: "Leave", path: "/leave", icon: <BeachAccessIcon /> },
-    { text: "Salary", path: "/salary", icon: <CurrencyRupeeIcon /> },
-    { text: "Policies", path: "/policies", icon: <PolicyIcon /> },
-    { text: "WFH", path: "/wfh", icon: <HomeWorkIcon /> },
-    { text: "Department", path: "/departments", icon: <BusinessIcon /> },
-    { text: "Holidays", path: "/holidays", icon: <EventIcon /> },
-    { text: "Announcements", path: "/announcements", icon: <CampaignIcon /> }
-  ],
-  developer: [
-    { text: "Dashboard", path: "/developer", icon: <DashboardIcon /> },
-    { text: "Attendance", path: "/attendance", icon: <CheckCircleIcon /> },
-    { text: "Leave", path: "/leave", icon: <BeachAccessIcon /> },
-    { text: "Tasks", path: "/tasks", icon: <AssignmentIcon /> },
-    { text: "WFH", path: "/wfh", icon: <HomeWorkIcon /> },
-    { text: "Announcements", path: "/announcements", icon: <CampaignIcon /> }
-  ],
-  intern: [
-    { text: "Dashboard", path: "/intern", icon: <DashboardIcon /> },
-    { text: "Attendance", path: "/attendance", icon: <CheckCircleIcon /> },
-    { text: "Tasks", path: "/tasks", icon: <AssignmentIcon /> },
-    { text: "Announcements", path: "/announcements", icon: <CampaignIcon /> }
   ]
 };
 
-// Get role colors
 const getRoleColor = (role) => {
   const colors = {
-    admin: { bg: "#EEF2FF", text: "#1E3A8A", border: "#3B82F6" },
-    manager: { bg: "#F5F3FF", text: "#7C3AED", border: "#8B5CF6" },
-    hr: { bg: "#ECFDF5", text: "#059669", border: "#10B981" },
-    developer: { bg: "#FEF2F2", text: "#DC2626", border: "#EF4444" },
-    intern: { bg: "#FFFBEB", text: "#D97706", border: "#F59E0B" }
+    admin: { bg: "#EEF2FF", text: "#1E3A8A", border: "#3B82F6" }
   };
-  return colors[role] || colors.developer;
+  return colors[role] || colors.admin;
 };
 
 export default function Sidebar({ mobileOpen, onDrawerToggle }) {
@@ -123,96 +332,19 @@ export default function Sidebar({ mobileOpen, onDrawerToggle }) {
     navigate("/login");
   };
 
-  const role = user?.role || "developer";
-  const menuItems = roleMenuItems[role] || roleMenuItems.developer;
+  const role = user?.role || "admin";
+  const menuItems = roleMenuItems[role] || roleMenuItems.admin;
   const roleColors = getRoleColor(role);
 
-  const drawer = (
-    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      {/* Header */}
-      <Box sx={{ p: 2, display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `3px solid ${roleColors.border}` }}>
-        <Box>
-          <Typography variant="h6" fontWeight="bold" sx={{ color: roleColors.text }}>
-            HRMS
-          </Typography>
-          <Typography variant="caption" sx={{ color: roleColors.text, textTransform: "capitalize" }}>
-            {role} Panel
-          </Typography>
-        </Box>
-        {isMobile && onDrawerToggle && (
-          <IconButton onClick={onDrawerToggle}>
-            <MenuIcon />
-          </IconButton>
-        )}
-      </Box>
+  const drawerBg = theme.palette.background.paper;
+  const dividerColor = theme.palette.divider;
 
-      {/* Menu Items */}
-      <List sx={{ flexGrow: 1, py: 2 }}>
-        {menuItems.map((item) => (
-          <ListItemButton
-            key={item.text}
-            onClick={() => handleNavigation(item.path)}
-            selected={location.pathname === item.path}
-            sx={{
-              "&.Mui-selected": {
-                background: roleColors.bg,
-                borderLeft: `4px solid ${roleColors.border}`,
-                color: roleColors.text,
-                fontWeight: "bold",
-                "&:hover": {
-                  background: roleColors.bg,
-                }
-              },
-              "&:hover": {
-                background: roleColors.bg,
-              },
-              mx: 1,
-              borderRadius: 1,
-              mb: 0.5,
-              color: "#4B5563"
-            }}
-          >
-            <Box sx={{ mr: 2, display: "flex", alignItems: "center", color: location.pathname === item.path ? roleColors.text : "#6B7280" }}>
-              {item.icon}
-            </Box>
-            <ListItemText primary={item.text} />
-          </ListItemButton>
-        ))}
-      </List>
-
-      <Divider />
-
-      {/* User Info */}
-      {user && (
-        <Box sx={{ p: 2, background: roleColors.bg }}>
-          <Typography variant="body2" fontWeight="bold" sx={{ color: roleColors.text }}>
-            {user.name || user.username}
-          </Typography>
-          <Typography variant="caption" sx={{ color: roleColors.text, textTransform: "capitalize" }}>
-            {role}
-          </Typography>
-        </Box>
-      )}
-
-      {/* Logout */}
-      <Box sx={{ p: 2 }}>
-        <Button
-          fullWidth
-          variant="contained"
-          color="error"
-          startIcon={<LogoutIcon />}
-          onClick={handleLogout}
-          sx={{ fontWeight: "bold" }}
-        >
-          Logout
-        </Button>
-      </Box>
-    </Box>
-  );
+  // ✅ THEME BASED HEADER COLOR
+  const headerColor =
+    theme.palette.mode === "light" ? "#1E3A8A" : "#60A5FA";
 
   return (
     <>
-      {/* Mobile drawer */}
       <Drawer
         variant="temporary"
         open={mobileOpen}
@@ -222,14 +354,73 @@ export default function Sidebar({ mobileOpen, onDrawerToggle }) {
           display: { xs: "block", md: "none" },
           "& .MuiDrawer-paper": {
             width: 280,
-            background: "#FFFFFF"
+            backgroundColor: drawerBg
           }
         }}
       >
-        {drawer}
+        <Box sx={{ height: "100%", display: "flex", flexDirection: "column", backgroundColor: drawerBg }}>
+
+          {/* HEADER */}
+          <Box sx={{ p: 2, borderBottom: `3px solid ${roleColors.border}` }}>
+            <Typography variant="h6" fontWeight="bold" sx={{ color: headerColor }}>
+              HRMS
+            </Typography>
+            <Typography variant="caption" sx={{ color: headerColor, textTransform: "capitalize" }}>
+              {role} Panel
+            </Typography>
+          </Box>
+
+          {/* MENU */}
+          <List sx={{ flexGrow: 1, py: 2 }}>
+            {menuItems.map((item) => (
+              <ListItemButton
+                key={item.text}
+                onClick={() => handleNavigation(item.path)}
+                selected={location.pathname === item.path}
+                sx={{
+                  mx: 1,
+                  borderRadius: 1,
+                  mb: 0.5
+                }}
+              >
+                <Box sx={{ mr: 2, display: "flex", alignItems: "center" }}>
+                  {item.icon}
+                </Box>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
+            ))}
+          </List>
+
+          <Divider sx={{ borderColor: dividerColor }} />
+
+          {/* USER */}
+          {user && (
+            <Box sx={{ p: 2 }}>
+              <Typography variant="body2" fontWeight="bold">
+                {user.name || user.username}
+              </Typography>
+              <Typography variant="caption">
+                {role}
+              </Typography>
+            </Box>
+          )}
+
+          {/* LOGOUT */}
+          <Box sx={{ p: 2 }}>
+            <Button
+              fullWidth
+              variant="contained"
+              color="error"
+              startIcon={<LogoutIcon />}
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
+          </Box>
+
+        </Box>
       </Drawer>
 
-      {/* Desktop drawer */}
       <Drawer
         variant="permanent"
         sx={{
@@ -237,15 +428,73 @@ export default function Sidebar({ mobileOpen, onDrawerToggle }) {
           width: 280,
           "& .MuiDrawer-paper": {
             width: 280,
-            background: "#FFFFFF",
-            borderRight: "1px solid #E5E7EB"
+            backgroundColor: drawerBg,
+            borderRight: `1px solid ${dividerColor}`
           }
         }}
       >
-        {drawer}
+        <Box sx={{ height: "100%", display: "flex", flexDirection: "column", backgroundColor: drawerBg }}>
+
+          {/* HEADER */}
+          <Box sx={{ p: 2, borderBottom: `3px solid ${roleColors.border}` }}>
+            <Typography variant="h6" fontWeight="bold" sx={{ color: headerColor }}>
+              HRMS
+            </Typography>
+            <Typography variant="caption" sx={{ color: headerColor, textTransform: "capitalize" }}>
+              {role} Panel
+            </Typography>
+          </Box>
+
+          {/* MENU */}
+          <List sx={{ flexGrow: 1, py: 2 }}>
+            {menuItems.map((item) => (
+              <ListItemButton
+                key={item.text}
+                onClick={() => handleNavigation(item.path)}
+                selected={location.pathname === item.path}
+                sx={{
+                  mx: 1,
+                  borderRadius: 1,
+                  mb: 0.5
+                }}
+              >
+                <Box sx={{ mr: 2, display: "flex", alignItems: "center" }}>
+                  {item.icon}
+                </Box>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
+            ))}
+          </List>
+
+          <Divider sx={{ borderColor: dividerColor }} />
+
+          {/* USER */}
+          {user && (
+            <Box sx={{ p: 2 }}>
+              <Typography variant="body2" fontWeight="bold">
+                {user.name || user.username}
+              </Typography>
+              <Typography variant="caption">
+                {role}
+              </Typography>
+            </Box>
+          )}
+
+          {/* LOGOUT */}
+          <Box sx={{ p: 2 }}>
+            <Button
+              fullWidth
+              variant="contained"
+              color="error"
+              startIcon={<LogoutIcon />}
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
+          </Box>
+
+        </Box>
       </Drawer>
     </>
   );
 }
-
-

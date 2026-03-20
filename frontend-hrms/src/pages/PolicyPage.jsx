@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTheme } from "@mui/material";
 import {
   Container,
   Typography,
@@ -177,6 +178,9 @@ const PolicyPage = () => {
     }
   ];
 
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+
   return (
     <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
       {/* Page Header */}
@@ -258,7 +262,7 @@ const PolicyPage = () => {
 
         <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: "#f8fafc" }}>
+            <TableRow sx={{ backgroundColor: isDark ? "#1E293B" : "#f8fafc" }}>
               <TableCell sx={{ fontWeight: "bold" }}>Title</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Description</TableCell>
               {canManage && <TableCell sx={{ fontWeight: "bold" }} align="center">Actions</TableCell>}
