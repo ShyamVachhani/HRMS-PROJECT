@@ -249,7 +249,8 @@ import {
   Alert,
   Card,
   CardContent,
-  Divider
+  Divider,
+  useTheme
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material";
@@ -271,7 +272,36 @@ const getDashboardRoute = (role) => {
   return routes[role] || "/";
 };
 
+<<<<<<< HEAD
 const LoginPage = ({ toggleColorMode }) => {
+=======
+// // Get icon based on role
+// const getRoleIcon = (role) => {
+//   const icons = {
+//     admin: <AdminPanelSettingsIcon sx={{ fontSize: 40, color: "#1E3A8A" }} />,
+//     manager: <SupervisedUserCircleIcon sx={{ fontSize: 40, color: "#7C3AED" }} />,
+//     hr: <WorkIcon sx={{ fontSize: 40, color: "#059669" }} />,
+//     developer: <CodeIcon sx={{ fontSize: 40, color: "#DC2626" }} />,
+//     intern: <SchoolIcon sx={{ fontSize: 40, color: "#D97706" }} />
+//   };
+//   return icons[role] || icons.developer;
+// };
+
+// // Get color based on role
+// const getRoleColor = (role) => {
+//   const colors = {
+//     admin: "#1E3A8A",
+//     manager: "#7C3AED",
+//     hr: "#059669",
+//     developer: "#DC2626",
+//     intern: "#D97706"
+//   };
+//   return colors[role] || colors.developer;
+// };
+
+const LoginPage = () => {
+  const theme = useTheme();
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
   const navigate = useNavigate();
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
@@ -332,9 +362,14 @@ const LoginPage = ({ toggleColorMode }) => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
+<<<<<<< HEAD
         backgroundColor: theme.palette.background.default,
         p: 2,
         position: "relative"
+=======
+        backgroundColor: "background.default",
+        p: 2
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
       }}
     >
 
@@ -353,7 +388,11 @@ const LoginPage = ({ toggleColorMode }) => {
 
       <Box
         sx={{
+<<<<<<< HEAD
           backgroundColor: theme.palette.background.paper,
+=======
+          backgroundColor: "background.paper",
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
           p: 4,
           borderRadius: 4,
           boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
@@ -362,7 +401,11 @@ const LoginPage = ({ toggleColorMode }) => {
           maxWidth: "450px",
         }}
       >
+<<<<<<< HEAD
         <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
+=======
+        <Typography variant="h4" sx={{ color: "primary.main", fontWeight: "bold", mb: 1 }}>
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
           Welcome Back 👋
         </Typography>
 
@@ -413,8 +456,13 @@ const LoginPage = ({ toggleColorMode }) => {
           sx={{
             mt: 2,
             mb: 2,
+<<<<<<< HEAD
             backgroundColor: isDark ? "#3B82F6" : "#1E3A8A",
             "&:hover": { backgroundColor: isDark ? "#60A5FA" : "#3B82F6" },
+=======
+            backgroundColor: "primary.main",
+            "&:hover": { backgroundColor: "primary.dark" },
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
             py: 1.5,
             fontWeight: "bold"
           }}
@@ -428,9 +476,9 @@ const LoginPage = ({ toggleColorMode }) => {
           sx={{
             mb: 2,
             cursor: "pointer",
-            color: "#1E3A8A",
+            color: "primary.main",
             textDecoration: "underline",
-            "&:hover": { color: "#3B82F6" },
+            "&:hover": { color: "primary.dark" },
           }}
           onClick={() => navigate("/forgot-password")}
         >
@@ -441,7 +489,7 @@ const LoginPage = ({ toggleColorMode }) => {
           Don't have an account?
           <Button
             onClick={() => navigate("/signup")}
-            sx={{ color: "#3B82F6", fontWeight: "bold" }}
+            sx={{ color: "primary.main", fontWeight: "bold" }}
           >
             Create a New Account
           </Button>

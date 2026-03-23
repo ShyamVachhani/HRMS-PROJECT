@@ -171,6 +171,7 @@ import {
   Box,
   Chip,
   Stack,
+  useTheme
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -179,6 +180,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import api from "../services/api";
 
 const AllAttendancePage = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
 
   const theme = useTheme();
@@ -243,7 +245,7 @@ const AllAttendancePage = () => {
 
   return (
     <Container sx={{ mt: 3 }}>
-      <Paper sx={{ p: 3, mb: 3 }}>
+      <Paper sx={{ p: 3, mb: 3, bgcolor: "background.paper" }}>
         <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
           <Button
             variant="outlined"
@@ -259,11 +261,15 @@ const AllAttendancePage = () => {
 
         <Table size="small">
           <TableHead>
+<<<<<<< HEAD
             <TableRow
               sx={{
                 bgcolor: isDark ? "#1E293B" : "#f5f5f5"
               }}
             >
+=======
+            <TableRow sx={{ bgcolor: "action.hover" }}>
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
               <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
               <TableCell sx={{ fontWeight: 600 }}>Employee</TableCell>
               <TableCell sx={{ fontWeight: 600 }}>Time In</TableCell>

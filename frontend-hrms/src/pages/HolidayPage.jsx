@@ -24,7 +24,8 @@ import {
   CircularProgress,
   Tooltip,
   Chip,
-  InputAdornment
+  InputAdornment,
+  useTheme
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -35,6 +36,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import api from "../services/api";
 
 const HolidayPage = () => {
+  const theme = useTheme();
   const [holidays, setHolidays] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -209,8 +211,8 @@ const HolidayPage = () => {
         label={status}
         size="small"
         sx={{
-          bgcolor: isUpcomingStatus ? "#ECFDF5" : "#F1F5F9",
-          color: isUpcomingStatus ? "#059669" : "#64748B",
+          bgcolor: isUpcomingStatus ? "success.light" : "action.hover",
+          color: isUpcomingStatus ? "success.dark" : "text.secondary",
           fontWeight: "bold",
         }}
       />
@@ -223,7 +225,7 @@ const HolidayPage = () => {
   return (
     <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
       {/* Page Header */}
-      <Paper sx={{ p: 3, mb: 3, background: "linear-gradient(135deg, #EC4899 0%, #DB2777 100%)" }}>
+      <Paper sx={{ p: 3, mb: 3, background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)` }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <EventIcon sx={{ fontSize: 40, color: "white" }} />
@@ -242,7 +244,7 @@ const HolidayPage = () => {
                 variant="contained"
                 startIcon={<AddIcon />}
                 onClick={handleAddOpen}
-                sx={{ bgcolor: "white", color: "#DB2777", "&:hover": { bgcolor: "#f0f0f0" } }}
+                sx={{ bgcolor: "white", color: "secondary.main", "&:hover": { bgcolor: "action.hover" } }}
               >
                 Add Holiday
               </Button>
@@ -275,22 +277,26 @@ const HolidayPage = () => {
           />
           <Chip 
             label={`${filteredHolidays.length} holidays`} 
-            sx={{ bgcolor: "#FCE7F3", color: "#DB2777" }}
+            sx={{ bgcolor: "secondary.light", color: "secondary.dark" }}
           />
         </Stack>
       </Paper>
 
       {/* Data Table */}
-      <Paper sx={{ overflow: "hidden" }}>
+      <Paper sx={{ overflow: "hidden", bgcolor: "background.paper" }}>
         {loading && (
           <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
-            <CircularProgress sx={{ color: "#EC4899" }} />
+            <CircularProgress sx={{ color: "secondary.main" }} />
           </Box>
         )}
 
         <Table>
           <TableHead>
+<<<<<<< HEAD
             <TableRow sx={{ backgroundColor: isDark ? "#1E293B" : "#f8fafc" }}>
+=======
+            <TableRow sx={{ backgroundColor: "action.hover" }}>
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
               <TableCell sx={{ fontWeight: "bold" }}>Holiday</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Description</TableCell>
@@ -318,6 +324,7 @@ const HolidayPage = () => {
                         size="small" 
                         icon={<EventIcon fontSize="small" />}
                         variant="outlined"
+                        sx={{ color: "primary.main", borderColor: "primary.main" }}
                       />
                     </TableCell>
                     <TableCell>{h.description || "-"}</TableCell>
@@ -366,7 +373,7 @@ const HolidayPage = () => {
 
       {/* Add Holiday Dialog */}
       <Dialog open={addDialogOpen} onClose={handleAddClose} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ bgcolor: "#EC4899", color: "white" }}>
+        <DialogTitle sx={{ bgcolor: "secondary.main", color: "white" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <AddIcon />
             Add New Holiday
@@ -406,7 +413,7 @@ const HolidayPage = () => {
             variant="contained" 
             onClick={addHoliday}
             disabled={loading}
-            sx={{ bgcolor: "#EC4899", "&:hover": { bgcolor: "#DB2777" } }}
+            sx={{ bgcolor: "secondary.main", "&:hover": { bgcolor: "secondary.dark" } }}
             startIcon={loading ? <CircularProgress size={20} /> : <AddIcon />}
           >
             Add Holiday
@@ -416,7 +423,7 @@ const HolidayPage = () => {
 
       {/* Edit Holiday Dialog */}
       <Dialog open={editOpen} onClose={handleEditClose} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ bgcolor: "#3B82F6", color: "white" }}>
+        <DialogTitle sx={{ bgcolor: "primary.main", color: "white" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <EditIcon />
             Edit Holiday
@@ -464,7 +471,7 @@ const HolidayPage = () => {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={handleDeleteClose} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ bgcolor: "#DC2626", color: "white" }}>
+        <DialogTitle sx={{ bgcolor: "error.main", color: "white" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <DeleteIcon />
             Confirm Delete

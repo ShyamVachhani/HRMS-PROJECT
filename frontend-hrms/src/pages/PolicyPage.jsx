@@ -29,7 +29,8 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  TablePagination
+  TablePagination,
+  useTheme
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
@@ -44,6 +45,7 @@ import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import api from "../services/api";
 
 const PolicyPage = () => {
+  const theme = useTheme();
   const [policies, setPolicies] = useState([]);
   const [loading, setLoading] = useState(false);
   
@@ -147,34 +149,34 @@ const PolicyPage = () => {
 
   const companyGuidelines = [
     {
-      icon: <AccessTimeIcon sx={{ color: "#3B82F6" }} />,
+      icon: <AccessTimeIcon sx={{ color: "primary.main" }} />,
       title: "Working Hours",
       description: "Standard working hours are 9:00 AM to 6:00 PM, Monday through Friday.",
-      color: "#EFF6FF"
+      color: "action.hover"
     },
     {
-      icon: <EventAvailableIcon sx={{ color: "#10B981" }} />,
+      icon: <EventAvailableIcon sx={{ color: "success.main" }} />,
       title: "Attendance Policy",
       description: "Employees are required to mark their attendance daily. Late arrivals should be reported to your manager.",
-      color: "#ECFDF5"
+      color: "action.hover"
     },
     {
-      icon: <BeachAccessIcon sx={{ color: "#F59E0B" }} />,
+      icon: <BeachAccessIcon sx={{ color: "warning.main" }} />,
       title: "Leave Policy",
       description: "Employees can apply for leave through the Leave request system. Leave requests should be submitted in advance.",
-      color: "#FFFBEB"
+      color: "action.hover"
     },
     {
-      icon: <HomeWorkIcon sx={{ color: "#06B6D4" }} />,
+      icon: <HomeWorkIcon sx={{ color: "info.main" }} />,
       title: "Work From Home",
       description: "WFH requests must be approved by the manager. Employees should maintain productivity while working remotely.",
-      color: "#ECFEFF"
+      color: "action.hover"
     },
     {
-      icon: <AttachMoneyIcon sx={{ color: "#8B5CF6" }} />,
+      icon: <AttachMoneyIcon sx={{ color: "secondary.main" }} />,
       title: "Salary",
       description: "Salary is calculated based on working days, present days, and leave days. Salary reports can be viewed in the Salary section.",
-      color: "#F5F3FF"
+      color: "action.hover"
     }
   ];
 
@@ -184,7 +186,7 @@ const PolicyPage = () => {
   return (
     <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
       {/* Page Header */}
-      <Paper sx={{ p: 3, mb: 3, background: "linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)" }}>
+      <Paper sx={{ p: 3, mb: 3, background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)` }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <PolicyIcon sx={{ fontSize: 40, color: "white" }} />
@@ -203,7 +205,7 @@ const PolicyPage = () => {
                 variant="contained"
                 startIcon={<AddIcon />}
                 onClick={handleAddOpen}
-                sx={{ bgcolor: "white", color: "#4F46E5", "&:hover": { bgcolor: "#f0f0f0" } }}
+                sx={{ bgcolor: "white", color: "primary.main", "&:hover": { bgcolor: "action.hover" } }}
               >
                 Add Policy
               </Button>
@@ -224,7 +226,7 @@ const PolicyPage = () => {
       <Grid container spacing={2} sx={{ mb: 4 }}>
         {companyGuidelines.map((guideline, index) => (
           <Grid item xs={12} sm={6} md={4} key={index}>
-            <Card sx={{ height: "100%", bgcolor: guideline.color }}>
+            <Card sx={{ height: "100%", bgcolor: "action.hover", border: "1px solid", borderColor: "divider" }}>
               <CardContent>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
                   {guideline.icon}
@@ -253,16 +255,20 @@ const PolicyPage = () => {
         />
       </Box>
 
-      <Paper sx={{ overflow: "hidden" }}>
+      <Paper sx={{ overflow: "hidden", bgcolor: "background.paper" }}>
         {loading && (
           <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
-            <CircularProgress sx={{ color: "#6366F1" }} />
+            <CircularProgress sx={{ color: "primary.main" }} />
           </Box>
         )}
 
         <Table>
           <TableHead>
+<<<<<<< HEAD
             <TableRow sx={{ backgroundColor: isDark ? "#1E293B" : "#f8fafc" }}>
+=======
+            <TableRow sx={{ backgroundColor: "action.hover" }}>
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
               <TableCell sx={{ fontWeight: "bold" }}>Title</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Description</TableCell>
               {canManage && <TableCell sx={{ fontWeight: "bold" }} align="center">Actions</TableCell>}
@@ -317,7 +323,7 @@ const PolicyPage = () => {
 
       {/* Add Policy Dialog */}
       <Dialog open={addDialogOpen} onClose={handleAddClose} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ bgcolor: "#6366F1", color: "white" }}>
+        <DialogTitle sx={{ bgcolor: "primary.main", color: "white" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <AddIcon />
             Add New Policy
@@ -349,7 +355,7 @@ const PolicyPage = () => {
             variant="contained" 
             onClick={addPolicy}
             disabled={loading}
-            sx={{ bgcolor: "#6366F1", "&:hover": { bgcolor: "#4F46E5" } }}
+            sx={{ bgcolor: "primary.main", "&:hover": { bgcolor: "primary.dark" } }}
             startIcon={loading ? <CircularProgress size={20} /> : <AddIcon />}
           >
             Add Policy
@@ -359,7 +365,7 @@ const PolicyPage = () => {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={handleDeleteClose} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ bgcolor: "#DC2626", color: "white" }}>
+        <DialogTitle sx={{ bgcolor: "error.main", color: "white" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <DeleteIcon />
             Confirm Delete

@@ -242,8 +242,12 @@ const SignupPage = ({ toggleColorMode }) => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
+<<<<<<< HEAD
         backgroundColor: theme.palette.background.default,
         position: "relative"
+=======
+        backgroundColor: "background.default",
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
       }}
     >
 
@@ -262,7 +266,11 @@ const SignupPage = ({ toggleColorMode }) => {
 
       <Box
         sx={{
+<<<<<<< HEAD
           backgroundColor: theme.palette.background.paper,
+=======
+          backgroundColor: "background.paper",
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
           p: 4,
           borderRadius: 3,
           boxShadow: 5,
@@ -272,11 +280,19 @@ const SignupPage = ({ toggleColorMode }) => {
           mx: 2,
         }}
       >
+<<<<<<< HEAD
         <Typography variant="h5" sx={{ fontWeight: "bold", mb: 1 }}>
           Create Your Account
         </Typography>
 
         <Typography sx={{ color: "text.secondary", mb: 3 }}>
+=======
+        <Typography variant="h5" sx={{ color: "primary.main", fontWeight: "bold", mb: 1 }}>
+          Create Your Account 
+        </Typography>
+
+        <Typography sx={{ color: "primary.main", mb: 3, opacity: 0.8 }}>
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
           Sign up for HRMS Dashboard
         </Typography>
 
@@ -334,10 +350,15 @@ const SignupPage = ({ toggleColorMode }) => {
           fullWidth
           sx={{
             mt: 2,
+<<<<<<< HEAD
             backgroundColor: isDark ? "#3B82F6" : "#1E3A8A",
             "&:hover": {
               backgroundColor: isDark ? "#60A5FA" : "#3B82F6"
             },
+=======
+            backgroundColor: "primary.main",
+            "&:hover": { backgroundColor: "primary.dark" },
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
           }}
           onClick={handleSignup}
           disabled={loading}
@@ -349,7 +370,7 @@ const SignupPage = ({ toggleColorMode }) => {
           Already have an account?
           <Button
             onClick={() => navigate("/login")}
-            sx={{ color: "#3B82F6", fontWeight: "bold" }}
+            sx={{ color: "primary.main", fontWeight: "bold" }}
           >
             Login Here
           </Button>

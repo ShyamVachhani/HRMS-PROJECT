@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
+<<<<<<< HEAD
 import { useTheme } from "@mui/material";
 
 import { Box, Grid, Card, CardContent, Typography, Button, Chip, LinearProgress, CircularProgress } from "@mui/material";
+=======
+import { Box, Grid, Card, CardContent, Typography, Button, Chip, LinearProgress, CircularProgress, useTheme } from "@mui/material";
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import SchoolIcon from "@mui/icons-material/School";
@@ -22,33 +26,42 @@ import LineChartBox from "../components/dashboard/LineChartBox";
 
 function StatCard({ title, value, icon, color, bg, loading }) {
   return (
-    <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)", height: "100%" }}>
-      <CardContent>
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <Box>
-            <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5, fontWeight: 500 }}>
-              {title}
-            </Typography>
-            {loading ? (
-              <CircularProgress size={30} sx={{ color: color }} />
-            ) : (
-              <Typography variant="h3" fontWeight="bold" sx={{ color: color }}>
-                {value}
-              </Typography>
-            )}
-          </Box>
-          <Box sx={{ 
-            p: 2, 
-            borderRadius: 3, 
-            background: bg,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center"
-          }}>
-            {React.cloneElement(icon, { sx: { fontSize: 28, color: color } })}
-          </Box>
-        </Box>
-      </CardContent>
+    <Card sx={{ 
+      borderRadius: 4, 
+      boxShadow: "0 4px 20px rgba(0,0,0,0.1)", 
+      height: "100%",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      textAlign: "center",
+      p: 2,
+      transition: "transform 0.2s",
+      "&:hover": { transform: "translateY(-4px)" }
+    }}>
+      <Box sx={{ 
+        p: 1.5, 
+        mb: 1.5,
+        borderRadius: "50%", 
+        background: bg,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: 50,
+        height: 50
+      }}>
+        {React.cloneElement(icon, { sx: { fontSize: 24, color: color } })}
+      </Box>
+      <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5, fontWeight: 600, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 1 }}>
+        {title}
+      </Typography>
+      {loading ? (
+        <CircularProgress size={20} sx={{ color: color }} />
+      ) : (
+        <Typography variant="h4" fontWeight="bold" sx={{ color: color }}>
+          {value}
+        </Typography>
+      )}
     </Card>
   );
 }
@@ -67,6 +80,7 @@ function LinearProgressWithLabel(props) {
 }
 
 export default function InternDashboard() {
+  const theme = useTheme();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -177,12 +191,12 @@ export default function InternDashboard() {
 
   const getStatusChip = (status) => {
     const colors = {
-      "in_progress": { bg: "#FEF3C7", color: "#D97706", label: "In Progress" },
-      "completed": { bg: "#ECFDF5", color: "#059669", label: "Completed" },
-      "pending": { bg: "#F3F4F6", color: "#6B7280", label: "Pending" }
+      "in_progress": { bg: "warning.light", color: "warning.dark", label: "In Progress" },
+      "completed": { bg: "success.light", color: "success.dark", label: "Completed" },
+      "pending": { bg: "action.hover", color: "text.secondary", label: "Pending" }
     };
     const style = colors[status] || colors.pending;
-    return <Chip label={style.label || status} size="small" sx={{ background: style.bg, color: style.color, fontWeight: "bold" }} />;
+    return <Chip label={style.label || status} size="small" sx={{ bgcolor: style.bg, color: style.color, fontWeight: "bold" }} />;
   };
 
   const getPriorityColor = (priority) => {
@@ -194,10 +208,10 @@ export default function InternDashboard() {
     : 0;
 
   const internStats = [
-    { title: "Assigned Tasks", value: stats.totalTasks, icon: <AssignmentIcon />, color: "#D97706", bg: "#FFFBEB" },
-    { title: "Completed", value: stats.completedTasks, icon: <CheckCircleIcon />, color: "#16A34A", bg: "#ECFDF5" },
-    { title: "In Progress", value: stats.inProgressTasks, icon: <AccessTimeIcon />, color: "#F59E0B", bg: "#FFFBEB" },
-    { title: "Leave Balance", value: stats.leaveBalance, icon: <BeachAccessIcon />, color: "#8B5CF6", bg: "#F5F3FF" }
+    { title: "Assigned Tasks", value: stats.totalTasks, icon: <AssignmentIcon />, color: "warning.main", bg: "action.hover" },
+    { title: "Completed", value: stats.completedTasks, icon: <CheckCircleIcon />, color: "success.main", bg: "action.hover" },
+    { title: "In Progress", value: stats.inProgressTasks, icon: <AccessTimeIcon />, color: "warning.dark", bg: "action.hover" },
+    { title: "Leave Balance", value: stats.leaveBalance, icon: <BeachAccessIcon />, color: "secondary.main", bg: "action.hover" }
   ];
 
   const fetchInternData = async () => {
@@ -284,9 +298,13 @@ export default function InternDashboard() {
 
 
   return (
+<<<<<<< HEAD
     <Box sx={{ p: 3,   backgroundColor: isDark ? "#1E293B" : "#f8fafc", minHeight: "100vh" }}>
+=======
+    <Box sx={{ p: 3, bgcolor: "background.default", minHeight: "100vh" }}>
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
       {/* Header */}
-      <Box sx={{ mb: 4, p: 4, borderRadius: 4, background: "linear-gradient(135deg, #D97706 0%, #F59E0B 100%)", color: "white" }}>
+      <Box sx={{ mb: 4, p: 4, borderRadius: 4, background: `linear-gradient(135deg, ${theme.palette.warning.dark} 0%, ${theme.palette.warning.main} 100%)`, color: "white" }}>
         <Grid container alignItems="center" spacing={2}>
           <Grid size={{ xs: 12, md: 8 }}>
             <Typography variant="h3" fontWeight="bold">
@@ -303,9 +321,9 @@ export default function InternDashboard() {
       </Box>
 
       {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={2} sx={{ mb: 4 }}>
         {internStats.map((stat, index) => (
-          <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
+          <Grid item xs={6} sm={4} md={3} key={index}>
             <StatCard {...stat} loading={loading} />
           </Grid>
         ))}
@@ -374,7 +392,7 @@ export default function InternDashboard() {
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                <Typography variant="h6" fontWeight="bold" sx={{ color: "#D97706" }}>
+                <Typography variant="h6" fontWeight="bold" sx={{ color: "warning.main" }}>
                   My Tasks
                 </Typography>
                 <Button size="small" onClick={() => navigate("/tasks")}>View All</Button>
@@ -382,7 +400,7 @@ export default function InternDashboard() {
               
               {loading ? (
                 <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
-                  <CircularProgress sx={{ color: "#D97706" }} />
+                  <CircularProgress sx={{ color: "warning.main" }} />
                 </Box>
               ) : myTasks.length === 0 ? (
                 <Typography color="text.secondary" textAlign="center" sx={{ py: 4 }}>
@@ -390,7 +408,11 @@ export default function InternDashboard() {
                 </Typography>
               ) : (
                 myTasks.slice(0, 4).map((task, i) => (
+<<<<<<< HEAD
                   <Box key={task.id || i} sx={{ p: 2, mb: 2, borderRadius: 2,    backgroundColor: isDark ? "#1E293B" : "#f8fafc", border: "1px solid #E5E7EB" }}>
+=======
+                  <Box key={task.id || i} sx={{ p: 2, mb: 2, borderRadius: 2, bgcolor: "background.paper", border: "1px solid", borderColor: "divider" }}>
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                         <Typography fontWeight="600">{task.title}</Typography>
@@ -415,12 +437,16 @@ export default function InternDashboard() {
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                <Typography variant="h6" fontWeight="bold" sx={{ color: "#D97706" }}>
+                <Typography variant="h6" fontWeight="bold" sx={{ color: "warning.main" }}>
                   Task Completion Progress
                 </Typography>
                 <Chip 
                   label={`${stats.completedTasks}/${stats.totalTasks} Completed`} 
+<<<<<<< HEAD
                   sx={{   backgroundColor: isDark ? "#1E293B" : "#f8fafc", color: "#059669", fontWeight: "bold" }} 
+=======
+                  sx={{ bgcolor: "success.light", color: "success.dark", fontWeight: "bold" }} 
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
                 />
               </Box>
               
@@ -430,23 +456,35 @@ export default function InternDashboard() {
  
               <Grid container spacing={2}>
                 <Grid size={{ xs: 4 }}>
+<<<<<<< HEAD
                   <Box sx={{ p: 2,   backgroundColor: isDark ? "#1E293B" : "#f8fafc", borderRadius: 2, textAlign: "center" }}>
                     <CheckCircleIcon sx={{ color: "#059669", fontSize: 30 }} />
                     <Typography variant="h5" fontWeight="bold" color="#059669">{stats.completedTasks}</Typography>
+=======
+                  <Box sx={{ p: 2, bgcolor: "success.light", borderRadius: 2, textAlign: "center" }}>
+                    <CheckCircleIcon sx={{ color: "success.main", fontSize: 30 }} />
+                    <Typography variant="h5" fontWeight="bold" color="success.main">{stats.completedTasks}</Typography>
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
                     <Typography variant="caption" color="textSecondary">Completed</Typography>
                   </Box>
                 </Grid>
                 <Grid size={{ xs: 4 }}>
-                  <Box sx={{ p: 2, background: "#FEF3C7", borderRadius: 2, textAlign: "center" }}>
-                    <AccessTimeIcon sx={{ color: "#D97706", fontSize: 30 }} />
-                    <Typography variant="h5" fontWeight="bold" color="#D97706">{stats.inProgressTasks}</Typography>
+                  <Box sx={{ p: 2, bgcolor: "warning.light", borderRadius: 2, textAlign: "center" }}>
+                    <AccessTimeIcon sx={{ color: "warning.main", fontSize: 30 }} />
+                    <Typography variant="h5" fontWeight="bold" color="warning.main">{stats.inProgressTasks}</Typography>
                     <Typography variant="caption" color="textSecondary">In Progress</Typography>
                   </Box>
                 </Grid>
                 <Grid size={{ xs: 4 }}>
+<<<<<<< HEAD
                   <Box sx={{ p: 2,   backgroundColor: isDark ? "#1E293B" : "#f8fafc", borderRadius: 2, textAlign: "center" }}>
                     <PendingActionsIcon sx={{ color: "#6B7280", fontSize: 30 }} />
                     <Typography variant="h5" fontWeight="bold" color="#6B7280">{stats.pendingTasks}</Typography>
+=======
+                  <Box sx={{ p: 2, bgcolor: "action.hover", borderRadius: 2, textAlign: "center" }}>
+                    <PendingActionsIcon sx={{ color: "text.secondary", fontSize: 30 }} />
+                    <Typography variant="h5" fontWeight="bold" color="text.secondary">{stats.pendingTasks}</Typography>
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
                     <Typography variant="caption" color="textSecondary">Pending</Typography>
                   </Box>
                 </Grid>
@@ -460,7 +498,7 @@ export default function InternDashboard() {
         <Grid size={{ xs: 12, lg: 6 }}>
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
-              <Typography variant="h6" fontWeight="bold" sx={{ color: "#D97706", mb: 3 }}>
+              <Typography variant="h6" fontWeight="bold" sx={{ color: "warning.main", mb: 3 }}>
                 Quick Actions
               </Typography>
               
@@ -520,13 +558,17 @@ export default function InternDashboard() {
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
-                <PersonIcon sx={{ color: "#D97706" }} />
-                <Typography variant="h6" fontWeight="bold" sx={{ color: "#D97706" }}>
+                <PersonIcon sx={{ color: "warning.main" }} />
+                <Typography variant="h6" fontWeight="bold" sx={{ color: "warning.main" }}>
                   My Profile
                 </Typography>
               </Box>
               
+<<<<<<< HEAD
               <Box sx={{ p: 3,    backgroundColor: isDark ? "#1E293B" : "#f8fafc", borderRadius: 2 }}>
+=======
+              <Box sx={{ p: 3, bgcolor: "background.paper", borderRadius: 2 }}>
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
                 <Grid container spacing={2}>
                   <Grid size={{ xs: 6 }}>
                     <Typography variant="caption" color="textSecondary">Name</Typography>
@@ -547,8 +589,8 @@ export default function InternDashboard() {
                 </Grid>
               </Box>
  
-              <Box sx={{ mt: 3, p: 2, borderRadius: 2, background: "#FEF3C7", textAlign: "center" }}>
-                <Typography fontWeight="600" color="#D97706">
+              <Box sx={{ mt: 3, p: 2, borderRadius: 2, bgcolor: "action.hover", textAlign: "center" }}>
+                <Typography fontWeight="600" color="warning.main">
                   Keep up the great work!
                 </Typography>
                 <Typography variant="body2" color="textSecondary">
@@ -564,8 +606,8 @@ export default function InternDashboard() {
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
-                <MenuBookIcon sx={{ color: "#D97706" }} />
-                <Typography variant="h6" fontWeight="bold" sx={{ color: "#D97706" }}>
+                <MenuBookIcon sx={{ color: "warning.main" }} />
+                <Typography variant="h6" fontWeight="bold" sx={{ color: "warning.main" }}>
                   Quick Links
                 </Typography>
               </Box>
@@ -577,7 +619,7 @@ export default function InternDashboard() {
                     onClick={() => navigate("/policies")}
                     sx={{ p: 2, flexDirection: "column" }}
                   >
-                    <Typography variant="h6" sx={{ color: "#3B82F6" }}>📋</Typography>
+                    <Typography variant="h6" sx={{ color: "info.main" }}>📋</Typography>
                     <Typography fontWeight="600">Company Policies</Typography>
                     <Typography variant="caption" color="textSecondary">View guidelines</Typography>
                   </Button>
@@ -589,7 +631,7 @@ export default function InternDashboard() {
                     onClick={() => navigate("/holidays")}
                     sx={{ p: 2, flexDirection: "column" }}
                   >
-                    <Typography variant="h6" sx={{ color: "#16A34A" }}>📅</Typography>
+                    <Typography variant="h6" sx={{ color: "success.main" }}>📅</Typography>
                     <Typography fontWeight="600">Holidays</Typography>
                     <Typography variant="caption" color="textSecondary">View calendar</Typography>
                   </Button>
@@ -601,7 +643,7 @@ export default function InternDashboard() {
                     onClick={() => navigate("/announcements")}
                     sx={{ p: 2, flexDirection: "column" }}
                   >
-                    <Typography variant="h6" sx={{ color: "#8B5CF6" }}>📢</Typography>
+                    <Typography variant="h6" sx={{ color: "secondary.main" }}>📢</Typography>
                     <Typography fontWeight="600">Announcements</Typography>
                     <Typography variant="caption" color="textSecondary">Stay updated</Typography>
                   </Button>
@@ -613,7 +655,7 @@ export default function InternDashboard() {
                     onClick={() => navigate("/all-attendance")}
                     sx={{ p: 2, flexDirection: "column" }}
                   >
-                    <Typography variant="h6" sx={{ color: "#DC2626" }}>📊</Typography>
+                    <Typography variant="h6" sx={{ color: "error.main" }}>📊</Typography>
                     <Typography fontWeight="600">Attendance History</Typography>
                     <Typography variant="caption" color="textSecondary">View records</Typography>
                   </Button>

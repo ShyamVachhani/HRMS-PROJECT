@@ -90,6 +90,7 @@ export default function Layout() {
   };
 
   return (
+<<<<<<< HEAD
     <Box
       sx={{
         display: "flex",
@@ -98,6 +99,9 @@ export default function Layout() {
         color: theme.palette.text.primary,
       }}
     >
+=======
+    <Box sx={{ display: "flex", bgcolor: "background.default", minHeight: "100vh" }}>
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
       <Sidebar mobileOpen={mobileOpen} onDrawerToggle={handleDrawerToggle} />
 
       <Box
@@ -129,28 +133,44 @@ export default function Layout() {
 
       {/* ✅ THEME-AWARE SCROLLBAR */}
       <style>{`
+<<<<<<< HEAD
+=======
+        /* Custom Scrollbar - Neutral transparent thumb works in both */
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
         ::-webkit-scrollbar {
           width: 8px;
           height: 8px;
         }
 
         ::-webkit-scrollbar-track {
+<<<<<<< HEAD
           background: ${
             theme.palette.mode === "light" ? "#f1f1f1" : "#1e293b"
           };
+=======
+          background: transparent;
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
         }
 
         ::-webkit-scrollbar-thumb {
+<<<<<<< HEAD
           background: ${
             theme.palette.mode === "light" ? "#c1c1c1" : "#475569"
           };
+=======
+          background: #88888844;
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
           border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
+<<<<<<< HEAD
           background: ${
             theme.palette.mode === "light" ? "#a1a1a1" : "#64748b"
           };
+=======
+          background: #88888866;
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
         }
 
         .page-content::-webkit-scrollbar {
@@ -158,22 +178,34 @@ export default function Layout() {
         }
 
         .page-content::-webkit-scrollbar-track {
+<<<<<<< HEAD
           background: ${
             theme.palette.mode === "light" ? "#f8f9fa" : "#0f172a"
           };
+=======
+          background: transparent;
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
         }
 
         .page-content::-webkit-scrollbar-thumb {
+<<<<<<< HEAD
           background: ${
             theme.palette.mode === "light" ? "#d1d5db" : "#334155"
           };
+=======
+          background: #88888844;
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
           border-radius: 3px;
         }
 
         .page-content::-webkit-scrollbar-thumb:hover {
+<<<<<<< HEAD
           background: ${
             theme.palette.mode === "light" ? "#9ca3af" : "#475569"
           };
+=======
+          background: #88888866;
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
         }
       `}</style>
     </Box>

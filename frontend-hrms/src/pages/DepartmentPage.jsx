@@ -24,7 +24,8 @@ import {
   CircularProgress,
   Tooltip,
   Chip,
-  InputAdornment
+  InputAdornment,
+  useTheme
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -35,6 +36,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import api from "../services/api";
 
 const DepartmentPage = () => {
+  const theme = useTheme();
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -185,7 +187,7 @@ const DepartmentPage = () => {
   return (
     <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
       {/* Page Header */}
-      <Paper sx={{ p: 3, mb: 3, background: "linear-gradient(135deg, #F97316 0%, #EA580C 100%)" }}>
+      <Paper sx={{ p: 3, mb: 3, background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)` }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <BusinessIcon sx={{ fontSize: 40, color: "white" }} />
@@ -204,7 +206,7 @@ const DepartmentPage = () => {
                 variant="contained"
                 startIcon={<AddIcon />}
                 onClick={handleAddOpen}
-                sx={{ bgcolor: "white", color: "#EA580C", "&:hover": { bgcolor: "#f0f0f0" } }}
+                sx={{ bgcolor: "background.paper", color: "primary.main", "&:hover": { bgcolor: "action.hover" } }}
               >
                 Add Department
               </Button>
@@ -237,22 +239,26 @@ const DepartmentPage = () => {
           />
           <Chip 
             label={`${filteredDepartments.length} departments`} 
-            sx={{ bgcolor: "#FFF7ED", color: "#EA580C" }}
+            sx={{ bgcolor: "primary.light", color: "primary.dark" }}
           />
         </Stack>
       </Paper>
 
       {/* Data Table */}
-      <Paper sx={{ overflow: "hidden" }}>
+      <Paper sx={{ overflow: "hidden", bgcolor: "background.paper" }}>
         {loading && (
           <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
-            <CircularProgress sx={{ color: "#F97316" }} />
+            <CircularProgress sx={{ color: "warning.main" }} />
           </Box>
         )}
 
         <Table>
           <TableHead>
+<<<<<<< HEAD
             <TableRow sx={{ backgroundColor: isDark ? "#1E293B" : "#f8fafc" }}>
+=======
+            <TableRow sx={{ backgroundColor: "action.hover" }}>
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
               <TableCell sx={{ fontWeight: "bold" }}>ID</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Description</TableCell>
@@ -274,7 +280,7 @@ const DepartmentPage = () => {
                     <TableCell>{dept.id}</TableCell>
                     <TableCell>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <BusinessIcon sx={{ color: "#F97316", fontSize: 20 }} />
+                        <BusinessIcon sx={{ color: "primary.main", fontSize: 20 }} />
                         <Typography sx={{ fontWeight: 500 }}>{dept.name}</Typography>
                       </Box>
                     </TableCell>
@@ -315,7 +321,7 @@ const DepartmentPage = () => {
 
       {/* Add Department Dialog */}
       <Dialog open={addDialogOpen} onClose={handleAddClose} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ bgcolor: "#F97316", color: "white" }}>
+        <DialogTitle sx={{ bgcolor: "primary.main", color: "white" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <AddIcon />
             Add New Department
@@ -346,7 +352,7 @@ const DepartmentPage = () => {
             variant="contained" 
             onClick={addDepartment}
             disabled={loading}
-            sx={{ bgcolor: "#F97316", "&:hover": { bgcolor: "#EA580C" } }}
+            sx={{ bgcolor: "primary.main", "&:hover": { bgcolor: "primary.dark" } }}
             startIcon={loading ? <CircularProgress size={20} /> : <AddIcon />}
           >
             Add Department
@@ -356,7 +362,7 @@ const DepartmentPage = () => {
 
       {/* Edit Department Dialog */}
       <Dialog open={editOpen} onClose={handleEditClose} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ bgcolor: "#3B82F6", color: "white" }}>
+        <DialogTitle sx={{ bgcolor: "primary.dark", color: "white" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <EditIcon />
             Edit Department
@@ -395,7 +401,7 @@ const DepartmentPage = () => {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={handleDeleteClose} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ bgcolor: "#DC2626", color: "white" }}>
+        <DialogTitle sx={{ bgcolor: "error.main", color: "white" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <DeleteIcon />
             Confirm Delete

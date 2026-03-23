@@ -628,6 +628,7 @@ export default function Topbar({ onMenuClick }) {
 
     const openSearch = Boolean(searchAnchorEl);
 
+<<<<<<< HEAD
     return (
         <AppBar
             position="static"
@@ -637,13 +638,24 @@ export default function Topbar({ onMenuClick }) {
                 boxShadow: 1
             }}
         >
+=======
+    return(
+        <AppBar position="static">
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
             <Toolbar>
 
                 <IconButton edge="start" color="inherit" onClick={onMenuClick} sx={{ mr: 2, display: { md: "none" } }}>
                     <MenuIcon />
                 </IconButton>
+<<<<<<< HEAD
 
                 <Typography variant="h6" sx={{ flexGrow: 1, color: (theme) => theme.palette.primary.main, fontWeight: "bold" }}>
+=======
+                <Typography
+                    variant="h6" 
+                    sx={{ flexGrow:1, color:"primary.main", fontWeight: "bold" }}
+                >
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
                     {pageTitle}
                 </Typography>
 
@@ -672,16 +684,32 @@ export default function Topbar({ onMenuClick }) {
                             sx={{
                                 width: 300,
                                 "& .MuiOutlinedInput-root": {
+<<<<<<< HEAD
                                     borderRadius: 5
+=======
+                                    borderRadius: 5,
+                                    backgroundColor: "action.hover",
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
                                 }
                             }}
                         />
                     </Box>
 
+<<<<<<< HEAD
                     {/* NOTIFICATIONS */}
                     <IconButton color="inherit" onClick={handleNotificationClick}>
                         <Badge badgeContent={unreadCount} color="error">
                             <NotificationsIcon sx={{ color: "#FFD700" }} />
+=======
+                    {/* Notification Bell */}
+                    <IconButton 
+                        color="inherit" 
+                        onClick={handleNotificationClick}
+                        aria-label="show new notifications"
+                    >
+                        <Badge badgeContent={unreadCount} color="error">
+                            <NotificationsIcon sx={{ color: "text.secondary" }} />
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
                         </Badge>
                     </IconButton>
 
@@ -690,9 +718,21 @@ export default function Topbar({ onMenuClick }) {
                         <Typography sx={{ fontWeight: 500 }}>
                             {user.name || user.username || "User"}
                         </Typography>
+<<<<<<< HEAD
 
                         <Avatar sx={{ bgcolor: "#1E3A8A", width: 35, height: 35 }}>
                             {(user.name || user.username || "U").charAt(0).toUpperCase()}
+=======
+                        <Avatar
+                            src={
+                                user?.profile_image
+                                    ? `http://localhost:5000/${user.profile_image}?t=${new Date().getTime()}`
+                                    : ""
+                            }
+                            sx={{ bgcolor: "primary.main", width: 35, height: 35 }}
+                        >
+                            {!user?.profile_image && (user.name || user.username || "U").charAt(0).toUpperCase()}
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
                         </Avatar>
                     </Box>
 
@@ -716,7 +756,65 @@ export default function Topbar({ onMenuClick }) {
                 </MenuItem>
             </Menu>
 
+<<<<<<< HEAD
             {/* SEARCH POPUP FIXED */}
+=======
+            {/* Notifications Popover */}
+            <Popover
+                open={openNotifications}
+                anchorEl={anchorEl}
+                onClose={handleNotificationClose}
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                transformOrigin={{ vertical: "top", horizontal: "right" }}
+                PaperProps={{ sx: { width: 350, maxHeight: 400, mt: 1.5, borderRadius: 2 } }}
+            >
+                <Box sx={{ p: 2, display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid", borderColor: "divider" }}>
+                    <Typography variant="subtitle1" fontWeight="bold">Notifications</Typography>
+                    {unreadCount > 0 && (
+                        <IconButton size="small" onClick={handleMarkAllRead} title="Mark all as read">
+                            <DoneAllIcon fontSize="small" color="primary" />
+                        </IconButton>
+                    )}
+                </Box>
+                <List sx={{ p: 0 }}>
+                    {notifications.length === 0 ? (
+                        <ListItem><ListItemText primary="No new notifications" sx={{ color: "text.secondary", textAlign: "center", py: 2 }} /></ListItem>
+                    ) : (
+                        notifications.map((notif) => (
+                            <React.Fragment key={notif.id}>
+                                <ListItem 
+                                    button 
+                                    onClick={() => handleMarkRead(notif.id)}
+                                    sx={{ 
+                                        bgcolor: notif.is_read ? "transparent" : "action.hover", 
+                                        "&:hover": { bgcolor: "action.selected" },
+                                        transition: "background-color 0.2s"
+                                    }}
+                                >
+                                    <ListItemText 
+                                        primary={
+                                            <Typography variant="body2" fontWeight={notif.is_read ? "normal" : "bold"} color="text.primary">
+                                                {notif.title}
+                                            </Typography>
+                                        }
+                                        secondary={
+                                            <Typography variant="caption" color="text.secondary">
+                                                {notif.message}
+                                                <br />
+                                                {new Date(notif.created_at).toLocaleString()}
+                                            </Typography>
+                                        }
+                                    />
+                                </ListItem>
+                                <Divider component="li" />
+                            </React.Fragment>
+                        ))
+                    )}
+                </List>
+            </Popover>
+
+            {/* Global Search Popover */}
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
             <Popover
                 open={openSearch}
                 anchorEl={searchAnchorEl}
@@ -729,6 +827,7 @@ export default function Topbar({ onMenuClick }) {
                 transformOrigin={{ vertical: "top", horizontal: "left" }}
                 PaperProps={{ sx: { width: 300, maxHeight: 400 } }}
             >
+<<<<<<< HEAD
                 <List>
 
                     {searchResults.employees.map(emp => (
@@ -749,6 +848,62 @@ export default function Topbar({ onMenuClick }) {
                         </ListItem>
                     ))}
 
+=======
+                <List sx={{ p: 0 }}>
+                    {/* Employees */}
+                    {searchResults.employees?.length > 0 && (
+                        <>
+                            <Box sx={{ px: 2, py: 1, bgcolor: "background.default" }}>
+                                <Typography variant="caption" fontWeight="bold" color="text.secondary">EMPLOYEES</Typography>
+                            </Box>
+                            {searchResults.employees.map(emp => (
+                                <ListItem 
+                                    button 
+                                    key={`emp-${emp.id}`} 
+                                    onClick={() => handleSearchResultClick(`/employees/${emp.id}`)}
+                                >
+                                    <Avatar sx={{ width: 24, height: 24, mr: 1, fontSize: 12, bgcolor: "primary.main" }}>{emp.name.charAt(0)}</Avatar>
+                                    <ListItemText primary={emp.name} secondary={emp.position} />
+                                </ListItem>
+                            ))}
+                        </>
+                    )}
+                    
+                    {/* Tasks */}
+                    {searchResults.tasks?.length > 0 && (
+                        <>
+                            <Box sx={{ px: 2, py: 1, bgcolor: "background.default" }}>
+                                <Typography variant="caption" fontWeight="bold" color="text.secondary">TASKS</Typography>
+                            </Box>
+                            {searchResults.tasks.map(task => (
+                                <ListItem 
+                                    button 
+                                    key={`task-${task.id}`} 
+                                    onClick={() => handleSearchResultClick(`/tasks/${task.id}`)}
+                                >
+                                    <ListItemText primary={task.title} secondary={`Status: ${task.status}`} />
+                                </ListItem>
+                            ))}
+                        </>
+                    )}
+
+                    {/* Requests */}
+                    {searchResults.requests?.length > 0 && (
+                        <>
+                            <Box sx={{ px: 2, py: 1, bgcolor: "background.default" }}>
+                                <Typography variant="caption" fontWeight="bold" color="text.secondary">REQUESTS</Typography>
+                            </Box>
+                            {searchResults.requests.map(req => (
+                                <ListItem button key={`req-${req.type}-${req.id}`} onClick={() => handleSearchResultClick(req.type === 'leave' ? "/leave" : "/wfh")}>
+                                    <ListItemText 
+                                        primary={req.reason ? (req.reason.substring(0, 30) + (req.reason.length > 30 ? "..." : "")) : "No Reason"} 
+                                        secondary={`${req.type.toUpperCase()} - ${req.status}`} 
+                                    />
+                                </ListItem>
+                            ))}
+                        </>
+                    )}
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
                 </List>
             </Popover>
 

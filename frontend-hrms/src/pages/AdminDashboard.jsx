@@ -637,8 +637,12 @@
 
 
 import React, { useState, useEffect } from "react";
+<<<<<<< HEAD
 import { useTheme } from "@mui/material";
 import { Box, Grid, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Avatar, LinearProgress, CircularProgress } from "@mui/material";
+=======
+import { Box, Grid, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Avatar, LinearProgress, CircularProgress, useTheme } from "@mui/material";
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
 import PeopleIcon from "@mui/icons-material/People";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import BeachAccessIcon from "@mui/icons-material/BeachAccess";
@@ -658,38 +662,48 @@ import BarChartBox from "../components/dashboard/BarChartBox";
 
 function StatCard({ title, value, icon, color, bg, loading }) {
   return (
-    <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)", height: "100%" }}>
-      <CardContent>
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <Box>
-            <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5, fontWeight: 500 }}>
-              {title}
-            </Typography>
-            {loading ? (
-              <CircularProgress size={30} sx={{ color: color }} />
-            ) : (
-              <Typography variant="h3" fontWeight="bold" sx={{ color: color }}>
-                {value}
-              </Typography>
-            )}
-          </Box>
-          <Box sx={{ 
-            p: 2, 
-            borderRadius: 3, 
-            background: bg,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center"
-          }}>
-            {React.cloneElement(icon, { sx: { fontSize: 28, color: color } })}
-          </Box>
-        </Box>
-      </CardContent>
+    <Card sx={{ 
+      borderRadius: 4, 
+      boxShadow: "0 4px 20px rgba(0,0,0,0.1)", 
+      height: "100%",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      textAlign: "center",
+      p: 2,
+      transition: "transform 0.2s",
+      "&:hover": { transform: "translateY(-4px)" }
+    }}>
+      <Box sx={{ 
+        p: 1.5, 
+        mb: 1.5,
+        borderRadius: "50%", 
+        background: bg,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: 50,
+        height: 50
+      }}>
+        {React.cloneElement(icon, { sx: { fontSize: 24, color: color } })}
+      </Box>
+      <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5, fontWeight: 600, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 1 }}>
+        {title}
+      </Typography>
+      {loading ? (
+        <CircularProgress size={20} sx={{ color: color }} />
+      ) : (
+        <Typography variant="h4" fontWeight="bold" sx={{ color: color }}>
+          {value}
+        </Typography>
+      )}
     </Card>
   );
 }
 
 export default function AdminDashboard() {
+  const theme = useTheme();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -996,21 +1010,25 @@ export default function AdminDashboard() {
   };
 
   const adminStats = [
-    { title: "Total Employees", value: stats.totalEmployees, icon: <PeopleIcon />, color: "#3B82F6", bg: "#EBF5FF" },
-    { title: "Present Today", value: stats.presentToday, icon: <CheckCircleIcon />, color: "#16A34A", bg: "#ECFDF5" },
-    { title: "On Leave", value: stats.onLeave, icon: <BeachAccessIcon />, color: "#F59E0B", bg: "#FFFBEB" },
-    { title: "WFH Today", value: stats.wfhToday, icon: <HomeWorkIcon />, color: "#8B5CF6", bg: "#F5F3FF" },
-    { title: "Pending Tasks", value: stats.pendingTasks, icon: <AssignmentIcon />, color: "#EF4444", bg: "#FEF2F2" },
-    { title: "Departments", value: stats.totalDepartments, icon: <BusinessIcon />, color: "#06B6D4", bg: "#ECFEFF" }
+    { title: "Total Employees", value: stats.totalEmployees, icon: <PeopleIcon />, color: "primary.main", bg: "action.hover" },
+    { title: "Present Today", value: stats.presentToday, icon: <CheckCircleIcon />, color: "success.main", bg: "action.hover" },
+    { title: "On Leave", value: stats.onLeave, icon: <BeachAccessIcon />, color: "warning.main", bg: "action.hover" },
+    { title: "WFH Today", value: stats.wfhToday, icon: <HomeWorkIcon />, color: "secondary.main", bg: "action.hover" },
+    { title: "Pending Tasks", value: stats.pendingTasks, icon: <AssignmentIcon />, color: "error.main", bg: "action.hover" },
+    { title: "Departments", value: stats.totalDepartments, icon: <BusinessIcon />, color: "info.main", bg: "action.hover" }
   ];
    const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
 
 
   return (
+<<<<<<< HEAD
     <Box sx={{ p: 3,    backgroundColor: isDark ? "#1E293B" : "#f8fafc", minHeight: "100vh" }}>
+=======
+    <Box sx={{ p: 3, bgcolor: "background.default", minHeight: "100vh" }}>
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
       {/* Header */}
-      <Box sx={{ mb: 4, p: 4, borderRadius: 4, background: "linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)", color: "white" }}>
+      <Box sx={{ mb: 4, p: 4, borderRadius: 4, background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`, color: "white" }}>
         <Grid container alignItems="center" spacing={2}>
           <Grid size={{ xs: 12, md: 8 }}>
             <Typography variant="h3" fontWeight="bold">
@@ -1027,9 +1045,9 @@ export default function AdminDashboard() {
       </Box>
 
       {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={2} sx={{ mb: 4 }}>
         {adminStats.map((stat, index) => (
-          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
+          <Grid item xs={6} sm={4} md={2} key={index}>
             <StatCard {...stat} loading={loading} />
           </Grid>
         ))}
@@ -1041,7 +1059,7 @@ export default function AdminDashboard() {
       <Grid size={{ xs: 12, md: 6 }}>
         <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
           <CardContent>
-            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: "#1E3A8A" }}>
+            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: "primary.main" }}>
               Employees by Department
             </Typography>
             <PieChartBox data={chartData.departmentData} />
@@ -1053,7 +1071,7 @@ export default function AdminDashboard() {
       <Grid size={{ xs: 12, md: 6 }}>
         <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
           <CardContent>
-            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: "#1E3A8A" }}>
+            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: "primary.main" }}>
               Employee Status
             </Typography>
             <PieChartBox data={chartData.statusData} />
@@ -1065,7 +1083,7 @@ export default function AdminDashboard() {
       <Grid size={{ xs: 12, md: 6 }}>
         <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
           <CardContent>
-            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: "#1E3A8A" }}>
+            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: "primary.main" }}>
               Employee Growth
             </Typography>
             <LineChartBox data={chartData.growthData} />
@@ -1077,7 +1095,7 @@ export default function AdminDashboard() {
       <Grid size={{ xs: 12, md: 6 }}>
         <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
           <CardContent>
-            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: "#1E3A8A" }}>
+            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: "primary.main" }}>
               Monthly Attendance
             </Typography>
             <BarChartBox data={chartData.attendanceData} />
@@ -1094,7 +1112,7 @@ export default function AdminDashboard() {
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                <Typography variant="h6" fontWeight="bold" sx={{ color: "#1E3A8A" }}>
+                <Typography variant="h6" fontWeight="bold" sx={{ color: "primary.main" }}>
                   Recent Employees
                 </Typography>
                 <Button size="small" onClick={() => navigate("/employees")}>View All</Button>
@@ -1112,7 +1130,11 @@ export default function AdminDashboard() {
                 <TableContainer>
                   <Table>
                     <TableHead>
+<<<<<<< HEAD
                       <TableRow sx={{    backgroundColor: isDark ? "#1E293B" : "#f8fafc" }}>
+=======
+                      <TableRow sx={{ background: "action.hover" }}>
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
                         <TableCell sx={{ fontWeight: "bold" }}>Employee</TableCell>
                         <TableCell sx={{ fontWeight: "bold" }}>Position</TableCell>
                         <TableCell sx={{ fontWeight: "bold" }}>Department</TableCell>
@@ -1121,10 +1143,14 @@ export default function AdminDashboard() {
                     </TableHead>
                     <TableBody>
                       {recentEmployees.map((emp, i) => (
+<<<<<<< HEAD
                         <TableRow key={emp.id || i} sx={{ "&:hover": {    backgroundColor: isDark ? "#1E293B" : "#f8fafc" } }}>
+=======
+                        <TableRow key={emp.id || i} sx={{ "&:hover": { background: "action.hover" } }}>
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
                           <TableCell>
                             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                              <Avatar sx={{ width: 32, height: 32, background: "#3B82F6", fontSize: "0.8rem" }}>
+                              <Avatar sx={{ width: 32, height: 32, background: theme.palette.primary.main, fontSize: "0.8rem" }}>
                                 {emp.name?.split(" ").map(n => n[0]).join("").substring(0, 2)}
                               </Avatar>
                               <Typography fontWeight="500">{emp.name}</Typography>
@@ -1132,7 +1158,11 @@ export default function AdminDashboard() {
                           </TableCell>
                           <TableCell>{emp.position || "-"}</TableCell>
                           <TableCell>
+<<<<<<< HEAD
                             <Chip label={emp.department_name || "Not Assigned"} size="small" sx={{    backgroundColor: isDark ? "#1E293B" : "#f8fafc", color: "#3B82F6" }} />
+=======
+                            <Chip label={emp.department_name || "Not Assigned"} size="small" sx={{ background: "action.selected", color: "primary.main" }} />
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
                           </TableCell>
                           <TableCell>{emp.join_date?.split("T")[0] || "-"}</TableCell>
                         </TableRow>
@@ -1166,7 +1196,11 @@ export default function AdminDashboard() {
                 </Typography>
               ) : (
                 pendingTasks.map((task, i) => (
+<<<<<<< HEAD
                   <Box key={task.id || i} sx={{ p: 2, mb: 2, borderRadius: 2,    backgroundColor: isDark ? "#1E293B" : "#f8fafc", border: "1px solid #E5E7EB" }}>
+=======
+                  <Box key={task.id || i} sx={{ p: 2, mb: 2, borderRadius: 2, bgcolor: "background.default", border: "1px solid", borderColor: "divider" }}>
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
                       <Typography fontWeight="600">{task.title}</Typography>
                       <Chip label={task.priority || "medium"} size="small" color={getPriorityColor(task.priority)} />
@@ -1186,7 +1220,7 @@ export default function AdminDashboard() {
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                <Typography variant="h6" fontWeight="bold" sx={{ color: "#1E3A8A" }}>
+                <Typography variant="h6" fontWeight="bold" sx={{ color: "primary.main" }}>
                   Pending Leave Requests
                 </Typography>
                 <Button size="small" onClick={() => navigate("/leave")}>View All</Button>
@@ -1202,7 +1236,11 @@ export default function AdminDashboard() {
                 </Typography>
               ) : (
                 leaveRequests.map((leave, i) => (
+<<<<<<< HEAD
                   <Box key={leave.id || i} sx={{ p: 2, mb: 2, borderRadius: 2,    backgroundColor: isDark ? "#1E293B" : "#f8fafc", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+=======
+                  <Box key={leave.id || i} sx={{ p: 2, mb: 2, borderRadius: 2, bgcolor: "background.default", display: "flex", justifyContent: "space-between", alignItems: "center", border: "1px solid", borderColor: "divider" }}>
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
                     <Box>
                       <Typography fontWeight="600">{leave.name || getEmployeeName(leave.employee_id)}</Typography>
                       <Typography variant="caption" color="textSecondary">
@@ -1234,7 +1272,7 @@ export default function AdminDashboard() {
           <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
             <CardContent>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                <Typography variant="h6" fontWeight="bold" sx={{ color: "#1E3A8A" }}>
+                <Typography variant="h6" fontWeight="bold" sx={{ color: "primary.main" }}>
                   Departments
                 </Typography>
                 <Button size="small" onClick={() => navigate("/departments")}>Manage</Button>
@@ -1252,16 +1290,26 @@ export default function AdminDashboard() {
                 <TableContainer>
                   <Table>
                     <TableHead>
+<<<<<<< HEAD
                       <TableRow sx={{    backgroundColor: isDark ? "#1E293B" : "#f8fafc"}}>
+=======
+                      <TableRow sx={{ background: "action.hover" }}>
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
                         <TableCell sx={{ fontWeight: "bold" }}>Department</TableCell>
                         <TableCell sx={{ fontWeight: "bold" }}>Description</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
                       {departments.slice(0, 5).map((dept, i) => (
+<<<<<<< HEAD
                         <TableRow key={dept.id || i} sx={{ "&:hover": {   backgroundColor: isDark ? "#1E293B" : "#f8fafc" } }}>
                           <TableCell>
                             <Chip label={dept.name} size="small" sx={{    backgroundColor: isDark ? "#1E293B" : "#f8fafc", color: "#3B82F6", fontWeight: "bold" }} />
+=======
+                        <TableRow key={dept.id || i} sx={{ "&:hover": { background: "action.hover" } }}>
+                          <TableCell>
+                            <Chip label={dept.name} size="small" sx={{ background: "action.selected", color: "primary.main", fontWeight: "bold" }} />
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
                           </TableCell>
                           <TableCell>{dept.description || "-"}</TableCell>
                         </TableRow>

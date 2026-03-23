@@ -298,12 +298,17 @@ const roleMenuItems = {
   ]
 };
 
+<<<<<<< HEAD
 const getRoleColor = (role) => {
   const colors = {
     admin: { bg: "#EEF2FF", text: "#1E3A8A", border: "#3B82F6" }
   };
   return colors[role] || colors.admin;
 };
+=======
+// Get role colors
+// Removed hardcoded role colors - now using theme.roleColors from CustomThemeProvider
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
 
 export default function Sidebar({ mobileOpen, onDrawerToggle }) {
   const navigate = useNavigate();
@@ -332,6 +337,7 @@ export default function Sidebar({ mobileOpen, onDrawerToggle }) {
     navigate("/login");
   };
 
+<<<<<<< HEAD
   const role = user?.role || "admin";
   const menuItems = roleMenuItems[role] || roleMenuItems.admin;
   const roleColors = getRoleColor(role);
@@ -342,6 +348,94 @@ export default function Sidebar({ mobileOpen, onDrawerToggle }) {
   // ✅ THEME BASED HEADER COLOR
   const headerColor =
     theme.palette.mode === "light" ? "#1E3A8A" : "#60A5FA";
+=======
+  const role = user?.role || "developer";
+  const menuItems = roleMenuItems[role] || roleMenuItems.developer;
+  const roleColors = theme.roleColors[role] || theme.roleColors.developer;
+
+  const drawer = (
+    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      {/* Header */}
+      <Box sx={{ p: 2, display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `3px solid ${roleColors.border}` }}>
+        <Box>
+          <Typography variant="h6" fontWeight="bold" sx={{ color: roleColors.main }}>
+            HRMS
+          </Typography>
+          <Typography variant="caption" sx={{ color: roleColors.main, textTransform: "capitalize" }}>
+            {role} Panel
+          </Typography>
+        </Box>
+        {isMobile && onDrawerToggle && (
+          <IconButton onClick={onDrawerToggle}>
+            <MenuIcon />
+          </IconButton>
+        )}
+      </Box>
+
+      {/* Menu Items */}
+      <List sx={{ flexGrow: 1, py: 2 }}>
+        {menuItems.map((item) => (
+          <ListItemButton
+            key={item.text}
+            onClick={() => handleNavigation(item.path)}
+            selected={location.pathname === item.path}
+            sx={{
+              "&.Mui-selected": {
+                background: roleColors.bg,
+                borderLeft: `4px solid ${roleColors.border}`,
+                color: roleColors.main,
+                fontWeight: "bold",
+                "&:hover": {
+                  background: roleColors.bg,
+                }
+              },
+              "&:hover": {
+                background: roleColors.bg,
+              },
+              mx: 1,
+              borderRadius: 1,
+              mb: 0.5,
+              color: "text.secondary"
+            }}
+          >
+            <Box sx={{ mr: 2, display: "flex", alignItems: "center", color: location.pathname === item.path ? roleColors.main : "text.secondary" }}>
+              {item.icon}
+            </Box>
+            <ListItemText primary={item.text} />
+          </ListItemButton>
+        ))}
+      </List>
+
+      <Divider />
+
+      {/* User Info */}
+      {user && (
+        <Box sx={{ p: 2, background: roleColors.bg }}>
+          <Typography variant="body2" fontWeight="bold" sx={{ color: roleColors.main }}>
+            {user.name || user.username}
+          </Typography>
+          <Typography variant="caption" sx={{ color: roleColors.main, textTransform: "capitalize" }}>
+            {role}
+          </Typography>
+        </Box>
+      )}
+
+      {/* Logout */}
+      <Box sx={{ p: 2 }}>
+        <Button
+          fullWidth
+          variant="contained"
+          color="error"
+          startIcon={<LogoutIcon />}
+          onClick={handleLogout}
+          sx={{ fontWeight: "bold" }}
+        >
+          Logout
+        </Button>
+      </Box>
+    </Box>
+  );
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
 
   return (
     <>
@@ -354,7 +448,10 @@ export default function Sidebar({ mobileOpen, onDrawerToggle }) {
           display: { xs: "block", md: "none" },
           "& .MuiDrawer-paper": {
             width: 280,
+<<<<<<< HEAD
             backgroundColor: drawerBg
+=======
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
           }
         }}
       >
@@ -428,8 +525,11 @@ export default function Sidebar({ mobileOpen, onDrawerToggle }) {
           width: 280,
           "& .MuiDrawer-paper": {
             width: 280,
+<<<<<<< HEAD
             backgroundColor: drawerBg,
             borderRight: `1px solid ${dividerColor}`
+=======
+>>>>>>> cbc90cecb66eea5371434e1f34ac2dc50f9bffdb
           }
         }}
       >
