@@ -224,12 +224,14 @@ const ReportsPage = () => {
   return (
     <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
       {/* Header */}
-      <Paper sx={{ 
-        p: 3, 
-        mb: 3, 
-        background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-        color: "white"
-      }}>
+     <Paper
+        sx={{
+          p: 3,
+          mb: 3,
+          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+          color: "white"
+        }}
+      >
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <AssessmentIcon sx={{ fontSize: 40, color: "white" }} />
@@ -327,7 +329,7 @@ const ReportsPage = () => {
                 <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
                   Detailed Data
                 </Typography>
-                <Paper variant="outlined" sx={{ overflowX: "auto", height: "100%", width: "600px" }}>
+                <Paper variant="outlined" sx={{ height: "400px", overflow: "auto", width: "600px" }}>
                   <Table size="small">
                     <TableHead sx={{ bgcolor: "action.hover" }}>
                       <TableRow>
@@ -363,3 +365,5 @@ const ReportsPage = () => {
 };
 
 export default ReportsPage;
+
+

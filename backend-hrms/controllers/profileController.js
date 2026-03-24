@@ -7,16 +7,14 @@ export const getEmployeeById = async (req, res) => {
   try {
     const [employee] = await sequelize.query(
         `SELECT 
-            e.id,
-            e.name,
-            e.email,
-            e.phone,
-            e.join_date,
-            e.position,
+            e.*,
+            u.email,
+            u.role,
             d.name AS department_name
         FROM employees e
+        LEFT JOIN users u ON e.user_id = u.id
         LEFT JOIN departments d ON e.department_id = d.id
-        WHERE e.id = :id`,
+        WHERE u.id = :id`,
         {
             replacements: { id },
             type: QueryTypes.SELECT
@@ -35,26 +33,39 @@ export const getEmployeeById = async (req, res) => {
 // Update profile (only 4 fields)
 export const updateProfile = async (req, res) => {
   const { id } = req.params;
-  const { name, email, phone, join_date } = req.body;
+  const { name, email, phone } = req.body;
 
   if (!name?.trim()) return res.status(400).json({ message: "Name is required" });
   if (!/\S+@\S+\.\S+/.test(email)) return res.status(400).json({ message: "Invalid email" });
 
   try {
     await sequelize.query(
-      `UPDATE employees
-       SET name = :name,
-           email = :email,
-           phone = :phone,
-           join_date = :join_date
+      `UPDATE users
+       SET username = :name,
+           email = :email
        WHERE id = :id`,
       {
         replacements: {
           id,
           name: name.trim(),
+          email: email.toLowerCase()
+        },
+        type: QueryTypes.UPDATE
+      }
+    );
+
+    await sequelize.query(
+      `UPDATE employees
+       SET name = :name,
+           email = :email,
+           phone = :phone
+       WHERE user_id = :id`,
+      {
+        replacements: {
+          id,
+          name: name.trim(),
           email: email.toLowerCase(),
-          phone: phone || null,
-          join_date: join_date || null
+          phone: phone || null
         },
         type: QueryTypes.UPDATE
       }

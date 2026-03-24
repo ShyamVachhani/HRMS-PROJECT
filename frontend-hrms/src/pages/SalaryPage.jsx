@@ -32,7 +32,8 @@ import {
   Divider,
   Avatar,
   Checkbox,
-  LinearProgress
+  LinearProgress,
+  TablePagination
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
@@ -113,8 +114,13 @@ const SalaryPage = () => {
   const [payrollSummary, setPayrollSummary] = useState({ totalEmployees: 0, processedCount: 0 });
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
+  const [roleFilter, setRoleFilter] = useState("");
   const showSnackbar = (message, severity = "success") => setSnackbar({ open: true, message, severity });
 
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const [statusFilter, setStatusFilter] = useState("");
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     setCurrentUser(user);
@@ -126,11 +132,26 @@ const SalaryPage = () => {
   }, []);
 
   useEffect(() => {
+    setPage(0);
+  }, [roleFilter]);
+
+  useEffect(() => {
     if (isAdminOrHR) {
       fetchReport();
       fetchPayrollSummary();
     }
   }, [reportMonth, reportYear, isAdminOrHR]);
+
+
+  const filteredReport = report.filter(rec =>
+    (!roleFilter || rec.role === roleFilter) &&
+    (!statusFilter || rec.status === statusFilter)
+  );
+
+  const paginatedReport = filteredReport.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   const fetchEmployees = async () => {
     try {
@@ -227,7 +248,7 @@ const SalaryPage = () => {
       if (historyEmployeeId) fetchHistory();
     } catch (err) { showSnackbar("Failed to update status", "error"); }
   };
-
+  const totalCount = data.length === paginatedReport.length ? filteredReport.length : data.length;
   const months = Array.from({ length: 12 }, (_, i) => ({
     value: i + 1,
     label: new Date(0, i).toLocaleString('default', { month: 'long' })
@@ -243,7 +264,7 @@ const SalaryPage = () => {
     net: acc.net + parseFloat(rec.final_salary || 0)
   }), { basic: 0, allowance: 0, bonus: 0, deduction: 0, net: 0 });
 
-  const renderTable = (data, isHistory = false) => (
+  const renderTable = (data, totalCount, isHistory = false) => (
     <Paper sx={{ borderRadius: 2, overflow: "hidden" }}>
       <Table>
         <TableHead sx={{ bgcolor: "action.hover" }}>
@@ -312,6 +333,17 @@ const SalaryPage = () => {
           ))}
         </TableBody>
       </Table>
+      <TablePagination
+        component="div"
+        count={totalCount}
+        page={page}
+        onPageChange={(e, newPage) => setPage(newPage)}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(e) => {
+          setRowsPerPage(parseInt(e.target.value, 10));
+          setPage(0);
+        }}
+      />
     </Paper>
   );
 
@@ -396,6 +428,26 @@ const SalaryPage = () => {
                 </TextField>
                 <Divider orientation="vertical" flexItem />
                 <Typography variant="body2" color="text.secondary">Showing Report for <b>{months.find(m => m.value == reportMonth).label} {reportYear}</b></Typography>
+                <TextField
+                  select
+                  label="Role"
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                  size="small"
+                  sx={{ minWidth: 150 }}
+                >
+                  <MenuItem value="">All</MenuItem>
+                  <MenuItem value="admin">Admin</MenuItem>
+                  <MenuItem value="hr">HR</MenuItem>
+                  <MenuItem value="manager">Manager</MenuItem>
+                  <MenuItem value="developer">Developer</MenuItem>
+                  <MenuItem value="intern">Intern</MenuItem>
+                </TextField>
+                <TextField select label="Status" value={statusFilter} sx={{ minWidth: 150 }} size="small" onChange={(e) => setStatusFilter(e.target.value)}>
+                  <MenuItem value="">All</MenuItem>
+                  <MenuItem value="Generated">Generated</MenuItem>
+                  <MenuItem value="Paid">Paid</MenuItem>
+                </TextField>
                 <Box flexGrow={1} />
                 <Button variant="contained" color="success" onClick={fetchReport} startIcon={<RefreshIcon />}>Reload</Button>
             </Paper>
@@ -409,7 +461,7 @@ const SalaryPage = () => {
                 <Tab label="Search Employee History" />
             </Tabs>
 
-            {activeTab === 0 && (loading ? <Box sx={{ textAlign: "center", py: 5 }}><CircularProgress /></Box> : renderTable(report))}
+            {activeTab === 0 && (loading ? <Box sx={{ textAlign: "center", py: 5 }}><CircularProgress /></Box> : renderTable(paginatedReport, filteredReport.length))}
             {activeTab === 1 && (
                 <Box>
                     <Paper sx={{ p: 2, mb: 3, display: "flex", gap: 2, alignItems: "center" }}>
@@ -418,7 +470,7 @@ const SalaryPage = () => {
                         </TextField>
                         <Button variant="outlined" onClick={fetchHistory} disabled={!historyEmployeeId}>View History</Button>
                     </Paper>
-                    {loading ? <Box sx={{ textAlign: "center", py: 5 }}><CircularProgress /></Box> : renderTable(history, true)}
+                    {loading ? <Box sx={{ textAlign: "center", py: 5 }}><CircularProgress /></Box> : renderTable(history, history.length, true)}
                 </Box>
             )}
         </>

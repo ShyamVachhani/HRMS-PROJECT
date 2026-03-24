@@ -72,12 +72,16 @@ const roleMenuItems = {
     { text: "Leave", path: "/leave", icon: <BeachAccessIcon /> },
     { text: "Tasks", path: "/tasks", icon: <AssignmentIcon /> },
     { text: "WFH", path: "/wfh", icon: <HomeWorkIcon /> },
+    { text: "Holidays", path: "/holidays", icon: <EventIcon /> },
     { text: "Announcements", path: "/announcements", icon: <CampaignIcon /> }
   ],
   intern: [
     { text: "Dashboard", path: "/intern", icon: <DashboardIcon /> },
     { text: "Attendance", path: "/attendance", icon: <CheckCircleIcon /> },
+    { text: "Leave", path: "/leave", icon: <BeachAccessIcon /> },
     { text: "Tasks", path: "/tasks", icon: <AssignmentIcon /> },
+    { text: "WFH", path: "/wfh", icon: <HomeWorkIcon /> },
+    { text: "Holidays", path: "/holidays", icon: <EventIcon /> },
     { text: "Announcements", path: "/announcements", icon: <CampaignIcon /> }
   ]
 };

@@ -9,7 +9,11 @@ export const getEmployees = async (req, res) => {
   const search = req.query.search || "";
   const offset = (page - 1) * limit;
 
-  const baseQuery = `FROM employees e LEFT JOIN departments d ON e.department_id = d.id`;
+  const baseQuery = ` 
+    FROM employees e 
+    LEFT JOIN departments d ON e.department_id = d.id
+    LEFT JOIN users u ON e.user_id = u.id 
+  `;
   let where = "";
   let replacements = {};
 
@@ -20,7 +24,7 @@ export const getEmployees = async (req, res) => {
 
   try {
     const employees = await sequelize.query(
-      `SELECT e.id, e.name, e.email, e.phone, e.position, e.department_id, e.basic_salary, d.name AS department_name, e.join_date, e.created_at
+      `SELECT e.id, e.name, e.email, u.role, e.phone, e.position, e.department_id, e.basic_salary, d.name AS department_name, e.join_date, e.created_at
        ${baseQuery} ${where} ORDER BY e.id DESC LIMIT :limit OFFSET :offset`,
       { replacements: { ...replacements, limit, offset }, type: QueryTypes.SELECT }
     );

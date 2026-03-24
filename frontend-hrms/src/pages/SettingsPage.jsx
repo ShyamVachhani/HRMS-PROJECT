@@ -26,28 +26,6 @@ export default function SettingsPage() {
 
       <Paper elevation={3} sx={{ borderRadius: 2, overflow: "hidden", mb: 4 }}>
         <List disablePadding>
-          {/* Appearance Section */}
-          <Box sx={{ bgcolor: "background.default", px: 3, py: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
-            <Typography variant="caption" fontWeight="bold" color="text.secondary">
-              APPEARANCE
-            </Typography>
-          </Box>
-          <ListItem sx={{ px: 3, py: 2 }}>
-            <ListItemIcon>
-              <DarkModeIcon color="primary" />
-            </ListItemIcon>
-            <ListItemText 
-              primary="Dark Mode" 
-              secondary="Toggle between light and dark themes" 
-            />
-            <Switch 
-              edge="end" 
-              onChange={toggleColorMode} 
-              checked={mode === "dark"} 
-              color="primary"
-            />
-          </ListItem>
-          
           {/* Notifications Section Placeholder */}
           <Box sx={{ bgcolor: "background.default", px: 3, py: 1.5, borderBottom: "1px solid", borderColor: "divider", borderTop: "1px solid", borderTopColor: "divider" }}>
             <Typography variant="caption" fontWeight="bold" color="text.secondary">

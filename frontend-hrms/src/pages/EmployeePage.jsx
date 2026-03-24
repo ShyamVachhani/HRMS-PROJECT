@@ -78,6 +78,8 @@ const EmployeePage = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [deleteName, setDeleteName] = useState("");
   
+  const [roleFilter, setRoleFilter] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("");
   const user = JSON.parse(localStorage.getItem("user"));
   const canManage = ["admin", "hr"].includes(user?.role);
 
@@ -134,13 +136,15 @@ const EmployeePage = () => {
     setLoading(true);
     try {
       const res = await api.get("/employees");
-      const data = res.data;
-      let employeesArray = [];
-      if (Array.isArray(data)) {
-        employeesArray = data;
-      } else if (data.employees) {
-        employeesArray = data.employees;
-      }
+      // const data = res.data;
+      // let employeesArray = [];
+      // if (Array.isArray(data)) {
+      //   employeesArray = data;
+      // } else if (data.employees) {
+      //   employeesArray = data.employees;
+      // }
+      const employeesArray = res.data.employees || [];
+      console.log(employeesArray);
       const formatted = employeesArray.map(emp => ({
         ...emp,
         join_date: emp.join_date ? emp.join_date.split("T")[0] : ""
@@ -385,11 +389,37 @@ const EmployeePage = () => {
     // fetchPositions();
   }, []);
 
-  const filteredEmployees = employees.filter(emp => 
-    emp.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    emp.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    emp.position?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredEmployees = employees.filter(emp => {
+    const matchesSearch =
+      emp.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.position?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.role?.toLowerCase().includes(searchQuery.toLowerCase()) ;
+
+    const matchesRole =
+      !roleFilter || emp.role === roleFilter;
+
+    const matchesDepartment =
+      !departmentFilter || emp.department_name === departmentFilter;
+
+    return matchesSearch && matchesRole && matchesDepartment;
+  });
+
+  const handleRoleFilterChange = (value) => {
+    setRoleFilter(value);
+
+    if (value !== "hr" && departmentFilter === "HR") {
+      setDepartmentFilter("");
+    }
+    // Auto fix department conflict
+    if (value === "admin") {
+      setDepartmentFilter(""); // admin → no department
+    }
+
+    if (value === "hr") {
+      setDepartmentFilter("HR"); // force HR dept
+    }
+  };
 
   return (
     <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
@@ -434,13 +464,15 @@ const EmployeePage = () => {
 
       {/* Search & Filter Bar */}
       <Paper sx={{ p: 2, mb: 3, bgcolor: "background.paper" }}>
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+          
+          {/* Search */}
           <TextField
             placeholder="Search employees..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             size="small"
-            sx={{ minWidth: 300 }}
+            sx={{ minWidth: 250 }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -449,14 +481,73 @@ const EmployeePage = () => {
               ),
             }}
           />
+
+          {/* Role Filter */}
+          <TextField
+            select
+            size="small"
+            label="Role"
+            value={roleFilter}
+            onChange={(e) => handleRoleFilterChange(e.target.value)}
+            sx={{ minWidth: 150 }}
+          >
+            <MenuItem value="">All Roles</MenuItem>
+            <MenuItem value="admin">Admin</MenuItem>
+            <MenuItem value="hr">HR</MenuItem>
+            <MenuItem value="manager">Manager</MenuItem>
+            <MenuItem value="developer">Developer</MenuItem>
+            <MenuItem value="intern">Intern</MenuItem>
+          </TextField>
+
+          {/* Department Filter */}
+          <TextField
+            select
+            size="small"
+            label="Department"
+            value={departmentFilter}
+            onChange={(e) => setDepartmentFilter(e.target.value)}
+            sx={{ minWidth: 180 }}
+            disabled={roleFilter === "admin"}
+          >
+            <MenuItem value="">All Departments</MenuItem>
+            {departments.map((dept) => {
+              const isHRDept = dept.name === "HR";
+              const disableHR =
+                roleFilter && roleFilter !== "hr" && isHRDept;
+
+              return (
+                <MenuItem
+                  key={dept.id}
+                  value={dept.name}
+                  disabled={disableHR}
+                >
+                  {dept.name}
+                </MenuItem>
+              );
+            })}
+          </TextField>
+
+          {/* Clear Filters */}
+          <Button
+            size="small"
+            onClick={() => {
+              setSearchQuery("");
+              setRoleFilter("");
+              setDepartmentFilter("");
+            }}
+          >
+            Clear
+          </Button>
+
+          {/* Count */}
           <Chip 
             label={`${filteredEmployees.length} employees`} 
             color="primary" 
             variant="outlined" 
           />
+
         </Stack>
       </Paper>
-
       {/* Data Table */}
       <Paper sx={{ overflow: "hidden", bgcolor: "background.paper" }}>
         {loading && (
@@ -471,6 +562,7 @@ const EmployeePage = () => {
               <TableCell sx={{ fontWeight: "bold" }}>ID</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Role</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Phone</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Position</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Department</TableCell>
@@ -494,6 +586,9 @@ const EmployeePage = () => {
                     <TableCell>{emp.id}</TableCell>
                     <TableCell sx={{ fontWeight: 500 }}>{emp.name}</TableCell>
                     <TableCell>{emp.email}</TableCell>
+                    <TableCell>
+                      <Chip label={emp.role} size="small" color="secondary" />
+                    </TableCell>
                     <TableCell>{emp.phone || "-"}</TableCell>
                     <TableCell>
                       <Chip label={emp.position} size="small" color="primary" variant="outlined" />

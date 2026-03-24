@@ -21,8 +21,7 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
-    join_date: ""
+    phone: ""
   });
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -38,15 +37,14 @@ export default function ProfilePage() {
   const fetchEmployee = async () => {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
-      if (!user?.employee_id) return;
-      const res = await api.get(`/profile/${user.employee_id}`);
+      if (!user?.id) return;
+      const res = await api.get(`/profile/${user.id}`);
       const emp = res.data;
       setEmployee(emp);
       setFormData({
         name: emp.name || "",
         email: emp.email || "",
-        phone: emp.phone || "",
-        join_date: emp.join_date ? emp.join_date.split("T")[0] : ""
+        phone: emp.phone || ""
       });
     } catch (err) {
       console.error(err);
@@ -67,8 +65,10 @@ export default function ProfilePage() {
 
   const saveProfile = async () => {
     setSaving(true);
+    const user = JSON.parse(localStorage.getItem("user"));
     try {
-      await api.put(`/profile/${employee.id}`, formData);
+      await api.put(`/profile/${user.id}`, formData);
+      await fetchEmployee();
       setEmployee((prev) => ({ ...prev, ...formData }));
       setNotification({ open: true, message: "Profile updated successfully", severity: "success" });
       setEditing(false);
@@ -291,9 +291,6 @@ export default function ProfilePage() {
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField label="Phone" name="phone" value={formData.phone} onChange={handleChange} fullWidth size="small" disabled={!editing} />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField label="Join Date" name="join_date" type="date" value={formData.join_date} onChange={handleChange} fullWidth size="small" InputLabelProps={{ shrink: true }} disabled={!editing} />
           </Grid>
         </Grid>
 

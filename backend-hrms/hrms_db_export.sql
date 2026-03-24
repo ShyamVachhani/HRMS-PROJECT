@@ -97,7 +97,7 @@ CREATE TABLE `employees` (
   CONSTRAINT `fk_emp_manager` FOREIGN KEY (`manager_id`) REFERENCES `employees` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_emp_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
+ALTER TABLE employees ADD profile_image VARCHAR(255);
 -- Dumping data for table `employees`
 INSERT INTO `employees` (`id`, `name`, `email`, `position`, `hire_date`, `leave_balance`, `basic_salary`, `created_at`, `department_id`, `phone`, `join_date`, `manager_id`, `hr_id`, `user_id`) VALUES (1, 'John Doe', 'john@example.com', 'Developer', '2023-01-14 18:30:00', 20, '60000.00', '2026-03-06 16:47:20', NULL, NULL, NULL, NULL, NULL, 1);
 INSERT INTO `employees` (`id`, `name`, `email`, `position`, `hire_date`, `leave_balance`, `basic_salary`, `created_at`, `department_id`, `phone`, `join_date`, `manager_id`, `hr_id`, `user_id`) VALUES (2, 'Jane Smith', 'jane@example.com', 'Manager', '2022-05-31 18:30:00', 20, '75000.00', '2026-03-06 16:47:20', NULL, NULL, NULL, NULL, NULL, NULL);

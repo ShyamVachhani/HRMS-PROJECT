@@ -17,8 +17,13 @@ import {
   CircularProgress,
   Menu,
   MenuItem,
-  ListItemIcon
+  ListItemIcon,
+  Switch
 } from "@mui/material";
+import LightModeIcon from "@mui/icons-material/LightMode"; // ☀️ sun
+import DarkModeIcon from "@mui/icons-material/DarkMode";   // 🌙 moon
+import { useContext } from "react";
+import { ThemeContext } from "../context/ThemeContext";
 import MenuIcon from "@mui/icons-material/Menu";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import SearchIcon from "@mui/icons-material/Search";
@@ -194,6 +199,7 @@ export default function Topbar({ onMenuClick }){
         closeSearch();
     };
 
+    const { mode, toggleColorMode } = useContext(ThemeContext);
     const openSearch = Boolean(searchAnchorEl);
 
     return(
@@ -215,8 +221,12 @@ export default function Topbar({ onMenuClick }){
                 </Typography>
                 <Box sx={{ display:"flex", alignItems:"center", gap:3 }}>
                     
-                    {/* Search Bar */}
-                    <Box sx={{ position: "relative", display: { xs: "none", md: "block" } }}>
+                    
+
+
+                    {/* Search Bar - Desktop */}
+                    <Box sx={{ position: "relative", display: { xs: "none", sm: "block" } }}>
+
                         <TextField
                             id="global-search-input"
                             placeholder="Search employees, tasks..."
@@ -252,9 +262,20 @@ export default function Topbar({ onMenuClick }){
                         aria-label="show new notifications"
                     >
                         <Badge badgeContent={unreadCount} color="error">
-                            <NotificationsIcon sx={{ color: "text.secondary" }} />
+                            <NotificationsIcon sx={{ color: '#FFD700' }} />
                         </Badge>
                     </IconButton>
+
+                    {/* Theme Toggle */}
+                    <IconButton
+                        size="small"
+                        onClick={toggleColorMode}
+                        sx={{ color: "#FFD700" }} // gold color
+                        >
+                        {mode === "dark" ? <DarkModeIcon /> : <LightModeIcon />}
+                    </IconButton>
+
+
 
                     {/* User Display / Action */}
                     <Box 
@@ -264,7 +285,7 @@ export default function Topbar({ onMenuClick }){
                         aria-haspopup="true"
                         aria-expanded={openProfileMenu ? 'true' : undefined}
                     >
-                        <Typography sx={{ fontWeight: 500, display: { xs: "none", sm: "block" } }}>
+                        <Typography sx={{ fontWeight: 500, display: { xs: "none", sm: "block" }, color: mode === 'dark' ? '#0ea5e9' : '#1e3a8a' }}>
                             {user.name || user.username || "User"}
                         </Typography>
                         <Avatar
@@ -472,4 +493,3 @@ export default function Topbar({ onMenuClick }){
         </AppBar>
     );
 }
-
