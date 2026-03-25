@@ -12,6 +12,7 @@ import {
   Alert,
   CircularProgress
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import PersonIcon from "@mui/icons-material/Person";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import api from "../services/api";
@@ -33,6 +34,9 @@ export default function ProfilePage() {
     message: "",
     severity: "success"
   });
+
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
 
   const fetchEmployee = async () => {
     try {
@@ -80,63 +84,6 @@ export default function ProfilePage() {
     }
   };
 
-  // // Upload image
-  // const handleFileChange = async (e) => {
-  //   const file = e.target.files[0];
-  //   if (!file || !file.type.startsWith("image/")) return;
-  //   setPreview(URL.createObjectURL(file));
-
-  //   const formDataUpload = new FormData();
-  //   // formDataUpload.append("profile", file);
-  //   formDataUpload.append("profile", file); 
-
-  //   try {
-  //     const res = await api.post(`/employees/upload-profile/${employee.id}`, formDataUpload, {
-  //       headers: { "Content-Type": "multipart/form-data" }
-  //     });
-
-  //     // Update employee and localStorage for navbar
-  //     setEmployee((prev) => {
-  //       const updated = { ...prev, profile_image: res.data.path };
-  //       const user = JSON.parse(localStorage.getItem("user"));
-  //       if (user) {
-  //         user.profile_image = res.data.path;
-  //         localStorage.setItem("user", JSON.stringify(user));
-  //       }
-  //       return updated;
-  //     });
-
-  //     setNotification({ open: true, message: "Profile image updated", severity: "success" });
-  //     setPreview(null);
-  //   } catch (err) {
-  //     console.error(err);
-  //     setNotification({ open: true, message: "Upload failed. Check backend!", severity: "error" });
-  //   }
-  // };
-
-  // const uploadProfileImage = async () => {
-  //   if (!selectedFile) return;
-
-  //   const formDataUpload = new FormData();
-  //   formDataUpload.append("profile", selectedFile);
-
-  //   try {
-  //     const res = await api.post(
-  //       `/employees/upload-profile/${employee.id}`,
-  //       formDataUpload,
-  //       {
-  //         headers: {
-  //           "Content-Type": "multipart/form-data"
-  //         }
-  //       }
-  //     );
-
-  //     console.log("UPLOAD SUCCESS:", res.data);
-
-  //   } catch (err) {
-  //     console.error("UPLOAD ERROR:", err.response?.data || err.message);
-  //   }
-  // };
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file || !file.type.startsWith("image/")) return;
@@ -250,7 +197,9 @@ export default function ProfilePage() {
                   height: 24,
                   borderRadius: "50%",
                   bgcolor: "white",
+                  bgcolor: isDark ? "#424242" : "#ffffff",
                   border: "1px solid #ccc",
+                  borderColor: isDark ? "#666" : "#ccc",
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
@@ -258,7 +207,7 @@ export default function ProfilePage() {
                   "&:hover": { bgcolor: "action.hover" }
                 }}
               >
-                <CameraAltIcon sx={{ fontSize: 16, color: "text.primary" }} />
+                <CameraAltIcon sx={{ fontSize: 16, color: isDark ? "#ffffff" : "#000000" }} />
               </Box>
             </label>
           </Box>

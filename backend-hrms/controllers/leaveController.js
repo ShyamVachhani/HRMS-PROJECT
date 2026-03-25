@@ -1,23 +1,38 @@
 import { sequelize } from "../config/sequelize.js";
 import { QueryTypes } from "sequelize";
 import { createNotification } from "./notificationController.js";
+import { LEAVE_POLICY } from "../config/leavepolicy.js";
 
 export const applyLeave = async (req, res) => {
-  const { employee_id, start_date, end_date, reason } = req.body;
-
-  if (!employee_id || !start_date || !end_date) {
+  const { employee_id, start_date, end_date, reason , leave_type } = req.body;
+ 
+  if (!employee_id || !start_date || !end_date || !leave_type) {
     return res.status(400).json({ message: "All required fields missing" });
   }
 
   try {
     // 1. Verify role - Admin cannot apply
     const [emp] = await sequelize.query(
-      `SELECT e.id, u.role, e.manager_id, e.hr_id 
+      `SELECT e.id, e.name, u.role, e.manager_id, e.hr_id 
        FROM employees e 
        JOIN users u ON e.user_id = u.id 
        WHERE e.id = :employee_id`,
       { replacements: { employee_id }, type: QueryTypes.SELECT }
     );
+
+    // add START
+      const validTypes = [
+        "Paid Leave",
+        "Sick Leave",
+        "Casual Leave",
+        "Emergency Leave",
+        "Unpaid Leave"
+      ];
+
+      if (!validTypes.includes(leave_type)) {
+        return res.status(400).json({ message: "Invalid leave type" });
+      }
+      // add END
 
     if (!emp) return res.status(404).json({ message: "Employee not found" });
     if (emp.role === "admin") return res.status(403).json({ message: "Admins do not apply for leave" });
@@ -26,7 +41,7 @@ export const applyLeave = async (req, res) => {
     const overlapLeave = await sequelize.query(
       `SELECT id FROM leaves 
        WHERE employee_id = :employee_id 
-       AND status IN ('pending', 'approved', 'Approved', 'managerApproved')
+       AND status IN ('pending', 'approved', 'managerApproved')
        AND (start_date <= :end_date AND end_date >= :start_date)`,
       { replacements: { employee_id, start_date, end_date }, type: QueryTypes.SELECT }
     );
@@ -34,6 +49,51 @@ export const applyLeave = async (req, res) => {
     if (overlapLeave.length > 0) {
       return res.status(400).json({ message: "You already have a leave request for this date range" });
     }
+
+    if (new Date(end_date) < new Date(start_date)) {
+      return res.status(400).json({ message: "End date cannot be before start date" });
+    }
+    // add START
+      if (leave_type !== "Unpaid Leave") {
+
+        if (!LEAVE_POLICY[leave_type]) {
+          return res.status(400).json({ message: "Leave policy not defined" });
+        }
+        const limit = LEAVE_POLICY[leave_type] || 0;
+       
+
+        const usedLeaves = await sequelize.query(
+          `SELECT start_date, end_date FROM leaves
+          WHERE employee_id = :employee_id
+          AND leave_type = :leave_type
+          AND status != 'Rejected'`,
+          {
+            replacements: { employee_id, leave_type },
+            type: QueryTypes.SELECT
+          }
+        );
+
+        const usedDays = usedLeaves.reduce((total, l) => {
+          const days =
+            Math.ceil(
+              (new Date(l.end_date) - new Date(l.start_date)) /
+              (1000 * 60 * 60 * 24)
+            ) + 1;
+          return total + days;
+        }, 0);
+
+        const requestedDays =
+          Math.ceil((new Date(end_date) - new Date(start_date)) / (1000 * 60 * 60 * 24)) + 1;
+
+      
+
+        if (usedDays + requestedDays > limit) {
+          return res.status(400).json({
+            message: `Not enough ${leave_type}. Remaining: ${limit - usedDays}`
+          });
+        }
+      }
+      // add END
 
     const overlapWFH = await sequelize.query(
       `SELECT id FROM wfh_requests 
@@ -49,11 +109,12 @@ export const applyLeave = async (req, res) => {
 
     // 2. Insert with hierarchy
     await sequelize.query(
-      `INSERT INTO leaves (employee_id, start_date, end_date, reason, manager_id, hr_id, status)
-       VALUES (:employee_id, :start_date, :end_date, :reason, :manager_id, :hr_id, 'pending')`,
+      `INSERT INTO leaves (employee_id, leave_type, start_date, end_date, reason, manager_id, hr_id, status)
+       VALUES (:employee_id, :leave_type, :start_date, :end_date, :reason, :manager_id, :hr_id, 'pending')`,
       {
         replacements: { 
           employee_id, 
+          leave_type, // add
           start_date, 
           end_date, 
           reason, 
@@ -106,7 +167,7 @@ export const getLeaves = async (req, res) => {
   try {
     const dataQuery = `
       SELECT l.id, e.name, d.name AS department,
-             l.start_date, l.end_date,
+             l.start_date, l.end_date, l.leave_type,
              l.reason, l.status
       ${baseQuery}
       ORDER BY l.id DESC
@@ -177,21 +238,21 @@ export const updateLeaveStatus = async (req, res) => {
     // 3. Logic based on role and stage
     let nextStatus = status; // Default (e.g., Rejected)
 
-    if (status === "Approved") {
+    if (status === "approved") {
       if (actor_role === "manager") {
         // Manager approval is only Stage 1
         if (leave.status !== "pending") return res.status(400).json({ message: "Leave already processed to next stage" });
         nextStatus = "managerApproved";
       } else if (actor_role === "hr" || actor_role === "admin") {
         // HR/Admin is Final Approval (Stage 2 or Override)
-        nextStatus = "Approved"; // Keep consistent with DB ENUM
+        nextStatus = "approved"; // Keep consistent with DB ENUM
       } else {
         return res.status(403).json({ message: "Unauthorized to approve" });
       }
     }
 
     // 4. If FINAL Approval -> Deduct Balance
-    if (nextStatus === "Approved" && leave.status !== "Approved") {
+    if (nextStatus === "approved" && leave.status !== "approved") {
       const start = new Date(leave.start_date);
       const end = new Date(leave.end_date);
       const days = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
@@ -320,3 +381,4 @@ export const getTeamLeaves = async (req, res) => {
     res.status(500).json({ message: "Database error" });
   }
 };
+

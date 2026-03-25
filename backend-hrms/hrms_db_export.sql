@@ -423,3 +423,28 @@ INSERT INTO `wfh_requests` (`id`, `employee_id`, `manager_id`, `hr_id`, `start_d
 INSERT INTO `wfh_requests` (`id`, `employee_id`, `manager_id`, `hr_id`, `start_date`, `end_date`, `reason`, `status`, `manager_approval`, `created_at`) VALUES (7, 34, NULL, 33, '2026-03-24 18:30:00', '2026-03-25 18:30:00', 'vhvh', 'rejected', 'pending', '2026-03-21 20:32:35');
 INSERT INTO `wfh_requests` (`id`, `employee_id`, `manager_id`, `hr_id`, `start_date`, `end_date`, `reason`, `status`, `manager_approval`, `created_at`) VALUES (8, 35, 34, 33, '2026-03-21 18:30:00', '2026-03-24 18:30:00', 'vievruhih', 'approved', 'pending', '2026-03-21 20:34:00');
 
+ALTER TABLE leaves 
+ADD COLUMN leave_type VARCHAR(50) NOT NULL AFTER employee_id;
+
+ALTER TABLE leaves 
+ADD COLUMN updated_at TIMESTAMP 
+DEFAULT CURRENT_TIMESTAMP 
+ON UPDATE CURRENT_TIMESTAMP;
+
+
+ALTER TABLE leaves 
+MODIFY status ENUM('pending','managerApproved','approved','Rejected') 
+DEFAULT 'pending';
+
+ALTER TABLE leaves ADD INDEX (manager_id);
+ALTER TABLE leaves ADD INDEX (hr_id);
+
+ALTER TABLE leaves 
+ADD CONSTRAINT fk_manager 
+FOREIGN KEY (manager_id) REFERENCES employees(id) 
+ON DELETE SET NULL;
+
+ALTER TABLE leaves 
+ADD CONSTRAINT fk_hr 
+FOREIGN KEY (hr_id) REFERENCES employees(id) 
+ON DELETE SET NULL;

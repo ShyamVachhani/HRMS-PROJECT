@@ -109,8 +109,8 @@ const ReportsPage = () => {
       position: "relative",
       overflow: "hidden",
       boxShadow: theme.shadows[4],
-      transition: "transform 0.2s",
-      "&:hover": { transform: "translateY(-4px)" }
+      transition: "all 0.2s",
+      "&:hover": { transform: "translateY(-6px)", boxShadow: 6 }
     }}>
       <Box sx={{ 
         p: 1.5, 
@@ -146,7 +146,7 @@ const ReportsPage = () => {
   );
 
   const renderAttendanceChart = () => (
-    <ResponsiveContainer width="100%" height={500}>
+    <ResponsiveContainer width={900} height={500}>
       <BarChart data={data}>
         <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
         <XAxis dataKey="name" />
@@ -236,10 +236,10 @@ const ReportsPage = () => {
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <AssessmentIcon sx={{ fontSize: 40, color: "white" }} />
             <Box>
-              <Typography variant="h5" sx={{ color: "white", fontWeight: "bold" }}>
+              <Typography variant="h5" sx={{ color: "white", fontWeight: "bold", mb: 1  }}>
                 Reports & Analytics
               </Typography>
-              <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)" }}>
+              <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)", fontWeight: 600, mb: 1 }}>
                 Visualize organization data and performance
               </Typography>
             </Box>
@@ -295,6 +295,57 @@ const ReportsPage = () => {
         </Box>
       </Box>
 
+      {/* 🔥 Insights */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Typography variant="h6" sx={{ mb: 1 }}>
+          Key Insights
+        </Typography>
+
+        {activeTab === 0 && (
+          <Typography color="warning.main" sx={{ fontWeight: 600, mb: 1 }}>
+            ⚠️ Low attendance employees: {data.filter(d => d.attendance_days < 10).length}
+          </Typography>
+        )}
+{activeTab === 1 && (
+          <Typography color="warning.main" sx={{ fontWeight: 600, mb: 1 }}>
+            ⚠️ Pending leave requests: {data.reduce((a, b) => a + (b.pending || 0), 0)}
+          </Typography>
+        )}
+
+        {activeTab === 2 && (
+          <Typography color="success.main" sx={{ fontWeight: 600, mb: 1 }}>
+            ✅ High task performers: {data.filter(d => d.completed > 5).length}
+          </Typography>
+        )}
+      </Paper>
+
+      {/* 🔥 Top & Needs Attention */}
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={6}>
+        <Paper sx={{ p: 2, width: "640px" }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+            Top Performers
+          </Typography>
+          {data.slice(0, 3).map((emp, i) => (
+            <Typography key={i}>🟢 {emp.name}</Typography>
+          ))}
+        </Paper>
+      </Grid>
+
+      <Grid item xs={12} md={6}>
+        <Paper sx={{ p: 2, width: "640px" }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+            Needs Attention
+          </Typography>
+          {data.slice(-3).map((emp, i) => (
+            <Typography key={i} color="error.main">
+              🔴 {emp.name}
+            </Typography>
+          ))}
+        </Paper>
+      </Grid>
+      </Grid>
+
       {/* Main Reports Section */}
       <Paper sx={{ borderRadius: 2, overflow: "hidden" }}>
         <Box sx={{ borderBottom: 1, borderColor: "divider", bgcolor: "background.paper" }}>
@@ -313,41 +364,160 @@ const ReportsPage = () => {
           ) : (
             <Grid container spacing={4}>
               {/* Visual Analysis */}
-              <Grid item xs={12} md={6}>
-                <Typography variant="h6" gutterBottom color="text.secondary">
+              {/* <Grid item xs={12} md={7}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  {activeTab === 0 && "Attendance Overview"}
+                  {activeTab === 1 && "Leave Trends"}
+                  {activeTab === 2 && "Task Performance"}
+                </Typography>
+                <Typography variant="h6" gutterBottom color="text.secondary" sx={{ fontWeight: 600, mb: 1 }}>
                   Visual Analysis
                 </Typography>
-                <Paper variant="outlined" sx={{ p: 2, bgcolor: "rgba(0,0,0,0.02)", height: "100%", width: "600px" }}>
+                <Paper variant="outlined" sx={{ p: 2, boxShadow: 1, height: "100%", width: "600px" }}>
                   {activeTab === 0 && renderAttendanceChart()}
                   {activeTab === 1 && renderLeaveChart()}
                   {activeTab === 2 && renderTaskChart()}
                 </Paper>
-              </Grid>
+              </Grid> */}
+
+                  <Grid item xs={12} md={7}>
+                    <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                      {activeTab === 0 && "Attendance Overview"}
+                      {activeTab === 1 && "Leave Trends"}
+                      {activeTab === 2 && "Task Performance"}
+                    </Typography>
+
+                    <Typography
+                      variant="h6"
+                      gutterBottom
+                      color="text.secondary"
+                      sx={{ fontWeight: 600, mb: 1 }}
+                    >
+                      Visual Analysis
+                    </Typography>
+
+                   <Paper
+                    variant="outlined"
+                    sx={{
+                      p: 2,
+                      boxShadow: 1,
+                      height: "100%",
+                      width: "600px",
+                      overflowX: "auto",
+                      overflowY: "hidden"
+                    }}
+                  >
+                    <Box sx={{ width: "900px" }}>
+                      {activeTab === 0 && renderAttendanceChart()}
+                      {activeTab === 1 && renderLeaveChart()}
+                      {activeTab === 2 && renderTaskChart()}
+                    </Box>
+                  </Paper>
+                  </Grid>
 
               {/* Detailed Data */}
-              <Grid item xs={12} md={6}>
-                <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-                  Detailed Data
+              {/* <Grid item xs={12} md={5}>
+                <Typography variant="h6" color="text.secondary" sx={{ mb: 2, fontWeight: 600 }}>
+                  Important Records
                 </Typography>
-                <Paper variant="outlined" sx={{ height: "400px", overflow: "auto", width: "600px" }}>
+                <Paper variant="outlined" sx={{ height: "400px", overflow: "auto", width: "100%", maxWidth: "100%" }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                    Showing top 8 records
+                  </Typography>
                   <Table size="small">
-                    <TableHead sx={{ bgcolor: "action.hover" }}>
+                    <TableHead sx={{ bgcolor: "grey.100" }}>
                       <TableRow>
                         {data.length > 0 &&
                           Object.keys(data[0]).map(key => (
-                            <TableCell key={key} sx={{ fontWeight: "bold", textTransform: "capitalize" }}>
-                              {key.replace("_", " ")}
+                            <TableCell
+                              key={key}
+                              sx={{ fontWeight: 600, textTransform: "capitalize" }}
+                            >
+                              {key.replace(/_/g, " ")}
                             </TableCell>
                           ))
                         }
                       </TableRow>
                     </TableHead>
+                  <TableBody>
+                    {data.slice(0, 8).map((row, i) => (
+                      <TableRow
+                        key={i}
+                        hover
+                        sx={{
+                          bgcolor: i % 2 === 0 ? "background.default" : "transparent",
+                          "&:hover": { bgcolor: "action.hover" }
+                        }}
+                      >
+                        {Object.values(row).map((val, index) => (
+                          <TableCell key={index}>
+                            {typeof val === "number" && val % 1 !== 0
+                              ? val.toFixed(1)
+                              : val}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                  </Table>
+                </Paper>
+              </Grid> */}
+              <Grid item xs={12} md={5}>
+                <Typography
+                  variant="h6"
+                  color="text.secondary"
+                  sx={{ mb: 2, fontWeight: 600 }}
+                >
+                  Important Records
+                </Typography>
+
+                <Paper
+                  variant="outlined"
+                  sx={{
+                    height: "700px",
+                    overflow: "auto",
+                    width: "600px",     
+                    maxWidth: "600px"   
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ mb: 1, display: "block" }}
+                  >
+                    Showing top 8 records
+                  </Typography>
+
+                  <Table size="small">
+                    <TableHead sx={{ bgcolor: "grey.100" }}>
+                      <TableRow>
+                        {data.length > 0 &&
+                          Object.keys(data[0]).map((key) => (
+                            <TableCell
+                              key={key}
+                              sx={{ fontWeight: 600, textTransform: "capitalize" }}
+                            >
+                              {key.replace(/_/g, " ")}
+                            </TableCell>
+                          ))}
+                      </TableRow>
+                    </TableHead>
+
                     <TableBody>
-                      {data.map((row, i) => (
-                        <TableRow key={i} hover>
+                      {data.slice(0, 8).map((row, i) => (
+                        <TableRow
+                          key={i}
+                          hover
+                          sx={{
+                            bgcolor: i % 2 === 0 ? "background.default" : "transparent",
+                            "&:hover": { bgcolor: "action.hover" }
+                          }}
+                        >
                           {Object.values(row).map((val, index) => (
                             <TableCell key={index}>
-                              {typeof val === 'number' && val % 1 !== 0 ? val.toFixed(1) : val}
+                              {typeof val === "number" && val % 1 !== 0
+                                ? val.toFixed(1)
+                                : val}
                             </TableCell>
                           ))}
                         </TableRow>
@@ -365,5 +535,3 @@ const ReportsPage = () => {
 };
 
 export default ReportsPage;
-
-

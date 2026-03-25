@@ -259,7 +259,9 @@ export default function AdminDashboard() {
     { title: "Total Employees", value: stats.totalEmployees, icon: <PeopleIcon />, color: "primary.main", bg: "action.hover" },
     { title: "Present Today", value: stats.presentToday, icon: <CheckCircleIcon />, color: "success.main", bg: "action.hover" },
     { title: "On Leave", value: stats.onLeave, icon: <BeachAccessIcon />, color: "warning.main", bg: "action.hover" },
-    { title: "WFH Today", value: stats.wfhToday, icon: <HomeWorkIcon />, color: "secondary.main", bg: "action.hover" }
+    { title: "WFH Today", value: stats.wfhToday, icon: <HomeWorkIcon />, color: "secondary.main", bg: "action.hover" },
+    { title: "Pending Tasks", value: stats.pendingTasks, icon: <AssignmentIcon />, color: "error.main", bg: "action.hover" },
+    { title: "Departments", value: stats.totalDepartments, icon: <BusinessIcon />, color: "info.main", bg: "action.hover" }
   ];
 
 

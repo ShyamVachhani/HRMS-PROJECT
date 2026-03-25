@@ -249,6 +249,7 @@ export default function ManagerDashboard() {
   };
 
   const managerStats = [
+    { title: "Team Members", value: stats.teamMembers, icon: <PeopleIcon />, color: "primary.main", bg: "action.hover" },
     { title: "Pending Leaves", value: stats.pendingLeaves, icon: <BeachAccessIcon />, color: "warning.main", bg: "action.hover" },
     { title: "Active Tasks", value: stats.activeTasks, icon: <AssignmentIcon />, color: "error.main", bg: "action.hover" },
     { title: "WFH Requests", value: stats.wfhRequests, icon: <HomeWorkIcon />, color: "info.main", bg: "action.hover" },

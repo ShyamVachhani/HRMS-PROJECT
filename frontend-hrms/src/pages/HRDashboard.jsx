@@ -230,6 +230,7 @@ export default function HRDashboard() {
     { title: "Present Today", value: stats.presentToday, icon: <CheckCircleIcon />, color: "success.main", bg: "action.hover" },
     { title: "Leave Requests", value: stats.leaveRequests, icon: <BeachAccessIcon />, color: "warning.main", bg: "action.hover" },
     { title: "WFH Requests", value: stats.wfhRequests, icon: <HomeWorkIcon />, color: "info.main", bg: "action.hover" },
+    { title: "Departments", value: stats.totalDepartments, icon: <BusinessIcon />, color: "secondary.main", bg: "action.hover" },
     { title: "Active", value: stats.totalEmployees, icon: <AssignmentIcon />, color: "error.main", bg: "action.hover" }
   ];
 

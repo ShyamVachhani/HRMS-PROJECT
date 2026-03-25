@@ -1,0 +1,33 @@
+// export default {
+//   development: {
+//     username: "root",
+//     password: "Shyam@2003",
+//     database: "hrms_db",
+//     host: "localhost",
+//     dialect: "mysql"
+//   },
+//   test: {
+//     username: "root",
+//     password: null,
+//     database: "database_test",
+//     host: "127.0.0.1",
+//     dialect: "mysql"
+//   },
+//   production: {
+//     username: "root",
+//     password: null,
+//     database: "database_production",
+//     host: "127.0.0.1",
+//     dialect: "mysql"
+//   }
+// };
+
+module.exports = {
+  development: {
+    username: "root",
+    password: "Shyam@2003",
+    database: "hrms_test_1",
+    host: "localhost",
+    dialect: "mysql"
+  }
+};

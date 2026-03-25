@@ -45,12 +45,21 @@ function LeavePage() {
   const [totalCount, setTotalCount] = useState(0);
   const [viewMode, setViewMode] = useState("team"); // 'team' or 'my'
   const [applyDialogOpen, setApplyDialogOpen] = useState(false);
+  const [leaveType, setLeaveType] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [reason, setReason] = useState("");
   const [leaveBalance, setLeaveBalance] = useState(null);
 
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+
+  const leaveTypes = [ 
+    "Paid Leave",
+    "Sick Leave",
+    "Casual Leave",
+    "Emergency Leave",
+    "Unpaid Leave"
+  ];
 
   const user = JSON.parse(localStorage.getItem("user"));
   const userRole = user?.role;
@@ -126,6 +135,7 @@ function LeavePage() {
     setStartDate("");
     setEndDate("");
     setReason("");
+    setLeaveType("");
     fetchLeaveBalance();
     setApplyDialogOpen(true);
   };
@@ -152,10 +162,15 @@ function LeavePage() {
       return;
     }
 
+    if (!leaveType) {
+      showSnackbar("Please select leave type", "error");
+      return;
+    }
     setLoading(true);
     try {
       await api.post("/leaves", {
         employee_id: employeeId,
+        leave_type: leaveType,
         start_date: startDate,
         end_date: endDate,
         reason
@@ -324,6 +339,7 @@ function LeavePage() {
               {(canViewAll || isManager) && <TableCell sx={{ fontWeight: "bold" }}>Department</TableCell>}
               <TableCell sx={{ fontWeight: "bold" }}>Start Date</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>End Date</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Leave Type</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Reason</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
               {canApprove && <TableCell sx={{ fontWeight: "bold" }} align="center">Actions</TableCell>}
@@ -333,7 +349,7 @@ function LeavePage() {
           <TableBody>
             {!loading && leaves.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={canApprove ? 8 : 7} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={canApprove ? 9 : 8} align="center" sx={{ py: 4 }}>
                   <Typography color="text.secondary">No leave records found</Typography>
                 </TableCell>
               </TableRow>
@@ -345,6 +361,7 @@ function LeavePage() {
                   {(canViewAll || isManager) && <TableCell>{leave.department || "-"}</TableCell>}
                   <TableCell>{leave.start_date?.split("T")[0]}</TableCell>
                   <TableCell>{leave.end_date?.split("T")[0]}</TableCell>
+                  <TableCell>{leave.leave_type}</TableCell>
                   <TableCell>{leave.reason || "-"}</TableCell>
                   <TableCell>{getStatusChip(leave.status)}</TableCell>
                   {canApprove && (
@@ -424,6 +441,21 @@ function LeavePage() {
                 Current Leave Balance: <strong>{leaveBalance} days</strong>
               </Alert>
             )}
+
+            <TextField
+                select
+                label="Leave Type"
+                value={leaveType}
+                onChange={(e) => setLeaveType(e.target.value)}
+                fullWidth
+                required
+              >
+                {leaveTypes.map((type) => (
+                  <MenuItem key={type} value={type}>
+                    {type}
+                  </MenuItem>
+                ))}
+              </TextField>
 
             <TextField
               type="date"
