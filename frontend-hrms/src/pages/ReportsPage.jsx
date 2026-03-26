@@ -144,82 +144,123 @@ const ReportsPage = () => {
       </Box>
     </Card>
   );
+console.log("RAW DATA:", data[0]);
+const chartDataA = data
+  .sort((a, b) => Number(b.completed) - Number(a.completed)) // descending
+  .slice(0, 8)
+  .map(d => ({
+    ...d,
+    name: d.name?.slice(0, 6) // prevent long names overflow
+}));
 
-  const renderAttendanceChart = () => (
-    <ResponsiveContainer width={900} height={500}>
-      <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-        <XAxis dataKey="name" />
-        <YAxis />
-        <ChartTooltip 
-          contentStyle={{ backgroundColor: theme.palette.background.paper, borderRadius: 8, border: "none", boxShadow: theme.shadows[3] }}
-        />
+const chartDataB = [...data]
+  .sort((a, b) => Number(b.completed) - Number(a.completed)) // descending
+  .slice(0, 8)
+  .map(d => ({
+    name: d.name?.slice(0, 6),
+    completed: Number(d.completed),
+    pending: Number(d.pending)
+  }));
+
+const renderAttendanceChart = () => (
+  <ResponsiveContainer width="100%" height="100%">
+    <BarChart data={chartDataA} barSize={30}>
+      <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+
+      <XAxis 
+        dataKey="name"
+        tick={{ fill: "#9CA3AF", fontSize: 12 }}
+      />
+
+      <YAxis tick={{ fill: "#9CA3AF" }} />
+
+      <Tooltip
+        contentStyle={{
+          background: "#111827",
+          border: "none",
+          borderRadius: "8px",
+          color: "#fff"
+        }}
+      />
+
+      <Legend />
+
+      <Bar 
+        dataKey="attendance_days" 
+        fill="#3B82F6"
+        radius={[6, 6, 0, 0]}
+        isAnimationActive
+        animationDuration={800}
+      />
+
+      <Bar 
+        dataKey="total_hours" 
+        fill="#22C55E"
+        radius={[6, 6, 0, 0]}
+        isAnimationActive
+        animationDuration={800}
+      />
+    </BarChart>
+  </ResponsiveContainer>
+);
+
+const renderLeaveChart = () => {
+  const pieData = [
+    { name: "Approved", value: data.reduce((a, b) => a + Number(b.approved || 0), 0) },
+    { name: "Pending", value: data.reduce((a, b) => a + Number(b.pending || 0), 0) },
+    { name: "Rejected", value: data.reduce((a, b) => a + Number(b.rejected || 0), 0) }
+  ];
+
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <PieChart>
+        <Pie
+          data={pieData}
+          dataKey="value"
+          cx="50%"
+          cy="50%"
+          innerRadius={60}
+          outerRadius={140}
+          paddingAngle={3}
+        >
+          {pieData.map((_, i) => (
+            <Cell key={i} fill={COLORS[i % COLORS.length]} />
+          ))}
+        </Pie>
         <Legend />
-        <Bar dataKey="attendance_days" name="Days Present" fill={theme.palette.primary.main} radius={[4, 4, 0, 0]} />
-        <Bar dataKey="total_hours" name="Total Hours" fill={theme.palette.secondary.main} radius={[4, 4, 0, 0]} />
-      </BarChart>
-    </ResponsiveContainer>
-  );
-
-  const renderLeaveChart = () => {
-    const totalApproved = data.reduce((acc, curr) => acc + (curr.approved || 0), 0);
-    const totalPending = data.reduce((acc, curr) => acc + (curr.pending || 0), 0);
-    const totalRejected = data.reduce((acc, curr) => acc + (curr.rejected || 0), 0);
-
-    const pieData = [
-      { name: "Approved", value: totalApproved },
-      { name: "Pending", value: totalPending },
-      { name: "Rejected", value: totalRejected }
-    ];
-
-    return (
-      <Grid container spacing={4} alignItems="center">
-        <Grid item xs={12} md={7}>
-          <ResponsiveContainer width="100%" height={500}>
-            <PieChart>
-              <Pie
-                data={pieData}
-                innerRadius={80}
-                outerRadius={140}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                <Cell fill={theme.palette.success.main} />
-                <Cell fill={theme.palette.warning.main} />
-                <Cell fill={theme.palette.error.main} />
-              </Pie>
-              <ChartTooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </Grid>
-        <Grid item xs={12} md={5}>
-          <ResponsiveContainer width="100%" height={500}>
-            <BarChart data={data.slice(0, 5)}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <ChartTooltip />
-              <Bar dataKey="total_leaves" fill={theme.palette.primary.main} name="Total Requests" />
-            </BarChart>
-          </ResponsiveContainer>
-        </Grid>
-      </Grid>
-    );
-  };
-
-  const renderTaskChart = () => (
-    <ResponsiveContainer width="100%" height={500}>
-      <BarChart data={data.slice(0, 10)}>
-        <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-        <XAxis dataKey="name" />
-        <YAxis />
         <ChartTooltip />
-        <Legend />
-        <Bar dataKey="completed" name="Completed" stackId="a" fill={theme.palette.success.main} />
-        <Bar dataKey="pending" name="Pending" stackId="a" fill={theme.palette.warning.main} />
-      </BarChart>
+      </PieChart>
     </ResponsiveContainer>
   );
+};
+
+const renderTaskChart = () => (
+  <ResponsiveContainer width="100%" height="100%">
+    <BarChart data={chartDataB} barSize={30}>
+      <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+      <XAxis dataKey="name" />
+      <YAxis />
+      <ChartTooltip />
+      <Legend />
+
+      <Bar 
+        dataKey="completed" 
+        stackId="a"
+        fill={theme.palette.success.main} 
+        isAnimationActive 
+        animationDuration={800}
+      />
+
+      <Bar 
+        dataKey="pending" 
+        stackId="a"
+        fill={theme.palette.warning.main} 
+        isAnimationActive 
+        animationDuration={800}
+      />
+    </BarChart>
+  </ResponsiveContainer>
+);
 
   return (
     <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
@@ -306,9 +347,9 @@ const ReportsPage = () => {
             ⚠️ Low attendance employees: {data.filter(d => d.attendance_days < 10).length}
           </Typography>
         )}
-{activeTab === 1 && (
+        {activeTab === 1 && (
           <Typography color="warning.main" sx={{ fontWeight: 600, mb: 1 }}>
-            ⚠️ Pending leave requests: {data.reduce((a, b) => a + (b.pending || 0), 0)}
+            ⚠️ Pending leave requests: {data.reduce((a, b) => a + Number(b.pending || 0), 0)}
           </Typography>
         )}
 
@@ -326,7 +367,7 @@ const ReportsPage = () => {
           <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
             Top Performers
           </Typography>
-          {data.slice(0, 3).map((emp, i) => (
+          {data.sort((a, b) => Number(b.completed) - Number(a.completed)).slice(0, 3).map((emp, i) => (
             <Typography key={i}>🟢 {emp.name}</Typography>
           ))}
         </Paper>
@@ -337,7 +378,7 @@ const ReportsPage = () => {
           <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
             Needs Attention
           </Typography>
-          {data.slice(-3).map((emp, i) => (
+          {data.sort((a, b) => Number(b.completed) - Number(a.completed)).slice(-3).map((emp, i) => (
             <Typography key={i} color="error.main">
               🔴 {emp.name}
             </Typography>
@@ -346,190 +387,150 @@ const ReportsPage = () => {
       </Grid>
       </Grid>
 
-      {/* Main Reports Section */}
-      <Paper sx={{ borderRadius: 2, overflow: "hidden" }}>
-        <Box sx={{ borderBottom: 1, borderColor: "divider", bgcolor: "background.paper" }}>
-          <Tabs value={activeTab} onChange={handleTabChange} textColor="primary" indicatorColor="primary">
-            <Tab label="Attendance Summary" sx={{ fontWeight: "bold" }} />
-            <Tab label="Leaves & Requests" sx={{ fontWeight: "bold" }} />
-            <Tab label="Task Progress" sx={{ fontWeight: "bold" }} />
-          </Tabs>
-        </Box>
+{/* Main Reports Section */}
+<Paper sx={{ borderRadius: 2, overflow: "hidden" }}>
+  <Box sx={{ borderBottom: 1, borderColor: "divider", bgcolor: "background.paper" }}>
+    <Tabs value={activeTab} onChange={handleTabChange} textColor="primary" indicatorColor="primary">
+      <Tab label="Attendance Summary" sx={{ fontWeight: "bold" }} />
+      <Tab label="Leaves & Requests" sx={{ fontWeight: "bold" }} />
+      <Tab label="Task Progress" sx={{ fontWeight: "bold" }} />
+    </Tabs>
+  </Box>
 
-        <Box sx={{ p: 4, bgcolor: "background.paper" }}>
-          {loading ? (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 5 }}>
-              <CircularProgress />
+  <Box sx={{ p: 4, bgcolor: "background.paper" }}>
+    {/* 🔥 CENTERED TITLE */}
+    <Typography 
+      variant="h6" 
+      sx={{ mb: 1, fontWeight: 600, textAlign: "center" }}
+    >
+      {activeTab === 0 && "Attendance Overview"}
+      {activeTab === 1 && "Leave Trends"}
+      {activeTab === 2 && "Task Performance"}
+    </Typography>
+    {loading ? (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 5 }}>
+        <CircularProgress />
+      </Box>
+    ) : (
+      <Grid container spacing={3} justifyContent="center">
+
+        {/* LEFT: CHART */}
+        <Grid item xs={12} md={6}>
+          
+
+
+          <Typography
+            variant="h6"
+            color="text.secondary"
+            sx={{ mb: 2, fontWeight: 600, textAlign: "center" }}
+          >
+            Visual Analysis
+          </Typography>
+
+          {/* 🔥 FIXED SIZE 600x600 */}
+          <Paper
+            variant="outlined"
+            sx={{
+              p: 3,
+              width: 600,
+              height: 600,
+              borderRadius: 4,
+              display: "flex",
+              flexDirection: "column",
+              margin: "0 auto",
+              background: "linear-gradient(145deg, #0f172a, #1e293b)",
+              boxShadow: "inset 0 0 20px rgba(255,255,255,0.02)"
+            }}
+          >
+            <Box sx={{ height: "100%", width: "100%" }}>
+              {activeTab === 0 && renderAttendanceChart()}
+              {activeTab === 1 && renderLeaveChart()}
+              {activeTab === 2 && (
+                chartDataB.every(d => d.completed === 0 && d.pending === 0) ? (
+                  <Typography textAlign="center" mt={5}>
+                    No task data available
+                  </Typography>
+                ) : (
+                  renderTaskChart()
+                )
+              )}
             </Box>
-          ) : (
-            <Grid container spacing={4}>
-              {/* Visual Analysis */}
-              {/* <Grid item xs={12} md={7}>
-                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                  {activeTab === 0 && "Attendance Overview"}
-                  {activeTab === 1 && "Leave Trends"}
-                  {activeTab === 2 && "Task Performance"}
-                </Typography>
-                <Typography variant="h6" gutterBottom color="text.secondary" sx={{ fontWeight: 600, mb: 1 }}>
-                  Visual Analysis
-                </Typography>
-                <Paper variant="outlined" sx={{ p: 2, boxShadow: 1, height: "100%", width: "600px" }}>
-                  {activeTab === 0 && renderAttendanceChart()}
-                  {activeTab === 1 && renderLeaveChart()}
-                  {activeTab === 2 && renderTaskChart()}
-                </Paper>
-              </Grid> */}
+          </Paper>
+        </Grid>
 
-                  <Grid item xs={12} md={7}>
-                    <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                      {activeTab === 0 && "Attendance Overview"}
-                      {activeTab === 1 && "Leave Trends"}
-                      {activeTab === 2 && "Task Performance"}
-                    </Typography>
+        {/* RIGHT: TABLE */}
+        <Grid item xs={12} md={6}>
+          <Typography
+            variant="h6"
+            color="text.secondary"
+            sx={{ mb: 2, fontWeight: 600, textAlign: "center" }}
+          >
+            Important Records
+          </Typography>
 
-                    <Typography
-                      variant="h6"
-                      gutterBottom
-                      color="text.secondary"
-                      sx={{ fontWeight: 600, mb: 1 }}
-                    >
-                      Visual Analysis
-                    </Typography>
+          {/* 🔥 FIXED SIZE 600x600 */}
+          <Paper
+            variant="outlined"
+            sx={{
+              height: 600,
+              width: 600,
+              overflowY: "auto",
+              p: 1,
+              margin: "0 auto"
+            }}
+          >
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mb: 1, display: "block" }}
+            >
+              Showing top 8 records
+            </Typography>
 
-                   <Paper
-                    variant="outlined"
+            <Table size="small">
+              <TableHead sx={{ bgcolor: "grey.100" }}>
+                <TableRow>
+                  {data.length > 0 &&
+                    Object.keys(data[0]).map((key) => (
+                      <TableCell
+                        key={key}
+                        sx={{ fontWeight: 600, textTransform: "capitalize" }}
+                      >
+                        {key.replace(/_/g, " ")}
+                      </TableCell>
+                    ))}
+                </TableRow>
+              </TableHead>
+
+              <TableBody>
+                {data.slice(0, 8).map((row, i) => (
+                  <TableRow
+                    key={i}
+                    hover
                     sx={{
-                      p: 2,
-                      boxShadow: 1,
-                      height: "100%",
-                      width: "600px",
-                      overflowX: "auto",
-                      overflowY: "hidden"
+                      bgcolor: i % 2 === 0 ? "background.default" : "transparent",
+                      "&:hover": { bgcolor: "action.hover" }
                     }}
                   >
-                    <Box sx={{ width: "900px" }}>
-                      {activeTab === 0 && renderAttendanceChart()}
-                      {activeTab === 1 && renderLeaveChart()}
-                      {activeTab === 2 && renderTaskChart()}
-                    </Box>
-                  </Paper>
-                  </Grid>
-
-              {/* Detailed Data */}
-              {/* <Grid item xs={12} md={5}>
-                <Typography variant="h6" color="text.secondary" sx={{ mb: 2, fontWeight: 600 }}>
-                  Important Records
-                </Typography>
-                <Paper variant="outlined" sx={{ height: "400px", overflow: "auto", width: "100%", maxWidth: "100%" }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
-                    Showing top 8 records
-                  </Typography>
-                  <Table size="small">
-                    <TableHead sx={{ bgcolor: "grey.100" }}>
-                      <TableRow>
-                        {data.length > 0 &&
-                          Object.keys(data[0]).map(key => (
-                            <TableCell
-                              key={key}
-                              sx={{ fontWeight: 600, textTransform: "capitalize" }}
-                            >
-                              {key.replace(/_/g, " ")}
-                            </TableCell>
-                          ))
-                        }
-                      </TableRow>
-                    </TableHead>
-                  <TableBody>
-                    {data.slice(0, 8).map((row, i) => (
-                      <TableRow
-                        key={i}
-                        hover
-                        sx={{
-                          bgcolor: i % 2 === 0 ? "background.default" : "transparent",
-                          "&:hover": { bgcolor: "action.hover" }
-                        }}
-                      >
-                        {Object.values(row).map((val, index) => (
-                          <TableCell key={index}>
-                            {typeof val === "number" && val % 1 !== 0
-                              ? val.toFixed(1)
-                              : val}
-                          </TableCell>
-                        ))}
-                      </TableRow>
+                    {Object.values(row).map((val, index) => (
+                      <TableCell key={index}>
+                        {typeof val === "number" && val % 1 !== 0
+                          ? val.toFixed(1)
+                          : val}
+                      </TableCell>
                     ))}
-                  </TableBody>
-                  </Table>
-                </Paper>
-              </Grid> */}
-              <Grid item xs={12} md={5}>
-                <Typography
-                  variant="h6"
-                  color="text.secondary"
-                  sx={{ mb: 2, fontWeight: 600 }}
-                >
-                  Important Records
-                </Typography>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Paper>
+        </Grid>
 
-                <Paper
-                  variant="outlined"
-                  sx={{
-                    height: "700px",
-                    overflow: "auto",
-                    width: "600px",     
-                    maxWidth: "600px"   
-                  }}
-                >
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ mb: 1, display: "block" }}
-                  >
-                    Showing top 8 records
-                  </Typography>
+      </Grid>
+    )}
+  </Box>
+</Paper>
 
-                  <Table size="small">
-                    <TableHead sx={{ bgcolor: "grey.100" }}>
-                      <TableRow>
-                        {data.length > 0 &&
-                          Object.keys(data[0]).map((key) => (
-                            <TableCell
-                              key={key}
-                              sx={{ fontWeight: 600, textTransform: "capitalize" }}
-                            >
-                              {key.replace(/_/g, " ")}
-                            </TableCell>
-                          ))}
-                      </TableRow>
-                    </TableHead>
-
-                    <TableBody>
-                      {data.slice(0, 8).map((row, i) => (
-                        <TableRow
-                          key={i}
-                          hover
-                          sx={{
-                            bgcolor: i % 2 === 0 ? "background.default" : "transparent",
-                            "&:hover": { bgcolor: "action.hover" }
-                          }}
-                        >
-                          {Object.values(row).map((val, index) => (
-                            <TableCell key={index}>
-                              {typeof val === "number" && val % 1 !== 0
-                                ? val.toFixed(1)
-                                : val}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </Paper>
-              </Grid>
-            </Grid>
-          )}
-        </Box>
-      </Paper>
     </Container>
   );
 };
