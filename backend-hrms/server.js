@@ -31,16 +31,24 @@ import { connectDB } from "./config/sequelize.js";
 connectDB();
 
 const app = express();
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://eq-hrms.eqserver.net"
+];
 
 app.use(cors({
-  origin: "https://eq-hrms.eqserver.net",
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+  origin: function (origin, callback) {
+    // allow requests with no origin (like Postman)
+    if (!origin) return callback(null, true);
 
-app.options("*", cors());
-app.get("/",(req,res)=>{res.send("hello ")})
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
+}));
 app.use(express.json());
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url}`);

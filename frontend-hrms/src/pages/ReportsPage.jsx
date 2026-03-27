@@ -165,23 +165,27 @@ const chartDataB = [...data]
 const renderAttendanceChart = () => (
   <ResponsiveContainer width="100%" height="100%">
     <BarChart data={chartDataA} barSize={30}>
-      <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+    <CartesianGrid 
+      stroke={theme.palette.divider}
+      strokeDasharray="3 3"
+      opacity={0.3}
+    />
 
-      <XAxis 
-        dataKey="name"
-        tick={{ fill: "#9CA3AF", fontSize: 12 }}
-      />
+    <XAxis 
+      dataKey="name"
+      tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
+    />
 
-      <YAxis tick={{ fill: "#9CA3AF" }} />
+    <YAxis tick={{ fill: theme.palette.text.secondary }} />
 
-      <Tooltip
-        contentStyle={{
-          background: "#111827",
-          border: "none",
-          borderRadius: "8px",
-          color: "#fff"
-        }}
-      />
+    <ChartTooltip
+      contentStyle={{
+        background: theme.palette.background.paper,
+        border: "none",
+        borderRadius: "8px",
+        color: theme.palette.text.primary
+      }}
+    />
 
       <Legend />
 
@@ -219,7 +223,6 @@ const renderLeaveChart = () => {
           dataKey="value"
           cx="50%"
           cy="50%"
-          innerRadius={60}
           outerRadius={140}
           paddingAngle={3}
         >
@@ -228,7 +231,14 @@ const renderLeaveChart = () => {
           ))}
         </Pie>
         <Legend />
-        <ChartTooltip />
+        <ChartTooltip
+          contentStyle={{
+            background: theme.palette.background.paper,
+            border: "none",
+            borderRadius: "8px",
+            color: theme.palette.text.primary
+          }}
+        />
       </PieChart>
     </ResponsiveContainer>
   );
@@ -237,10 +247,27 @@ const renderLeaveChart = () => {
 const renderTaskChart = () => (
   <ResponsiveContainer width="100%" height="100%">
     <BarChart data={chartDataB} barSize={30}>
-      <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-      <XAxis dataKey="name" />
-      <YAxis />
-      <ChartTooltip />
+    <CartesianGrid 
+      stroke={theme.palette.divider}
+      strokeDasharray="3 3"
+      opacity={0.3}
+    />
+
+    <XAxis 
+      dataKey="name"
+      tick={{ fill: theme.palette.text.secondary }}
+    />
+
+    <YAxis tick={{ fill: theme.palette.text.secondary }} />
+
+    <ChartTooltip
+      contentStyle={{
+        background: theme.palette.background.paper,
+        border: "none",
+        borderRadius: "8px",
+        color: theme.palette.text.primary
+      }}
+    />
       <Legend />
 
       <Bar 
@@ -438,7 +465,7 @@ const renderTaskChart = () => (
               display: "flex",
               flexDirection: "column",
               margin: "0 auto",
-              background: "linear-gradient(145deg, #0f172a, #1e293b)",
+              background: theme.palette.background.default,
               boxShadow: "inset 0 0 20px rgba(255,255,255,0.02)"
             }}
           >
