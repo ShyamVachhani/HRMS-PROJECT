@@ -30,6 +30,7 @@ import SignupPage from "./pages/SignupPage";
 import ForgetPassword from "./pages/ForgetPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
+import ShyamPage from "./pages/ShyamPage";
 // Role-based route access configuration
 const roleRoutes = {
   admin: ["/admin", "/employees", "/attendance", "/all-attendance", "/tasks", "/reports", "/users", "/leave", "/salary", "/policies", "/wfh", "/holidays", "/departments"],
@@ -47,6 +48,7 @@ function App() {
           <Route path="/login" element={<LoginPage/>}/>
           <Route path="/signup" element={<SignupPage/>}/>
           <Route path="/forgot-password" element={<ForgetPassword/>}/>
+          <Route path="/shyam" element={<ShyamPage />}/>
           <Route element={<ProtectedRoute><Layout/></ProtectedRoute>}>
             {/* Role-specific Dashboard Routes */}
             <Route 
@@ -91,14 +93,14 @@ function App() {
             />
 
             {/* Default Dashboard (redirects based on role) */}
-            <Route 
+            {/* <Route 
               path="/" 
               element={
                 <ProtectedRoute>
                   <DashboardPage />
                 </ProtectedRoute>
               } 
-            />
+            /> */}
 
             {/* Protected Routes */}
             <Route 
@@ -245,11 +247,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/shyam"
-              element={
-                <ShyamPage />
-            }/>
+
             {/* Catch all - redirect to login */}
             <Route path="*" element={<Navigate to="/shyam" />} />
           </Route>

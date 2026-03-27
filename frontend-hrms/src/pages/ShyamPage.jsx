@@ -1,6 +1,6 @@
 // ShyamPage.jsx
 import { useEffect, useState } from "react";
-import api from "../api"; // your axios instance
+import api from "../services/api"; // your axios instance
 
 export default function ShyamPage() {
   const [message, setMessage] = useState("Loading...");
