@@ -11,12 +11,12 @@ import {
 const router = express.Router();
 
 // GET /api/admin/hrs — all HR employees
-router.get("/hrs", verifyToken, authorizeRoles("admin"), getHrs);
+router.get("/hrs", verifyToken, authorizeRoles("admin", "hr"), getHrs);
 
 // GET /api/admin/managers?hrId=<id> — managers under a specific HR
-router.get("/managers", verifyToken, authorizeRoles("admin"), getManagers);
+router.get("/managers", verifyToken, authorizeRoles("admin", "hr"), getManagers);
 
 // POST /api/admin/create-employee — create user + employee atomically
-router.post("/create-employee", verifyToken, authorizeRoles("admin"), createEmployee);
+router.post("/create-employee", verifyToken, authorizeRoles("admin","hr"), createEmployee);
 
 export default router;

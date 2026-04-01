@@ -79,6 +79,8 @@ const EmployeePage = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [deleteName, setDeleteName] = useState("");
   
+  const [totalEmployees, setTotalEmployees] = useState(0);
+
   const [roleFilter, setRoleFilter] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
   const user = JSON.parse(localStorage.getItem("user"));
@@ -127,6 +129,10 @@ const EmployeePage = () => {
     if (selectedRole === "admin") {
       setPosition("Administrator");
     }
+
+    if (selectedRole === "manager") {
+      setDepartmentFilter(departmentFilter.filter(dept => dept ==! "HR"));
+    }
   };
 
   const showSnackbar = (message, severity = "success") => {
@@ -136,7 +142,7 @@ const EmployeePage = () => {
   const fetchEmployees = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/employees");
+      const res = await api.get(`/employees?page=${page + 1}&limit=${rowsPerPage}`);
       // const data = res.data;
       // let employeesArray = [];
       // if (Array.isArray(data)) {
@@ -151,6 +157,7 @@ const EmployeePage = () => {
         join_date: emp.join_date ? emp.join_date.split("T")[0] : ""
       }));
       setEmployees(formatted);
+      setTotalEmployees(res.data.pagination?.totalEmployees || 0);
     } catch (error) {
       console.error("Error:", error);
       showSnackbar("Failed to load employees", "error");
@@ -394,6 +401,9 @@ const EmployeePage = () => {
 
   useEffect(() => {
     fetchEmployees();
+  }, [page, rowsPerPage]);
+
+  useEffect(() => {
     fetchDepartments();
     // fetchPositions();
   }, []);
@@ -428,7 +438,15 @@ const EmployeePage = () => {
     if (value === "hr") {
       setDepartmentFilter("HR"); // force HR dept
     }
+
+    if (value === "manager") {
+      setDepartmentFilter(departmentFilter.filter(dept => dept ==! "HR"));
+    }
   };
+
+  const selectedDepartmentName = departments.find(
+    (d) => d.id === departmentId
+  )?.name;
 
   return (
     <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
@@ -609,7 +627,7 @@ const EmployeePage = () => {
               </TableRow>
             ) : (
               filteredEmployees
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                // .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((emp) => (
                   <TableRow key={emp.id} hover>
 
@@ -648,7 +666,7 @@ const EmployeePage = () => {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25, 50]}
           component="div"
-          count={filteredEmployees.length}
+          count={totalEmployees}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={(event, newPage) => setPage(newPage)}
@@ -687,7 +705,7 @@ const EmployeePage = () => {
             </TextField>
 
             {/* HR dropdown — for Manager/Developer/Intern */}
-            {(role === "manager" || role === "developer" || role === "intern") && (
+            {(role === "manager" || role === "developer" || role === "intern" ) && (
               <TextField
                 select
                 label="Select HR"
@@ -785,12 +803,17 @@ const EmployeePage = () => {
                 onChange={(e) => setDepartmentId(e.target.value)}
                 fullWidth
                 required={role !== "admin"}
-                disabled={role === "admin" || role === "hr"}
+                disabled={role === "admin" || (role === "hr" && selectedDepartmentName === "HR")} // 🔥 remove hr from here
               >
                 <MenuItem value="">Select Department</MenuItem>
-                {departments.map((dept) => (
-                  <MenuItem key={dept.id} value={dept.id}>{dept.name}</MenuItem>
-                ))}
+
+                {departments
+                  .filter((dept) => !(role === "manager" && dept.name === "HR")) // 🔥 key fix
+                  .map((dept) => (
+                    <MenuItem key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </MenuItem>
+                  ))}
               </TextField>
             )}
             <TextField

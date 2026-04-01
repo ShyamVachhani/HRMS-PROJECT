@@ -31,7 +31,7 @@ export function CustomThemeProvider({ children }) {
             main: mode === "light" ? "#1E3A8A" : "#60A5FA", 
           },
           secondary: {
-            main: mode === "light" ? "#3B82F6" : "#93C5FD",
+            main: mode === "light" ? "#1E3A8A" : "#60A5FA",
           },
           background: {
             default: mode === "light" ? "#F8FAFC" : "#0F172A",
@@ -51,24 +51,24 @@ export function CustomThemeProvider({ children }) {
             border: mode === "light" ? "#3B82F6" : "#2563EB"
           },
           manager: { 
-            main: mode === "light" ? "#7C3AED" : "#A78BFA",
-            bg: mode === "light" ? "#F5F3FF" : "#2E1065",
-            border: mode === "light" ? "#8B5CF6" : "#7C3AED"
+            main: mode === "light" ? "#1E3A8A" : "#60A5FA",
+            bg: mode === "light" ? "#EEF2FF" : "#1E293B",
+            border: mode === "light" ? "#3B82F6" : "#2563EB"
           },
           hr: { 
-            main: mode === "light" ? "#059669" : "#34D399",
-            bg: mode === "light" ? "#ECFDF5" : "#064E3B",
-            border: mode === "light" ? "#10B981" : "#059669"
+            main: mode === "light" ? "#1E3A8A" : "#60A5FA",
+            bg: mode === "light" ? "#EEF2FF" : "#1E293B",
+            border: mode === "light" ? "#3B82F6" : "#2563EB"
           },
           developer: { 
-            main: mode === "light" ? "#DC2626" : "#F87171",
-            bg: mode === "light" ? "#FEF2F2" : "#450A0A",
-            border: mode === "light" ? "#EF4444" : "#DC2626"
+            main: mode === "light" ? "#1E3A8A" : "#60A5FA",
+            bg: mode === "light" ? "#EEF2FF" : "#1E293B",
+            border: mode === "light" ? "#3B82F6" : "#2563EB"
           },
           intern: { 
-            main: mode === "light" ? "#D97706" : "#FBBF24",
-            bg: mode === "light" ? "#FFFBEB" : "#451A03",
-            border: mode === "light" ? "#F59E0B" : "#D97706"
+            main: mode === "light" ? "#1E3A8A" : "#60A5FA",
+            bg: mode === "light" ? "#EEF2FF" : "#1E293B",
+            border: mode === "light" ? "#3B82F6" : "#2563EB"
           }
         },
         typography: {
@@ -102,6 +102,7 @@ export function CustomThemeProvider({ children }) {
               }
             }
           },
+
           MuiAppBar: {
             styleOverrides: {
               root: {

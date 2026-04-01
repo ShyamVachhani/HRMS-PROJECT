@@ -375,7 +375,18 @@ const SalaryPage = () => {
                 variant="contained"
                 startIcon={<GroupAddIcon />}
                 onClick={() => setBulkDialogOpen(true)}
-                sx={{ bgcolor: "white", color: "primary.main", fontWeight: "bold", "&:hover": { bgcolor: "rgba(255,255,255,0.9)" } }}
+                sx={(theme) => ({
+                  bgcolor: "background.paper",
+                  color: "primary.main",
+
+                  "&:hover": {
+                    bgcolor: theme.palette.mode === "light" ? "#ffffff" : "#121212",
+                  },
+
+                  "&:active": {
+                    bgcolor: theme.palette.mode === "light" ? "#ffffff" : "#121212",
+                  },
+                })}
             >
                 Bulk Generation
             </Button>

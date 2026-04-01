@@ -211,36 +211,15 @@ const PolicyPage = () => {
                 startIcon={<AddIcon />}
                 onClick={handleAddOpen}
                 sx={(theme) => ({
-                  // Base background changes with theme
-                  bgcolor: theme.palette.mode === "light" 
-                    ? theme.palette.common.white 
-                    : theme.palette.grey[900],
-
-                  // Text color: dark blue in light, sky blue in dark
-                  color: theme.palette.mode === "light" 
-                    ? "#0d47a1"   // dark blue
-                    : "#38bdf8",  // sky blue
-
-                  boxShadow: "none",
+                  bgcolor: "background.paper",
+                  color: "primary.main",
 
                   "&:hover": {
-                    bgcolor: theme.palette.mode === "light" 
-                      ? theme.palette.common.white 
-                      : theme.palette.grey[900],
-                    color: theme.palette.mode === "light" 
-                      ? "#0d47a1" 
-                      : "#38bdf8",
-                    boxShadow: "none",
+                    bgcolor: theme.palette.mode === "light" ? "#ffffff" : "#121212",
                   },
 
                   "&:active": {
-                    bgcolor: theme.palette.mode === "light" 
-                      ? theme.palette.common.white 
-                      : theme.palette.grey[900],
-                    color: theme.palette.mode === "light" 
-                      ? "#0d47a1" 
-                      : "#38bdf8",
-                    boxShadow: "none",
+                    bgcolor: theme.palette.mode === "light" ? "#ffffff" : "#121212",
                   },
                 })}
               >

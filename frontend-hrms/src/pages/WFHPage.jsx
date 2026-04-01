@@ -226,46 +226,25 @@ const WFHPage = () => {
             >
               Apply WFH
             </Button> */}
-            <Button
+            {user.role !== "admin" && (<Button
                 variant="contained"
                 startIcon={<AddIcon />}
                 onClick={handleApplyOpen}
                 sx={(theme) => ({
-                  // Base background changes with theme
-                  bgcolor: theme.palette.mode === "light"
-                    ? theme.palette.common.white
-                    : theme.palette.grey[900],
-
-                  // Text color based on theme
-                  color: theme.palette.mode === "light"
-                    ? "#0d47a1" // dark blue
-                    : "#38bdf8", // sky blue
-
-                  boxShadow: "none",
+                  bgcolor: "background.paper",
+                  color: "primary.main",
 
                   "&:hover": {
-                    bgcolor: theme.palette.mode === "light"
-                      ? theme.palette.common.white
-                      : theme.palette.grey[900],
-                    color: theme.palette.mode === "light"
-                      ? "#0d47a1"
-                      : "#38bdf8",
-                    boxShadow: "none",
+                    bgcolor: theme.palette.mode === "light" ? "#ffffff" : "#121212",
                   },
 
                   "&:active": {
-                    bgcolor: theme.palette.mode === "light"
-                      ? theme.palette.common.white
-                      : theme.palette.grey[900],
-                    color: theme.palette.mode === "light"
-                      ? "#0d47a1"
-                      : "#38bdf8",
-                    boxShadow: "none",
+                    bgcolor: theme.palette.mode === "light" ? "#ffffff" : "#121212",
                   },
                 })}
               >
                 Apply WFH
-              </Button>
+              </Button>)}
             <Tooltip title="Refresh">
               <IconButton onClick={fetchHistory} sx={{ color: "white" }}>
                 <RefreshIcon />

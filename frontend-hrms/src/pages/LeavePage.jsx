@@ -266,7 +266,7 @@ function LeavePage() {
             >
               Apply Leave
             </Button> */}
-            <Button
+            {user.role !== "admin" && (<Button
                 variant="contained"
                 startIcon={<AddIcon />}
                 onClick={handleApplyOpen}
@@ -292,7 +292,7 @@ function LeavePage() {
                 })}
               >
                 Apply Leave
-              </Button>
+              </Button>)}
             <Tooltip title="Refresh">
               <IconButton onClick={fetchLeaves} sx={{ color: "white" }}>
                 <RefreshIcon />
