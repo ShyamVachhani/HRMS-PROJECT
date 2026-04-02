@@ -1,21 +1,27 @@
 import db from "../config/db.js";
-
-export const addUser = (req, res) => {
+import bcrypt from "bcrypt";
+export const addUser = async (req, res) => {
   const { username, email, password, role } = req.body;
 
-  db.query(
-    "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
-    [username, email, password, role],
-    (err, result) => {
-      if (err) return res.status(500).json(err);
-      res.json({ message: "User added", id: result.insertId });
-    }
-  );
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    db.query(
+      "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
+      [username, email, hashedPassword, role],
+      (err, result) => {
+        if (err) return res.status(500).json(err);
+        res.json({ message: "User added", id: result.insertId });
+      }
+    );
+  } catch (err) {
+    res.status(500).json({ message: "Error hashing password" });
+  }
 };
 
 export const getUsers = (req, res) => {
 
-  const sql = `
+const sql = `
   SELECT
     u.id,
     u.username,
@@ -38,19 +44,58 @@ export const getUsers = (req, res) => {
   });
 };
 
-export const updateUser = (req, res) => {
-
+export const updateUser = async (req, res) => {
   const id = req.params.id;
-  const { username, email, role } = req.body;
+  const { username, email, password } = req.body;
+  if (!username || username.trim().length < 3) {
+    return res.status(400).json({ message: "Invalid username" });
+  }
 
-  db.query(
-    "UPDATE users SET username = ?, email = ?, role = ? WHERE id = ?",
-    [username, email, role, id],
-    (err) => {
-      if (err) return res.status(500).json(err);
-      res.json({ message: "User updated" });
+  const emailRegex = /^\S+@\S+\.\S+$/;
+  if (!email || !emailRegex.test(email)) {
+    return res.status(400).json({ message: "Invalid email" });
+  }
+
+  if (password && password.length < 6) {
+    return res.status(400).json({ message: "Password must be at least 6 characters" });
+  }
+  try {
+    let query = "UPDATE users SET username = ?, email = ?";
+    let values = [username, email];
+
+    // only update password if provided
+    if (password && typeof password === "string" && password.trim() !== "") {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      query += ", password = ?";
+      values.push(hashedPassword);
     }
-  );
+
+    query += " WHERE id = ?";
+    values.push(id);
+
+    // 🔥 STEP 1: Update users table
+    db.query(query, values, (err) => {
+      if (err) {
+        console.error("DB ERROR:", err); // 🔥 IMPORTANT
+        return res.status(500).json(err);
+      }
+
+      db.query(
+        "UPDATE employees SET name = ? WHERE user_id = ?",
+        [username, id],
+        (err2) => {
+          if (err2) {
+            console.error("EMPLOYEE ERROR:", err2); // 🔥 IMPORTANT
+          }
+
+          res.json({ message: "User updated successfully" });
+        }
+      );
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: "Error updating user" });
+  }
 };
 
 export const deleteUser = (req, res) => {

@@ -251,19 +251,6 @@ const LoginPage = () => {
           {loading ? "Logging in..." : "Login"}
         </Button>
 
-        <Typography
-          sx={{
-            mb: 2,
-            cursor: "pointer",
-            color: "primary.main",
-            textDecoration: "underline",
-            "&:hover": { color: "primary.dark" },
-          }}
-          onClick={() => navigate("/forgot-password")}
-        >
-          Forgot Password?
-        </Typography>
-
         <Typography sx={{ mt: 3 }}>
           Don't have an account?
           <Button

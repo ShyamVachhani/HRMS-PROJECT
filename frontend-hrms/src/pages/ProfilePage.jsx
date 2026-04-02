@@ -34,7 +34,7 @@ export default function ProfilePage() {
     message: "",
     severity: "success"
   });
-
+  const [errors, setErrors] = useState({});
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
 
@@ -68,6 +68,7 @@ export default function ProfilePage() {
   };
 
   const saveProfile = async () => {
+    if (!validateForm()) return;
     setSaving(true);
     const user = JSON.parse(localStorage.getItem("user"));
     try {
@@ -90,6 +91,32 @@ export default function ProfilePage() {
 
     setSelectedFile(file);
     setPreview(URL.createObjectURL(file));
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Name
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required";
+    } else if (formData.name.length < 3) {
+      newErrors.name = "Name must be at least 3 characters";
+    }
+
+    // Email
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+      newErrors.email = "Invalid email format";
+    }
+
+    // Phone (optional but validate if entered)
+    if (formData.phone && !/^\d{10}$/.test(formData.phone)) {
+      newErrors.phone = "Phone must be 10 digits";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const uploadProfileImage = async () => {
@@ -189,23 +216,22 @@ export default function ProfilePage() {
 
             <label htmlFor="profile-upload">
               <Box
-                sx={{
+                sx={(theme) => ({
                   position: "absolute",
                   bottom: 0,
                   right: 0,
                   width: 24,
                   height: 24,
                   borderRadius: "50%",
-                  bgcolor: "white",
-                  bgcolor: isDark ? "#424242" : "#ffffff",
-                  border: "1px solid #ccc",
-                  borderColor: isDark ? "#666" : "#ccc",
+                  bgcolor: theme.palette.background.paper,
+                  border: "1px solid",
+                  borderColor: theme.palette.divider,
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
                   cursor: "pointer",
-                  "&:hover": { bgcolor: "action.hover" }
-                }}
+                  "&:hover": { bgcolor: theme.palette.action.hover }
+                })}
               >
                 <CameraAltIcon sx={{ fontSize: 16, color: isDark ? "#ffffff" : "#000000" }} />
               </Box>
@@ -233,13 +259,13 @@ export default function ProfilePage() {
 
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6}>
-            <TextField label="Name" name="name" value={formData.name} onChange={handleChange} fullWidth size="small" disabled={!editing} />
+            <TextField label="Name" name="name" value={formData.name} onChange={handleChange} fullWidth size="small" disabled={!editing} error={!!errors.name} helperText={errors.name}/>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField label="Email" name="email" value={formData.email} onChange={handleChange} fullWidth size="small" disabled={!editing} />
+            <TextField label="Email" name="email" value={formData.email} onChange={handleChange} fullWidth size="small" disabled={!editing} error={!!errors.email} helperText={errors.email}/>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField label="Phone" name="phone" value={formData.phone} onChange={handleChange} fullWidth size="small" disabled={!editing} />
+            <TextField label="Phone" name="phone" value={formData.phone} onChange={handleChange} fullWidth size="small" disabled={!editing} error={!!errors.phone} helperText={errors.phone}/>
           </Grid>
         </Grid>
 

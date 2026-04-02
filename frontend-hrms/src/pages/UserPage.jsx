@@ -60,6 +60,7 @@ const UserPage = () => {
   const [editId, setEditId] = useState(null);
   const [editUsername, setEditUsername] = useState("");
   const [editEmail, setEditEmail] = useState("");
+  const [editPassword, setEditPassword] = useState("");
   const [editRole, setEditRole] = useState("");
   const [editDepartmentId, setEditDepartmentId] = useState("");
 
@@ -167,21 +168,52 @@ const UserPage = () => {
   };
 
   const handleEditSave = async () => {
-    if (!editUsername || !editEmail || !editRole) {
+    if (!editUsername || !editEmail) {
       showSnackbar("Please fill in required fields", "error");
       return;
     }
+    if (!editUsername.trim()) {
+      showSnackbar("Username is required", "error");
+      return;
+    }
 
+    if (editUsername.length < 3) {
+      showSnackbar("Username must be at least 3 characters", "error");
+      return;
+    }
+
+    if (!editEmail.trim()) {
+      showSnackbar("Email is required", "error");
+      return;
+    }
+
+    const emailRegex = /^\S+@\S+\.\S+$/;
+    if (!emailRegex.test(editEmail)) {
+      showSnackbar("Invalid email format", "error");
+      return;
+    }
+
+    // password optional but validate if entered
+    if (editPassword && editPassword.length < 6) {
+      showSnackbar("Password must be at least 6 characters", "error");
+      return;
+    }
     setLoading(true);
     try {
-      await api.put(`/users/update/${editId}`, {
+      const payload = {
         username: editUsername,
-        email: editEmail,
-        role: editRole,
-        department_id: editDepartmentId || null
-      });
+        email: editEmail
+      };
+
+      // only include password if entered
+      if (editPassword && editPassword.trim() !== "") {
+        payload.password = editPassword;
+      }
+
+      await api.put(`/users/update/${editId}`, payload);
 
       handleEditClose();
+      setEditPassword(""); // clear after save
       showSnackbar("User updated successfully");
       fetchUsers();
     } catch (error) {
@@ -269,7 +301,7 @@ const UserPage = () => {
             >
               Add User
             </Button> */}
-            <Button
+            {/* <Button
               variant="contained"
               startIcon={<AddIcon />}
               onClick={handleAddOpen}
@@ -287,7 +319,7 @@ const UserPage = () => {
                 })}
             >
               Add User
-            </Button>
+            </Button> */}
             <Tooltip title="Refresh">
               <IconButton onClick={fetchUsers} sx={{ color: "white" }}>
                 <RefreshIcon />
@@ -391,7 +423,7 @@ const UserPage = () => {
       </Paper>
 
       {/* Add User Dialog */}
-      <Dialog open={addDialogOpen} onClose={handleAddClose} maxWidth="sm" fullWidth>
+      {/* <Dialog open={addDialogOpen} onClose={handleAddClose} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ bgcolor: "error.main", color: "white" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <AddIcon />
@@ -467,7 +499,7 @@ const UserPage = () => {
             Add User
           </Button>
         </DialogActions>
-      </Dialog>
+      </Dialog> */}
 
       {/* Edit User Dialog */}
       <Dialog open={editOpen} onClose={handleEditClose} maxWidth="sm" fullWidth>
@@ -495,12 +527,19 @@ const UserPage = () => {
               required 
             />
             <TextField
+              label="Reset Password"
+              type="password"
+              value={editPassword}
+              onChange={(e) => setEditPassword(e.target.value)}
+              fullWidth
+            />
+            {/* <TextField
               select
               label="Role"
               value={editRole}
               onChange={(e) => setEditRole(e.target.value)}
               fullWidth
-              required
+              disabled
             >
               {roleOptions.map((r) => (
                 <MenuItem key={r.value} value={r.value}>
@@ -516,13 +555,13 @@ const UserPage = () => {
               label="Department"
               value={editDepartmentId}
               onChange={(e) => setEditDepartmentId(e.target.value)}
-              fullWidth
+              disabled
             >
               <MenuItem value="">Select Department</MenuItem>
               {departments.map((dept) => (
                 <MenuItem key={dept.id} value={dept.id}>{dept.name}</MenuItem>
               ))}
-            </TextField>
+            </TextField> */}
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 2, pt: 0 }}>

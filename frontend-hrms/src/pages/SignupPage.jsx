@@ -13,7 +13,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
-const roles = ["admin", "manager", "hr", "developer", "intern"];
+const roles = ["admin"];
 
 
 

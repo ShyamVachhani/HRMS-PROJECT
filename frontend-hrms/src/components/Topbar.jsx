@@ -356,12 +356,6 @@ export default function Topbar({ onMenuClick }){
                     </ListItemIcon>
                     My Profile
                 </MenuItem>
-                <MenuItem onClick={() => handleMenuNavigation('/settings')}>
-                    <ListItemIcon>
-                        <SettingsIcon fontSize="small" color="primary" />
-                    </ListItemIcon>
-                    Settings
-                </MenuItem>
                 <MenuItem onClick={() => handleMenuNavigation('/change-password')}>
                     <ListItemIcon>
                         <SettingsIcon fontSize="small" color="primary" />
