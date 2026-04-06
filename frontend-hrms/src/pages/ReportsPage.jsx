@@ -53,6 +53,11 @@ const ReportsPage = () => {
   const [reportType, setReportType] = useState("attendance");
 
   const COLORS = [theme.palette.primary.main, theme.palette.secondary.main, theme.palette.error.main, theme.palette.warning.main, theme.palette.success.main];
+  const STATUS_COLORS = {
+    Approved: theme.palette.success.main,
+    Pending: theme.palette.warning.main,
+    Rejected: theme.palette.error.main
+  };
 
   const fetchSummary = async () => {
     try {
@@ -226,8 +231,8 @@ const renderLeaveChart = () => {
           outerRadius={140}
           paddingAngle={3}
         >
-          {pieData.map((_, i) => (
-            <Cell key={i} fill={COLORS[i % COLORS.length]} />
+          {pieData.map((entry, i) => (
+            <Cell key={i} fill={STATUS_COLORS[entry.name]} />
           ))}
         </Pie>
         <Legend />
