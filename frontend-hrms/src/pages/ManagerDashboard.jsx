@@ -161,7 +161,7 @@ export default function ManagerDashboard() {
       const res = await api.get("/leaves/team");
       const leaves = res.data?.data || res.data || [];
 
-      const pending = leaves.filter(l => l.status === "Pending");
+      const pending = leaves.filter(l => l.status === "pending");
       setLeaveRequests(pending.slice(0, 3));
       setStats(prev => ({ ...prev, pendingLeaves: pending.length }));
     } catch (error) {

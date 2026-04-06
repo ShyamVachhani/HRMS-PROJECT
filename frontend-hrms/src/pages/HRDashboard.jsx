@@ -164,7 +164,7 @@ export default function HRDashboard() {
       const leaves = res.data?.data || res.data || [];
 
       const pending = leaves.filter(
-        l => l.status?.toLowerCase() === "pending"
+        l => ["pending", "managerapproved"].includes(l.status?.toLowerCase())
       );
 
       setLeaveRequests(pending.slice(0, 4));
@@ -179,7 +179,7 @@ export default function HRDashboard() {
     try {
       const res = await api.get("/wfh/all");
       const wfh = res.data?.data || res.data || [];
-      const pending = wfh.filter( r => r.status?.toLowerCase() === "pending" );
+      const pending = wfh.filter( r => ["pending", "managerapproved"].includes(r.status?.toLowerCase()) );
       setWfhRequests(pending.slice(0, 4));
       setStats(prev => ({ ...prev, wfhRequests: pending.length }));
     } catch (error) {
@@ -227,6 +227,24 @@ export default function HRDashboard() {
       fetchLeaves();
     } catch (error) {
       console.error("Error rejecting leave:", error);
+    }
+  };
+
+  const handleApproveWFH = async (id) => {
+    try {
+      await api.post("/wfh/approve", { id });
+      fetchWFH();
+    } catch (error) {
+      console.error("Error approving WFH:", error);
+    }
+  };
+
+  const handleRejectWFH = async (id) => {
+    try {
+      await api.post("/wfh/reject", { id });
+      fetchWFH();
+    } catch (error) {
+      console.error("Error rejecting WFH:", error);
     }
   };
 
@@ -467,7 +485,8 @@ export default function HRDashboard() {
                           </Typography>
                         </Box>
                         <Box sx={{ display: "flex", gap: 1 }}>
-                          <Button size="small" color="info">Manage</Button>
+                          <Button size="small" variant="contained" color="info" sx={{ fontSize: '0.65rem', px: 1, color: 'white' }} onClick={() => handleApproveWFH(request.id)}>Approve</Button>
+                          <Button size="small" variant="outlined" color="error" sx={{ fontSize: '0.65rem', px: 1 }} onClick={() => handleRejectWFH(request.id)}>Reject</Button>
                         </Box>
                       </Box>
                     ))

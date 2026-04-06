@@ -202,6 +202,12 @@ export const getLeaves = async (req, res) => {
   let whereClauses = [];
   let replacements = {};
 
+  const userRole = req.user.role;
+  
+  if (userRole === "hr") {
+    whereClauses.push("u.role != 'hr'");
+  }
+
   if (status) {
     whereClauses.push("l.status = :status");
     replacements.status = status;
