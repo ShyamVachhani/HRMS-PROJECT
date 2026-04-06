@@ -14,6 +14,12 @@ const calculateWorkingDays = (startDate, endDate) => {
   return count;
 };
 
+const calculateTotalDays = (startDate, endDate) => {
+  return Math.ceil(
+    (new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)
+  ) + 1;
+};
+
 /* Get Attendance Stats for an employee in a specific month/year */
 export const getAttendanceStats = async (req, res) => {
   const { employee_id, month, year } = req.query;
@@ -87,7 +93,6 @@ export const calculateSalary = async (req, res) => {
     const per_day_salary = parseFloat(monthly_salary) / working_days;
     const deduction = leave_days * per_day_salary;
     const final_salary = parseFloat(monthly_salary) - deduction;
-
     // Check for duplicate
     const [existing] = await sequelize.query(
       "SELECT id FROM salaries WHERE employee_id = :employee_id AND month = :month AND year = :year",
@@ -307,7 +312,12 @@ export const bulkGenerateSalary = async (req, res) => {
         "SELECT id FROM salaries WHERE employee_id = :empId AND month = :month AND year = :year",
         { replacements: { empId, month, year }, type: QueryTypes.SELECT }
       );
-      if (existing) { skipped++; continue; }
+      if (existing) {
+        await sequelize.query(
+          "DELETE FROM salaries WHERE employee_id = :empId AND month = :month AND year = :year",
+          { replacements: { empId, month, year } }
+        );
+      }
 
       // 2. Fetch Employee Basic
       const [employee] = await sequelize.query(
@@ -361,7 +371,7 @@ export const bulkGenerateSalary = async (req, res) => {
       for (const leave of leaveRows) {
         const start = leave.start_date > monthStart ? leave.start_date : monthStart;
         const end = leave.end_date < monthEnd ? leave.end_date : monthEnd;
-        const days = calculateWorkingDays(start, end);
+        const days = calculateTotalDays(start, end);
         
         total_leave_days += days;
         // User wants Paid, Sick, Emergency, and Casual leaves to be deductible.
@@ -382,12 +392,12 @@ export const bulkGenerateSalary = async (req, res) => {
       }
       const working_days = totalDaysInMonth - weekends;
       */
-      const working_days = calculateWorkingDays(monthStart, monthEnd);
+      const working_days = new Date(year, month, 0).getDate();
       const present_days = Math.max(0, working_days - leave_days);
       const per_day_salary = parseFloat(employee.basic_salary) / working_days;
       const leave_deduction = deductible_days * per_day_salary;
       const final_salary = parseFloat(employee.basic_salary) + allowance + bonus - (leave_deduction + parseFloat(otherDeduction));
-
+      console.log("Final Deduction:", leave_deduction);
       await sequelize.query(
         `INSERT INTO salaries (employee_id, month, year, basic_salary, allowance, bonus, working_days, present_days, leave_days, per_day_salary, deduction, final_salary, status)
          VALUES (:empId, :month, :year, :basic_salary, :allowance, :bonus, :working_days, :present_days, :leave_days, :per_day_salary, :deduction, :final_salary, 'Generated')`,

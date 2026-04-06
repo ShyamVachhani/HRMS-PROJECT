@@ -39,8 +39,12 @@ export const applyWFH = async (req, res) => {
       return res.status(400).json({ message: "End date cannot be before start date" });
     }
 
-    if (start_date && new Date(start_date) < new Date()) {
-      return res.status(400).json({ message: "You can't apply the wfh of past date!"});
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    if (start_date < todayStr) {
+      return res.status(400).json({
+        message: "You can't apply the WFH for a past date!"
+      });
     }
 
     const [overlapLeave] = await db.promise().query(
@@ -183,7 +187,7 @@ export const getWFHHistory = (req,res)=>{
      JOIN employees e ON w.employee_id=e.id
      JOIN users u ON e.user_id = u.id
      WHERE w.employee_id=?
-     ORDER BY w.start_date DESC`,
+     ORDER BY w.id DESC`,
     [employeeId],
     (err,result)=>{
       if(err) return res.status(500).json(err);

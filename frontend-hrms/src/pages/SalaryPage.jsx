@@ -33,7 +33,8 @@ import {
   Avatar,
   Checkbox,
   LinearProgress,
-  TablePagination
+  TablePagination,
+  Autocomplete
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
@@ -489,9 +490,20 @@ const SalaryPage = () => {
             {activeTab === 1 && (
                 <Box>
                     <Paper sx={{ p: 2, mb: 3, display: "flex", gap: 2, alignItems: "center" }}>
-                        <TextField select label="Select Employee" value={historyEmployeeId} onChange={(e) => setHistoryEmployeeId(e.target.value)} size="small" sx={{ minWidth: 300 }}>
-                            {employees.map(emp => <MenuItem key={emp.id} value={emp.id}>{emp.name} ({emp.position})</MenuItem>)}
-                        </TextField>
+                        <Autocomplete
+                          options={employees}
+                          getOptionLabel={(option) => `${option.name} (${option.position})`}
+                          value={employees.find(emp => emp.id === historyEmployeeId) || null}
+                          onChange={(e, newValue) => setHistoryEmployeeId(newValue?.id || "")}
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              label="Select Employee"
+                              size="small"
+                              sx={{ minWidth: 300 }}
+                            />
+                          )}
+                        />
                         <Button variant="outlined" onClick={fetchHistory} disabled={!historyEmployeeId}>View History</Button>
                     </Paper>
                     {loading ? <Box sx={{ textAlign: "center", py: 5 }}><CircularProgress /></Box> : renderTable(history, history.length, true)}

@@ -128,8 +128,9 @@ const WFHPage = () => {
       return;
     }
 
-    if (startDate && new Date(startDate) < new Date()) {
-      showSnackbar("You can't apply the wfh of past date!", "error");
+    const todayStr = new Date().toISOString().split("T")[0];
+    if (startDate < todayStr) {
+      showSnackbar("You can't apply the WFH of past date!", "error");
       return;
     }
 
@@ -212,10 +213,12 @@ const WFHPage = () => {
     return rec.wfh_date || start || "-";
   };
 
-  const filteredHistory = history.filter(rec =>
-    rec.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    rec.reason?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredHistory = history
+    .filter(rec =>
+      rec.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      rec.reason?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => b.id - a.id); // 🔥 NEWEST ON TOP
 
   return (
     <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>

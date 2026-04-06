@@ -65,8 +65,12 @@ export const applyLeave = async (req, res) => {
       return res.status(400).json({ message: "End date cannot be before start date" });
     }
 
-    if (start_date && new Date(start_date) < new Date()) {
-      return res.status(400).json({ message: "You can't apply the leave of past date!"});
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    if (start_date < todayStr) {
+      return res.status(400).json({
+        message: "You can't apply the Leave for a past date!"
+      });
     }
 
     // add START

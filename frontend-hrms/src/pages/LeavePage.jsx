@@ -155,8 +155,9 @@ function LeavePage() {
       return;
     }
 
-    if (startDate && new Date(startDate) < new Date()) {
-      showSnackbar("You can't apply the leave of past date!", "error");
+    const todayStr = new Date().toISOString().split("T")[0];
+    if (startDate < todayStr) {
+      showSnackbar("You can't apply the Leave of past date!", "error");
       return;
     }
 
