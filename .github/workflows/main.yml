@@ -1,0 +1,16 @@
+name: Run Script
+on:
+  push:
+    branches: dev
+jobs:
+  phpunit:
+    runs-on: hrms
+    steps:
+      - uses: actions/checkout@v1
+      - name: Git Push and Run services
+        working-directory: /var/www/node-apps/hrms/frontend-hrms
+        run: |
+          echo "hrms-ci-cd"
+          sudo git pull 
+          npm run build 
+          pm2 restart eq-hrms
