@@ -13,4 +13,4 @@ jobs:
           echo "hrms-ci-cd"
           sudo git pull 
           npm run build 
-          pm2 restart eq-hrms
+          pm2 restart 31
