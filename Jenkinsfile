@@ -15,7 +15,7 @@ pipeline {
                     sh '''
                         sudo -u nodejs bash -c '
                             export NVM_DIR=/home/nodejs/.nvm
-                            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                             npm install
                             npm run build
                         '
