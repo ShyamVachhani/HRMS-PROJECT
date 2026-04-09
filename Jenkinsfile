@@ -31,15 +31,14 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh '''
-                        sonar-scanner \
-                        -Dsonar.projectKey=hrms-frontend \
-                        -Dsonar.projectName=HRMS Frontend \
-                        -Dsonar.sources=frontend-hrms/src \
-                        -Dsonar.host.url=https://sonar.equest.solutions \
-                        -Dsonar.login=$SONAR_AUTH_TOKEN
-                    '''
+                docker.image('sonarsource/sonar-scanner-cli:latest').inside {
+                    sh """
+                    sonar-scanner \
+                    -Dsonar.projectKey=hrms-frontend \
+                    -Dsonar.sources=frontend-hrms/src \
+                    -Dsonar.host.url=https://sonar.equest.solutions \
+                    -Dsonar.login=$SONAR_AUTH_TOKEN
+                    """
                 }
             }
         }
