@@ -1,6 +1,10 @@
 pipeline {
     agent { label 'hrms' }
 
+    tools {
+        sonarQubeScanner 'sonar-scanner'
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -22,6 +26,27 @@ pipeline {
                         '
                     '''
                 }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                        sonar-scanner \
+                        -Dsonar.projectKey=hrms-frontend \
+                        -Dsonar.projectName=HRMS Frontend \
+                        -Dsonar.sources=frontend-hrms/src \
+                        -Dsonar.host.url=https://sonar.equest.solutions \
+                        -Dsonar.login=$SONAR_AUTH_TOKEN
+                    '''
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                waitForQualityGate abortPipeline: true
             }
         }
 
