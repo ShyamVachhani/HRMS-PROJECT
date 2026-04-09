@@ -16,8 +16,8 @@ pipeline {
                         sudo -u nodejs bash -c '
                             export NVM_DIR=/home/nodejs/.nvm
                             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                            npm install
-                            npm run build
+                            npm install --prefix /var/www/node-apps/hrms/frontend-hrms
+                            npm run build --prefix /var/www/node-apps/hrms/frontend-hrms
                         '
                     '''
                 }
@@ -27,7 +27,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                    cp -r frontend-hrms/dist /var/www/node-apps/hrms/
+                    cp -r /var/www/node-apps/hrms/frontend-hrms/dist /var/www/node-apps/hrms/
                     pm2 restart 31
                 '''
             }
