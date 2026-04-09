@@ -46,17 +46,20 @@ pipeline {
         // }
 
         stage('SonarQube Analysis') {
-            agent {
-                docker { image 'sonarsource/sonar-scanner-cli:latest' }
-            }
             steps {
-                sh """
-                    sonar-scanner \
-                    -Dsonar.projectKey=hrms-frontend \
-                    -Dsonar.sources=frontend-hrms/src \
-                    -Dsonar.host.url=https://sonar.equest.solutions \
-                    -Dsonar.login=$SONAR_AUTH_TOKEN
-                """
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                        docker run --rm \
+                        -v $PWD:/usr/src \
+                        -w /usr/src \
+                        sonarsource/sonar-scanner-cli:latest \
+                        sonar-scanner \
+                            -Dsonar.projectKey=hrms-frontend \
+                            -Dsonar.sources=frontend-hrms/src \
+                            -Dsonar.host.url=$SONAR_HOST_URL \
+                            -Dsonar.login=$SONAR_AUTH_TOKEN
+                    '''
+                }
             }
         }
 
