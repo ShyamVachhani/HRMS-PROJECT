@@ -1,9 +1,9 @@
 pipeline {
     agent { label 'hrms' }
 
-    tools {
-        sonarQubeScanner 'sonar-scanner'
-    }
+    // tools {
+    //     sonarQubeScanner 'sonar-scanner'
+    // }
 
     stages {
         stage('Checkout') {
