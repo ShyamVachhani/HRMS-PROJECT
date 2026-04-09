@@ -31,14 +31,16 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                docker.image('sonarsource/sonar-scanner-cli:latest').inside {
-                    sh """
-                    sonar-scanner \
-                    -Dsonar.projectKey=hrms-frontend \
-                    -Dsonar.sources=frontend-hrms/src \
-                    -Dsonar.host.url=https://sonar.equest.solutions \
-                    -Dsonar.login=$SONAR_AUTH_TOKEN
-                    """
+                script {
+                    docker.image('sonarsource/sonar-scanner-cli:latest').inside {
+                        sh """
+                        sonar-scanner \
+                        -Dsonar.projectKey=hrms-frontend \
+                        -Dsonar.sources=frontend-hrms/src \
+                        -Dsonar.host.url=https://sonar.equest.solutions \
+                        -Dsonar.login=$SONAR_AUTH_TOKEN
+                        """
+                    }
                 }
             }
         }
