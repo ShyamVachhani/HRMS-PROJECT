@@ -13,8 +13,8 @@ pipeline {
             steps {
                 dir('frontend-hrms') {
                     sh '''
-                        npm install
-                        npm run build
+                        sudo -u nodejs npm install
+                        sudo -u nodejs npm run build
                     '''
                 }
             }
