@@ -67,6 +67,7 @@ pipeline {
             steps {
                 withSonarQubeEnv('SonarQube') {
                     sh '''
+                        export PATH=$PATH:/usr/local/bin:/opt/sonar-scanner/bin
                         sonar-scanner \
                         -Dsonar.projectKey=hrms-frontend \
                         -Dsonar.sources=frontend-hrms/src \
@@ -76,6 +77,7 @@ pipeline {
                 }
             }
         }
+
 
 
         stage('Quality Gate') {
