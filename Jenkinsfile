@@ -2,15 +2,30 @@ pipeline {
     agent { label 'hrms' }
 
     stages {
-        stage('Deploy') {
+        stage('Checkout') {
             steps {
-                dir('/var/www/node-apps/hrms/frontend-hrms') {
+                deleteDir()
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                dir('frontend-hrms') {
                     sh '''
-                        git pull
-                        /home/nodejs/.nvm/versions/node/v22.16.0/bin/npm run build
-                        /home/nodejs/.nvm/versions/node/v22.16.0/bin/pm2restart 31
+                        npm install
+                        npm run build
                     '''
                 }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                    cp -r frontend-hrms/dist /var/www/node-apps/hrms/
+                    pm2 restart 31
+                '''
             }
         }
     }
