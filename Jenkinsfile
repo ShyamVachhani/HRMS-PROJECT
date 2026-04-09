@@ -27,8 +27,11 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                    cp -r /var/www/node-apps/hrms/frontend-hrms/dist /var/www/node-apps/hrms/
-                    pm2 restart 31
+                    sudo -u nodejs bash -c '
+                        export NVM_DIR=/home/nodejs/.nvm
+                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+                        pm2 restart eq-hrms
+                    '
                 '''
             }
         }
