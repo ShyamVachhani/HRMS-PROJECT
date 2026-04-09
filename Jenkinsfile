@@ -13,8 +13,12 @@ pipeline {
             steps {
                 dir('frontend-hrms') {
                     sh '''
-                        sudo -u nodejs npm install
-                        sudo -u nodejs npm run build
+                        sudo -u nodejs bash -c '
+                            export NVM_DIR=/home/nodejs/.nvm
+                            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                            npm install
+                            npm run build
+                        '
                     '''
                 }
             }
