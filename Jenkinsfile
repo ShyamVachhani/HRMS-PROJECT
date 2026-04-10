@@ -28,15 +28,13 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    sh """
-                        docker run --rm \
-                        -v $PWD:/usr/src \
-                        sonarsource/sonar-scanner-cli \
+                    sh '''
+                        sonar-scanner \
                         -Dsonar.projectKey=hrms-frontend \
                         -Dsonar.sources=hrms/frontend-hrms/src \
                         -Dsonar.host.url=$SONAR_HOST_URL \
                         -Dsonar.login=$SONAR_AUTH_TOKEN
-                    """
+                    '''
                 }
             }
         }
