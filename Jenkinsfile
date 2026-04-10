@@ -17,17 +17,15 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('sonar-equest') {
-                    dir('frontend-hrms') {
-                        sh '''
-                            /opt/sonar-scanner/bin/sonar-scanner \
-                            -Dsonar.projectKey=hrms-frontend \
-                            -Dsonar.sources=. \
-                            -Dsonar.host.url=$SONAR_HOST_URL \
-                            -Dsonar.login=$SONAR_AUTH_TOKEN
-                        '''
-                    }
-                }
+                sh '''
+                    docker run --rm \
+                        -v "$PWD:/usr/src" \
+                        -w /usr/src \
+                        sonarsource/sonar-scanner-cli \
+                        -Dsonar.projectKey=hrms-frontend \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=https://sonar.equest.solutions
+                '''
             }
         }
 
