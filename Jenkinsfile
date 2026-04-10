@@ -1,11 +1,33 @@
 pipeline {
     agent { label 'hrms' }
 
+    environment {
+        SONAR_HOST_URL = 'https://sonar.equest.solutions/'
+        SONAR_PROJECT_KEY = 'hrms-frontend'
+    }
+
     stages {
+
         stage('Checkout') {
             steps {
                 deleteDir()
                 checkout scm
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonar-equest') {
+                    dir('frontend-hrms') {
+                        sh '''
+                            /opt/sonar-scanner/bin/sonar-scanner \
+                            -Dsonar.projectKey=hrms-frontend \
+                            -Dsonar.sources=. \
+                            -Dsonar.host.url=$SONAR_HOST_URL \
+                            -Dsonar.login=$SONAR_AUTH_TOKEN
+                        '''
+                    }
+                }
             }
         }
 
@@ -24,26 +46,6 @@ pipeline {
                 }
             }
         }
-
-        // stage('SonarQube Analysis') {
-        //     steps {
-        //         withSonarQubeEnv('SonarQube') {
-        //             sh '''
-        //                 /opt/sonar-scanner/bin/sonar-scanner \
-        //                 -Dsonar.projectKey=hrms-frontend \
-        //                 -Dsonar.sources=hrms/frontend-hrms/src \
-        //                 -Dsonar.host.url=$SONAR_HOST_URL \
-        //                 -Dsonar.login=$SONAR_AUTH_TOKEN
-        //             '''
-        //         }
-        //     }
-        // }
-
-        // stage('Quality Gate') {
-        //     steps {
-        //         waitForQualityGate abortPipeline: true
-        //     }
-        // }
 
         stage('Deploy') {
             steps {
