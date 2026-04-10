@@ -73,22 +73,26 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh '''
-                    cd frontend-hrms
-                    npm install
-                    npm run build
-                '''
+                dir('frontend-hrms') {
+                    sh '''
+                        sudo -u nodejs bash -c '
+                            export NVM_DIR=/home/nodejs/.nvm
+                            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+                            sudo rm -rf dist
+                            npm install --prefix /var/www/node-apps/hrms/frontend-hrms
+                            npm run build --prefix /var/www/node-apps/hrms/frontend-hrms
+                        '
+                    '''
+                }
             }
         }
 
-        stage('Deploy to HRMS') {
+        stage('Deploy') {
             steps {
                 sh '''
-                    ssh user@hrms-server '
-                        cd /var/www/node-apps/hrms/frontend-hrms &&
-                        git pull &&
-                        npm install &&
-                        npm run build &&
+                    sudo -u nodejs bash -c '
+                        export NVM_DIR=/home/nodejs/.nvm
+                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                         pm2 restart eq-hrms
                     '
                 '''
