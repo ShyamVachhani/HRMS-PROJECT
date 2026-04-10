@@ -54,7 +54,7 @@ pipeline {
                         -v "$PWD:/usr/src" \
                         -w /usr/src \
                         sonarsource/sonar-scanner-cli \
-                        -Dsonar.projectKey=hrms-frontend \
+                        -Dsonar.projectKey=equest-solutions_hrms_497d0f09-50ce-4006-8387-e158bdfd3074 \
                         -Dsonar.host.url=https://sonar.equest.solutions \
                         -Dsonar.token=$SONAR_TOKEN \
                         -Dsonar.sources=.
