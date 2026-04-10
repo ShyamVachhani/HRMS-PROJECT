@@ -38,7 +38,6 @@ pipeline {
                         -w /usr/src \
                         sonarsource/sonar-scanner-cli \
                         -Dsonar.projectKey=hrms-frontend \
-                        -Dsonar.organization=equest-solutions \
                         -Dsonar.sources=.
                     '''
                 }
