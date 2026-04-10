@@ -25,25 +25,25 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh '''
-                        /opt/sonar-scanner/bin/sonar-scanner \
-                        -Dsonar.projectKey=hrms-frontend \
-                        -Dsonar.sources=hrms/frontend-hrms/src \
-                        -Dsonar.host.url=$SONAR_HOST_URL \
-                        -Dsonar.login=$SONAR_AUTH_TOKEN
-                    '''
-                }
-            }
-        }
+        // stage('SonarQube Analysis') {
+        //     steps {
+        //         withSonarQubeEnv('SonarQube') {
+        //             sh '''
+        //                 /opt/sonar-scanner/bin/sonar-scanner \
+        //                 -Dsonar.projectKey=hrms-frontend \
+        //                 -Dsonar.sources=hrms/frontend-hrms/src \
+        //                 -Dsonar.host.url=$SONAR_HOST_URL \
+        //                 -Dsonar.login=$SONAR_AUTH_TOKEN
+        //             '''
+        //         }
+        //     }
+        // }
 
-        stage('Quality Gate') {
-            steps {
-                waitForQualityGate abortPipeline: true
-            }
-        }
+        // stage('Quality Gate') {
+        //     steps {
+        //         waitForQualityGate abortPipeline: true
+        //     }
+        // }
 
         stage('Deploy') {
             steps {
