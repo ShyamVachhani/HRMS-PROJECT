@@ -38,6 +38,7 @@ pipeline {
                         -w /usr/src \
                         sonarsource/sonar-scanner-cli \
                         -Dsonar.projectKey=hrms-frontend \
+                        -Dsonar.host.url=https://sonar.equest.solutions \
                         -Dsonar.sources=.
                     '''
                 }
