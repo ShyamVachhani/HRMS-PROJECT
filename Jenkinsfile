@@ -72,6 +72,7 @@ pipeline {
         // }
 
         stage('Build') {
+            agent { label 'hrms' }
             steps {
                 dir('frontend-hrms') {
                     sh '''
@@ -88,6 +89,7 @@ pipeline {
         }
 
         stage('Deploy') {
+            agent { label 'hrms' }
             steps {
                 sh '''
                     sudo -u nodejs bash -c '
