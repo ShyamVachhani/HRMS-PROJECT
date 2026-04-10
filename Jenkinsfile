@@ -46,12 +46,6 @@ pipeline {
         //     }
         // }
 
-        stage('Debug Workspace') {
-            steps {
-                sh 'ls -R /var/jenkins_home/workspace/HRMS-DEPOLY'
-            }
-        }
-
         stage('SonarQube Scan') {
             steps {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
@@ -63,15 +57,17 @@ pipeline {
                         -Dsonar.projectKey=hrms \
                         -Dsonar.host.url=https://sonar.equest.solutions \
                         -Dsonar.token=$SONAR_TOKEN \
-                        -Dsonar.sources=frontend-hrms,backend-hrms \
-                        -Dsonar.sources=HRMS-DEPOLY/frontend-hrms,HRMS-DEPOLY/backend-hrms
+                        -Dsonar.sources=.
                     '''
                 }
             }
         }
 
-        
-
+        // stage('Debug Workspace') {
+        //     steps {
+        //         sh 'ls -R'
+        //     }
+        // }
 
 
         // stage('Quality Gate') {
