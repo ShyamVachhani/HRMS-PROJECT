@@ -29,7 +29,7 @@ pipeline {
             steps {
                 withSonarQubeEnv('SonarQube') {
                     sh '''
-                        sonar-scanner \
+                        /opt/sonar-scanner/bin/sonar-scanner \
                         -Dsonar.projectKey=hrms-frontend \
                         -Dsonar.sources=hrms/frontend-hrms/src \
                         -Dsonar.host.url=$SONAR_HOST_URL \
