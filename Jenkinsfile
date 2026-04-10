@@ -28,13 +28,13 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    sh '''
-                        /opt/sonar-scanner/bin/sonar-scanner \
-                          -Dsonar.projectKey=hrms-frontend \
-                          -Dsonar.sources=frontend-hrms/src \
-                          -Dsonar.host.url=$SONAR_HOST_URL \
-                          -Dsonar.login=$SONAR_AUTH_TOKEN
-                    '''
+                    withSonarQubeScanner('SonarScanner') {
+                        sh '''
+                            sonar-scanner \
+                            -Dsonar.projectKey=hrms-frontend \
+                            -Dsonar.sources=frontend-hrms/src
+                        '''
+                    }
                 }
             }
         }
