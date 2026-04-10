@@ -63,7 +63,7 @@ pipeline {
         //     }
         // }
 
-        stage('SonarQube Scan') {
+        stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonar-equest') {
                     sh '''
