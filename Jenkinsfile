@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SONAR_PROJECT_KEY = 'hrms-frontend'
+        SONAR_PROJECT_KEY = 'hrms'
     }
 
     stages {
