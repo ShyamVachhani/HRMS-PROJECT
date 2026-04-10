@@ -14,16 +14,32 @@ pipeline {
             }
         }
 
+        // stage('SonarQube Scan') {
+        //     steps {
+        //         withSonarQubeEnv('sonar-equest') {
+        //             sh '''
+        //                 docker run --rm \
+        //                   -v "$PWD:/usr/src" \
+        //                   -w /usr/src \
+        //                   sonarsource/sonar-scanner-cli \
+        //                   -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+        //                   -Dsonar.sources=.
+        //             '''
+        //         }
+        //     }
+        // }
+
         stage('SonarQube Scan') {
             steps {
                 withSonarQubeEnv('sonar-equest') {
                     sh '''
                         docker run --rm \
-                          -v "$PWD:/usr/src" \
-                          -w /usr/src \
-                          sonarsource/sonar-scanner-cli \
-                          -Dsonar.projectKey=$SONAR_PROJECT_KEY \
-                          -Dsonar.sources=.
+                        -v "$PWD:/usr/src" \
+                        -w /usr/src \
+                        sonarsource/sonar-scanner-cli \
+                        -Dsonar.projectKey=hrms-frontend \
+                        -Dsonar.organization=equest-solutions \
+                        -Dsonar.sources=.
                     '''
                 }
             }
