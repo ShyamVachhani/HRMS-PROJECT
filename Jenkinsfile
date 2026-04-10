@@ -58,7 +58,7 @@ pipeline {
                         -Dsonar.host.url=https://sonar.equest.solutions \
                         -Dsonar.token=$SONAR_TOKEN \
                         -Dsonar.sources=frontend-hrms,backend-hrms \
-                        -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**
+                        -Dsonar.sources=HRMS-DEPOLY/frontend-hrms,HRMS-DEPOLY/backend-hrms
                     '''
                 }
             }
@@ -66,9 +66,10 @@ pipeline {
 
         stage('Debug Workspace') {
             steps {
-                sh 'ls -R'
+                sh 'ls -R /var/jenkins_home/workspace/HRMS-DEPOLY'
             }
         }
+
 
 
         // stage('Quality Gate') {
