@@ -1,8 +1,7 @@
 pipeline {
-    agent { label 'hrms' }
+    agent any
 
     environment {
-        SONAR_HOST_URL = 'https://sonar.equest.solutions/'
         SONAR_PROJECT_KEY = 'hrms-frontend'
     }
 
@@ -15,21 +14,22 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
+        stage('SonarQube Scan') {
             steps {
-                sh '''
-                    docker run --rm \
-                        -v "$PWD:/usr/src" \
-                        -w /usr/src \
-                        sonarsource/sonar-scanner-cli \
-                        -Dsonar.projectKey=hrms-frontend \
-                        -Dsonar.sources=. \
-                        -Dsonar.host.url=https://sonar.equest.solutions
-                '''
+                withSonarQubeEnv('sonar-equest') {
+                    sh '''
+                        docker run --rm \
+                          -v "$PWD:/usr/src" \
+                          -w /usr/src \
+                          sonarsource/sonar-scanner-cli \
+                          -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+                          -Dsonar.sources=.
+                    '''
+                }
             }
         }
 
-        stage("Quality Gate") {
+        stage('Quality Gate') {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
@@ -39,26 +39,22 @@ pipeline {
 
         stage('Build') {
             steps {
-                dir('frontend-hrms') {
-                    sh '''
-                        sudo -u nodejs bash -c '
-                            export NVM_DIR=/home/nodejs/.nvm
-                            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                            sudo rm -rf dist
-                            npm install --prefix /var/www/node-apps/hrms/frontend-hrms
-                            npm run build --prefix /var/www/node-apps/hrms/frontend-hrms
-                        '
-                    '''
-                }
+                sh '''
+                    cd frontend-hrms
+                    npm install
+                    npm run build
+                '''
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy to HRMS') {
             steps {
                 sh '''
-                    sudo -u nodejs bash -c '
-                        export NVM_DIR=/home/nodejs/.nvm
-                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+                    ssh user@hrms-server '
+                        cd /var/www/node-apps/hrms/frontend-hrms &&
+                        git pull &&
+                        npm install &&
+                        npm run build &&
                         pm2 restart eq-hrms
                     '
                 '''
