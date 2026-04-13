@@ -241,7 +241,7 @@ pipeline {
                         -Dsonar.host.url=https://sonar.equest.solutions \
                         -Dsonar.token=$SONAR_TOKEN \
                         -Dsonar.modules=frontend-hrms,backend-hrms \
-                        -Dfrontend-hrms.sonar.sources=frontend-hrms/src \
+                        -Dfrontend-hrms.sonar.sources=frontend-hrms \
                         -Dbackend-hrms.sonar.sources=backend-hrms
                     '''
                 }
