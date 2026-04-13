@@ -58,7 +58,7 @@ pipeline {
                         -Dsonar.projectKey=hrms \
                         -Dsonar.host.url=https://sonar.equest.solutions \
                         -Dsonar.login=$SONAR_TOKEN \
-                        -Dsonar.sources=frontend-hrms
+                       
                     '''
                 }
             }
