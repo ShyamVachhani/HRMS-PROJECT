@@ -46,6 +46,13 @@ pipeline {
         //     }
         // }
 
+        stage('Debug Workspace') {
+            steps {
+                sh 'pwd && ls -R'
+            }
+        }
+
+
         stage('SonarQube Scan') {
             steps {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
