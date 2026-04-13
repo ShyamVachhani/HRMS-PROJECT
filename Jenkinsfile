@@ -46,11 +46,11 @@ pipeline {
         //     }
         // }
 
-        stage('Debug Workspace') {
-            steps {
-                sh 'pwd && ls -R'
-            }
-        }
+        // stage('Debug Workspace') {
+        //     steps {
+        //         sh 'pwd && ls -R'
+        //     }
+        // }
 
 
         stage('SonarQube Scan') {
@@ -61,7 +61,10 @@ pipeline {
                         -v "$PWD:/usr/src" \
                         -w /usr/src \
                         -e SONAR_TOKEN=$SONAR_TOKEN \
-                        sonarsource/sonar-scanner-cli
+                        sonarsource/sonar-scanner-cli \
+                        -Dsonar.projectKey=hrms \
+                        -Dsonar.host.url=https://sonar.equest.solutions \
+                        -Dsonar.login=$SONAR_TOKEN \
                        
                     '''
                 }
