@@ -236,13 +236,8 @@ pipeline {
                         -v /var/jenkins_home/workspace/HRMS-DEPOLY:/usr/src \
                         -w /usr/src \
                         -e SONAR_TOKEN=$SONAR_TOKEN \
-                        sonarsource/sonar-scanner-cli \
-                        -Dsonar.projectKey=hrms \
-                        -Dsonar.host.url=https://sonar.equest.solutions \
-                        -Dsonar.token=$SONAR_TOKEN \
-                        -Dsonar.modules=frontend-hrms,backend-hrms \
-                        -Dfrontend-hrms.sonar.sources=frontend-hrms \
-                        -Dbackend-hrms.sonar.sources=backend-hrms
+                        sonarsource/sonar-scanner-cli
+
                     '''
                 }
             }
