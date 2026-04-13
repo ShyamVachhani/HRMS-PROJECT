@@ -48,7 +48,7 @@ pipeline {
 
         stage('Debug Workspace') {
             steps {
-                sh 'pwd && ls -R'
+                sh 'pwd && ls -l'
             }
         }
 
@@ -65,7 +65,7 @@ pipeline {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     sh '''
                         docker run --rm \
-                        -v "$PWD:/usr/src" \
+                        -v /var/jenkins_home/workspace/HRMS-DEPOLY:/usr/src \
                         -w /usr/src \
                         -e SONAR_TOKEN=$SONAR_TOKEN \
                         sonarsource/sonar-scanner-cli
