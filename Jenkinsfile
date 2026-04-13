@@ -62,7 +62,8 @@ pipeline {
                         -w /usr/src \
                         -e SONAR_TOKEN=$SONAR_TOKEN \
                         sonarsource/sonar-scanner-cli \
-                        -Dsonar.token=$SONAR_TOKEN 
+                        -Dsonar.host.url=https://sonar.equest.solutions \
+                        -Dsonar.token=$SONAR_TOKEN \
                        
                     '''
                 }
