@@ -61,9 +61,7 @@ pipeline {
                         -v "$PWD:/usr/src" \
                         -w /usr/src \
                         -e SONAR_TOKEN=$SONAR_TOKEN \
-                        sonarsource/sonar-scanner-cli \
-                        
-                       
+                        sonarsource/sonar-scanner-cli
                     '''
                 }
             }
