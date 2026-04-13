@@ -39,7 +39,7 @@ pipeline {
         //                 sonarsource/sonar-scanner-cli \
         //                 -Dsonar.projectKey=hrms-frontend \
         //                 -Dsonar.host.url=https://sonar.equest.solutions \
-        //                 -Dsonar.token=$sonar-token \
+        //                 -Dsonar.token=$SONAR_TOKEN \
         //                 -Dsonar.sources=.
         //             '''
         //         }
@@ -48,14 +48,14 @@ pipeline {
 
         stage('SonarQube Scan') {
             steps {
-                withCredentials([string(credentialsId: 'sonar-token', variable: 'sonar-token')]) {
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     sh '''
                         docker run --rm \
                         -v "$PWD:/usr/src" \
                         -w /usr/src \
-                       -e sonar-token=$sonar-token \
+                       -e SONAR_TOKEN=$SONAR_TOKEN \
                         sonarsource/sonar-scanner-cli \
-                        -Dsonar.login=$sonar-token
+                        -Dsonar.login=$SONAR_TOKEN
                     '''
                 }
             }
