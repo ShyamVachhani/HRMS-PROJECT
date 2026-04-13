@@ -66,7 +66,8 @@ pipeline {
                             -Dsonar.projectKey=hrms \
                             -Dsonar.host.url=https://sonar.equest.solutions \
                             -Dsonar.token=$SONAR_TOKEN \
-                            -Dsonar.sources=.
+                            -Dsonar.sources=. \
+                            -Dsonar.scm.provider=git
                         '''
                     }
                 }
