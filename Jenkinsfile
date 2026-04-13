@@ -46,19 +46,21 @@ pipeline {
         //     }
         // }
 
-        stage('SonarQube Scan') {
+       stage('SonarQube Scan') {
             steps {
-                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                    sh '''
-                        docker run --rm \
-                        -v "$PWD:/usr/src" \
-                        -w /usr/src \
-                        sonarsource/sonar-scanner-cli \
-                        -Dsonar.projectKey=hrms \
-                        -Dsonar.host.url=https://sonar.equest.solutions \
-                        -Dsonar.token=$SONAR_TOKEN \
-                        -Dsonar.sources=.
-                    '''
+                dir('frontend-hrms') {
+                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                        sh '''
+                            docker run --rm \
+                            -v "$(pwd):/usr/src" \
+                            -w /usr/src \
+                            sonarsource/sonar-scanner-cli \
+                            -Dsonar.projectKey=hrms \
+                            -Dsonar.host.url=https://sonar.equest.solutions \
+                            -Dsonar.token=$SONAR_TOKEN \
+                            -Dsonar.sources=.
+                        '''
+                    }
                 }
             }
         }
