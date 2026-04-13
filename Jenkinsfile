@@ -192,41 +192,56 @@ pipeline {
             }
         }
 
-        stage('SonarQube Scan - Frontend') {
+        // stage('SonarQube Scan - Frontend') {
+        //     steps {
+        //         withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+        //             sh '''
+        //                 docker run --rm \
+        //                   -v /var/jenkins_home/workspace/HRMS-DEPOLY:/usr/src \
+        //                   -w /usr/src/frontend-hrms \
+        //                   -e SONAR_TOKEN=$SONAR_TOKEN \
+        //                   sonarsource/sonar-scanner-cli \
+        //                   -Dsonar.projectKey=hrms-frontend \
+        //                   -Dsonar.host.url=$SONAR_HOST_URL \
+        //                   -Dsonar.token=$SONAR_TOKEN \
+        //                   -Dsonar.sources=.
+        //             '''
+        //         }
+        //     }
+        // }
+
+        // stage('SonarQube Scan - Backend') {
+        //     steps {
+        //         withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+        //             sh '''
+        //                 docker run --rm \
+        //                   -v /var/jenkins_home/workspace/HRMS-DEPOLY:/usr/src \
+        //                   -w /usr/src/backend-hrms \
+        //                   -e SONAR_TOKEN=$SONAR_TOKEN \
+        //                   sonarsource/sonar-scanner-cli \
+        //                   -Dsonar.projectKey=hrms-backend \
+        //                   -Dsonar.host.url=$SONAR_HOST_URL \
+        //                   -Dsonar.token=$SONAR_TOKEN \
+        //                   -Dsonar.sources=.
+        //             '''
+        //         }
+        //     }
+        // }
+
+        stage('SonarQube Scan') {
             steps {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     sh '''
                         docker run --rm \
-                          -v /var/jenkins_home/workspace/HRMS-DEPOLY:/usr/src \
-                          -w /usr/src/frontend-hrms \
-                          -e SONAR_TOKEN=$SONAR_TOKEN \
-                          sonarsource/sonar-scanner-cli \
-                          -Dsonar.projectKey=hrms-frontend \
-                          -Dsonar.host.url=$SONAR_HOST_URL \
-                          -Dsonar.token=$SONAR_TOKEN \
-                          -Dsonar.sources=.
+                        -v /var/jenkins_home/workspace/HRMS-DEPOLY:/usr/src \
+                        -w /usr/src \
+                        -e SONAR_TOKEN=$SONAR_TOKEN \
+                        sonarsource/sonar-scanner-cli
                     '''
                 }
             }
         }
 
-        stage('SonarQube Scan - Backend') {
-            steps {
-                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                    sh '''
-                        docker run --rm \
-                          -v /var/jenkins_home/workspace/HRMS-DEPOLY:/usr/src \
-                          -w /usr/src/backend-hrms \
-                          -e SONAR_TOKEN=$SONAR_TOKEN \
-                          sonarsource/sonar-scanner-cli \
-                          -Dsonar.projectKey=hrms-backend \
-                          -Dsonar.host.url=$SONAR_HOST_URL \
-                          -Dsonar.token=$SONAR_TOKEN \
-                          -Dsonar.sources=.
-                    '''
-                }
-            }
-        }
 
         stage('Build') {
             agent { label 'hrms' }
