@@ -53,7 +53,9 @@ pipeline {
                         docker run --rm \
                         -v "$PWD:/usr/src" \
                         -w /usr/src \
-                        sonarsource/sonar-scanner-cli 
+                       -e SONAR_TOKEN=$SONAR_TOKEN \
+                        sonarsource/sonar-scanner-cli \
+                        -Dsonar.login=$SONAR_TOKEN
                     '''
                 }
             }
