@@ -59,10 +59,7 @@ pipeline {
                 dir('frontend-hrms') {
                     withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                         sh '''
-                            docker run --rm \
-                            -v "$(pwd):/usr/src" \
-                            -w /usr/src \
-                            sonarsource/sonar-scanner-cli \
+                            sonar-scanner \
                             -Dsonar.projectKey=hrms \
                             -Dsonar.host.url=https://sonar.equest.solutions \
                             -Dsonar.token=$SONAR_TOKEN \
