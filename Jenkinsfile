@@ -52,6 +52,13 @@ pipeline {
             }
         }
 
+        stage('Debug Container') {
+            steps {
+                sh 'docker run --rm -v "$PWD:/usr/src" -w /usr/src alpine ls -l'
+            }
+        }
+
+
 
         stage('SonarQube Scan') {
             steps {
