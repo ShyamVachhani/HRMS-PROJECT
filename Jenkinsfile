@@ -45,6 +45,14 @@ pipeline {
         //         }
         //     }
         // }
+        
+        stage('Debug Sonar Path') {
+            steps {
+                sh 'pwd'
+                sh 'ls -la'
+                sh 'ls -la frontend-hrms'
+            }
+        }
 
        stage('SonarQube Scan') {
             steps {
