@@ -124,8 +124,13 @@ export const applyLeave = async (req, res) => {
     //   showSnackbar("This Leave Type can only be applied for today", "error");
     //   return;
     // }
-      if( leave_type === "Sick Leave" || leave_type === "Emergency Leave" && new Date(start_date) > new Date()){
-        return res.status(400).json({ message: "This Leave Type can only be applied for today" });
+      if (
+        (leave_type === "Sick Leave" || leave_type === "Emergency Leave") &&
+        start_date !== todayStr
+      ) {
+        return res.status(400).json({
+          message: "This Leave Type can only be applied for today"
+        });
       }
 
     const overlapWFH = await sequelize.query(

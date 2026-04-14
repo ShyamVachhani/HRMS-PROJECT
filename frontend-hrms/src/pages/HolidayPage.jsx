@@ -143,7 +143,10 @@ const HolidayPage = () => {
       showSnackbar("Holiday added successfully");
       fetchHolidays();
     } catch (error) {
-      showSnackbar("Failed to add holiday", "error");
+      showSnackbar(
+        error.response?.data?.message || "Failed to add holiday",
+        "error"
+      );
     } finally {
       setLoading(false);
     }

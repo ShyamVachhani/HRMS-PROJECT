@@ -17,7 +17,8 @@ import RealTimeClock from "../components/dashboard/RealTimeClock";
 import AnnouncementCard from "../components/dashboard/AnnouncementCard";
 import HolidayCard from "../components/dashboard/HolidayCard";
 import ProfileCard from "../components/dashboard/ProfileCard";
-
+import PayslipCard from "../components/dashboard/PayslipCard";
+import PayslipModal from "../components/PayslipModal";
 function StatCard({ title, value, icon, color, bg, loading }) {
   return (
     <Card sx={{
@@ -78,7 +79,8 @@ export default function DeveloperDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const [payslipOpen, setPayslipOpen] = useState(false);
+  const [selectedPayslip, setSelectedPayslip] = useState(null);
   const [stats, setStats] = useState({
     totalTasks: 0,
     completedTasks: 0,
@@ -92,12 +94,14 @@ export default function DeveloperDashboard() {
   const [attendanceHistory, setAttendanceHistory] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [holidays, setHolidays] = useState([]);
-
-
+  const [myLatestSalary, setMyLatestSalary] = useState(null);
+  const [myPayslips, setMyPayslips] = useState([]);
+  
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
       setUser(JSON.parse(userData));
+      fetchMySalary();
     }
     fetchAllData();
   }, []);
@@ -226,6 +230,18 @@ export default function DeveloperDashboard() {
     if (days <= 0) return "error.main";
     if (days <= 2) return "warning.main";
     return "success.main";
+  };
+
+  const fetchMySalary = async () => {
+    try {
+      const res = await api.get("/salary/my");
+      if (res.data && res.data.length > 0) {
+        setMyPayslips(res.data);
+        setMyLatestSalary(res.data[0]);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const upcomingDeadlines = getUpcomingDeadlines();
@@ -439,10 +455,19 @@ export default function DeveloperDashboard() {
         {/* Right column (30%) */}
         <Grid size={{ xs: 12, lg: 3.5 }}>
           <Stack spacing={3}>
-            {/* Profile Summary Removed */}
-            
-            {/* PayslipCard Removed */}
-
+            {myLatestSalary && ["Generated", "Paid"].includes(myLatestSalary.status) && (
+              <PayslipCard
+                payslips={myPayslips}
+                onView={(slip) => {
+                  setSelectedPayslip({
+                    ...slip,
+                    name: user.name,
+                    role: user.role
+                  });
+                  setPayslipOpen(true);
+                }}
+              />
+            )}
             {/* Upcoming Deadlines */}
             <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
               <CardContent>
@@ -483,6 +508,11 @@ export default function DeveloperDashboard() {
           </Stack>
         </Grid>
       </Grid>
+      <PayslipModal
+        open={payslipOpen}
+        onClose={() => setPayslipOpen(false)}
+        data={selectedPayslip}
+      />
     </Box>
   );
 }

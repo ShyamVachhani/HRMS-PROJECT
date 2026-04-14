@@ -867,7 +867,7 @@ const EmployeePage = () => {
               value={editName} 
               onChange={(e) => setEditName(e.target.value)} 
               fullWidth 
-              required 
+              disabled 
             />
             <TextField 
               label="Email" 
@@ -875,7 +875,7 @@ const EmployeePage = () => {
               value={editEmail} 
               onChange={(e) => setEditEmail(e.target.value)} 
               fullWidth 
-              required 
+              disabled 
             />
             <TextField 
               label="Phone" 

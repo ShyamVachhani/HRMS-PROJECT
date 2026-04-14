@@ -414,6 +414,12 @@ export const bulkGenerateSalary = async (req, res) => {
           type: QueryTypes.INSERT
         }
       );
+      await createNotification(
+        empId,
+        "Payslip Generated",
+        `Your payslip for ${month}/${year} has been generated.`,
+        "salary"
+      ).catch(console.error);
       processed++;
     }
 

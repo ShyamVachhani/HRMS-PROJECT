@@ -16,6 +16,8 @@ import RealTimeClock from "../components/dashboard/RealTimeClock";
 import AnnouncementCard from "../components/dashboard/AnnouncementCard";
 import HolidayCard from "../components/dashboard/HolidayCard";
 import ProfileCard from "../components/dashboard/ProfileCard";
+import PayslipCard from "../components/dashboard/PayslipCard";
+import PayslipModal from "../components/PayslipModal";
 
 function StatCard({ title, value, icon, color, bg, loading }) {
   return (
@@ -77,7 +79,7 @@ export default function InternDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const [myLatestSalary, setMyLatestSalary] = useState(null);
   const [stats, setStats] = useState({
     totalTasks: 0,
     completedTasks: 0,
@@ -91,12 +93,15 @@ export default function InternDashboard() {
   const [myTasks, setMyTasks] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [holidays, setHolidays] = useState([]);
-
+  const [payslipOpen, setPayslipOpen] = useState(false);
+  const [selectedPayslip, setSelectedPayslip] = useState(null);
+  const [myPayslips, setMyPayslips] = useState([]);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
       setUser(JSON.parse(userData));
+      fetchMySalary();
     }
     fetchAllData();
   }, []);
@@ -185,6 +190,18 @@ export default function InternDashboard() {
 
   const getPriorityColor = (priority) => {
     return priority === "high" ? "error" : priority === "medium" ? "warning" : "info";
+  };
+
+  const fetchMySalary = async () => {
+    try {
+      const res = await api.get("/salary/my");
+      if (res.data && res.data.length > 0) {
+        setMyPayslips(res.data);
+        setMyLatestSalary(res.data[0]);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const taskCompletionRate = stats.totalTasks > 0
@@ -441,6 +458,19 @@ export default function InternDashboard() {
         {/* Right column (30%) */}
          <Grid size={{ xs: 12, lg: 3.5 }}>
           <Stack spacing={3}>
+            {myLatestSalary && ["Generated", "Paid"].includes(myLatestSalary.status) && (
+              <PayslipCard
+                payslips={myPayslips}
+                onView={(slip) => {
+                  setSelectedPayslip({
+                    ...slip,
+                    name: user.name,
+                    role: user.role
+                  });
+                  setPayslipOpen(true);
+                }}
+              />
+            )}
             <Box sx={{ p: 2, bgcolor: "background.paper", borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
               {/* <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>Quick Shortcuts</Typography> */}
               <Typography 
@@ -461,6 +491,11 @@ export default function InternDashboard() {
           </Stack>
         </Grid>
       </Grid>
+      <PayslipModal
+        open={payslipOpen}
+        onClose={() => setPayslipOpen(false)}
+        data={selectedPayslip}
+      />
     </Box>
   );
 }

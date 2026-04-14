@@ -88,13 +88,11 @@ const TaskPage = () => {
   const user = JSON.parse(localStorage.getItem("user"));
   const userRole = user?.role;
   const employeeId = user?.employee_id || user?.id;
-  
   const canCreateTask = ["admin","hr", "manager"].includes(userRole);
   const canDeleteTask = ["admin","hr", "manager"].includes(userRole);
   const canViewAll = ["admin", "manager", "hr"].includes(userRole);
   // const isMonitorOnly = ["admin", "manager"].includes(userRole);
   const canSeeTabs = ["admin", "hr", "manager"].includes(userRole);
-
   const priorityOptions = [
     { value: "high", label: "High", color: "error" },
     { value: "medium", label: "Medium", color: "warning" },

@@ -1,16 +1,31 @@
 import db from "../config/db.js";
 
-export const addHoliday = (req,res) => {
-
+export const addHoliday = (req, res) => {
   const { title, holiday_date, description } = req.body;
 
+  // 🔥 Check if holiday already exists on same date
   db.query(
-    "INSERT INTO holidays (title,holiday_date,description) VALUES (?,?,?)",
-    [title,holiday_date,description],
-    (err,result)=>{
-      if(err) return res.status(500).json(err);
+    "SELECT * FROM holidays WHERE holiday_date = ?",
+    [holiday_date],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
 
-      res.json({message:"Holiday added"});
+      if (result.length > 0) {
+        return res.status(400).json({
+          message: "A holiday already exists for this date"
+        });
+      }
+
+      // ✅ Insert if no duplicate
+      db.query(
+        "INSERT INTO holidays (title, holiday_date, description) VALUES (?,?,?)",
+        [title, holiday_date, description],
+        (err) => {
+          if (err) return res.status(500).json(err);
+
+          res.json({ message: "Holiday added" });
+        }
+      );
     }
   );
 };
@@ -30,18 +45,31 @@ export const getHolidays = (req,res)=>{
 };
 
 
-export const updateHoliday = (req,res)=>{
-
+export const updateHoliday = (req, res) => {
   const id = req.params.id;
-  const { title,holiday_date,description } = req.body;
+  const { title, holiday_date, description } = req.body;
 
   db.query(
-    "UPDATE holidays SET title=?,holiday_date=?,description=? WHERE id=?",
-    [title,holiday_date,description,id],
-    (err)=>{
-      if(err) return res.status(500).json(err);
+    "SELECT * FROM holidays WHERE holiday_date = ? AND id != ?",
+    [holiday_date, id],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
 
-      res.json({message:"Holiday updated"});
+      if (result.length > 0) {
+        return res.status(400).json({
+          message: "A holiday already exists for this date"
+        });
+      }
+
+      db.query(
+        "UPDATE holidays SET title=?, holiday_date=?, description=? WHERE id=?",
+        [title, holiday_date, description, id],
+        (err) => {
+          if (err) return res.status(500).json(err);
+
+          res.json({ message: "Holiday updated" });
+        }
+      );
     }
   );
 };

@@ -173,7 +173,10 @@ function LeavePage() {
       return;
     }
 
-    if ((leaveType === "Sick Leave" || leaveType === "Emergency Leave") && startDate > new Date()) {
+    if (
+      (leaveType === "Sick Leave" || leaveType === "Emergency Leave") &&
+      startDate !== todayStr
+    ) {
       showSnackbar("This Leave Type can only be applied for today", "error");
       return;
     }

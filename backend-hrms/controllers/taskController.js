@@ -3,7 +3,7 @@ import { createNotification } from "./notificationController.js";
 
 export const createTask = (req, res) => {
   const { title, description, assigned_to, assigned_by, priority, due_date } = req.body;
-
+  const isSelfTask = assigned_to === assigned_by;
   const sql = `
     INSERT INTO tasks 
     (title, description, assigned_to, assigned_by, priority, due_date)
@@ -19,7 +19,9 @@ export const createTask = (req, res) => {
       res.json({ message: "Task created", taskId: result.insertId });
 
       // Notify the assignee
-      createNotification(assigned_to, "New Task Assigned", `You have been assigned a new task: ${title}`, "task").catch(console.error);
+      if (!isSelfTask) {
+        createNotification(assigned_to, "New Task Assigned", `You have been assigned a new task: ${title}`, "task").catch(console.error)
+      };
     }
   );
 };
@@ -159,7 +161,7 @@ export const updateTask = (req, res) => {
     SET title = ?, description = ?, assigned_to = ?, assigned_by = ?, priority = ?, due_date = ?
     WHERE id = ?
   `;
-
+  const isSelfTask = assigned_to === assigned_by;
   db.query(
     sql,
     [title, description, assigned_to, assigned_by, priority, due_date, id],
@@ -170,7 +172,9 @@ export const updateTask = (req, res) => {
         return res.status(404).json({ message: "Task not found" });
       }
 
-      res.json({ message: "Task updated successfully" });
+      if (!isSelfTask) {
+        res.json({ message: "Task updated successfully" })
+      };
     }
   );
 };

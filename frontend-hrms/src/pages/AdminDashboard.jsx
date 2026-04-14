@@ -16,7 +16,8 @@ import AnnouncementCard from "../components/dashboard/AnnouncementCard";
 import HolidayCard from "../components/dashboard/HolidayCard";
 import QuickActions from "../components/dashboard/QuickActions";
 import ProfileCard from "../components/dashboard/ProfileCard";
-
+import PayslipCard from "../components/dashboard/PayslipCard";
+import PayslipModal from "../components/PayslipModal";
 function StatCard({ title, value, icon, color, bg, loading }) {
   return (
     <Card sx={{
@@ -83,12 +84,16 @@ export default function AdminDashboard() {
   const [employees, setEmployees] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [holidays, setHolidays] = useState([]);
-
+  const [myLatestSalary, setMyLatestSalary] = useState(null);
+  const [payslipOpen, setPayslipOpen] = useState(false);
+  const [selectedPayslip, setSelectedPayslip] = useState(null);
+  const [myPayslips, setMyPayslips] = useState([]);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
       setUser(JSON.parse(userData));
+      fetchMySalary();
     }
     fetchAllData();
   }, []);
@@ -250,6 +255,17 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchMySalary = async () => {
+    try {
+      const res = await api.get("/salary/my");
+      if (res.data && res.data.length > 0) {
+        setMyPayslips(res.data);
+        setMyLatestSalary(res.data[0]);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const adminStats = [
     { title: "Total Employees", value: stats.totalEmployees, icon: <PeopleIcon />, color: "primary.main", bg: "action.hover" },
@@ -516,12 +532,30 @@ return (
         {/* Right column (30%) */}
         <Grid size={{ xs: 12, lg: 3.5 }}>
           <Stack spacing={3}>
+            {myLatestSalary && ["Generated", "Paid"].includes(myLatestSalary.status) && (
+              <PayslipCard
+                payslips={myPayslips}
+                onView={(slip) => {
+                  setSelectedPayslip({
+                    ...slip,
+                    name: user.name,
+                    role: user.role
+                  });
+                  setPayslipOpen(true);
+                }}
+              />
+            )}
             <QuickActions role="admin" />
             <AnnouncementCard announcements={announcements} loading={loading} />
             <HolidayCard holidays={holidays} loading={loading} />
           </Stack>
         </Grid>
       </Grid>
+      <PayslipModal
+        open={payslipOpen}
+        onClose={() => setPayslipOpen(false)}
+        data={selectedPayslip}
+      />
     </Box>
   );
 }

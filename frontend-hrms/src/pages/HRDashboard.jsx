@@ -14,6 +14,8 @@ import AnnouncementCard from "../components/dashboard/AnnouncementCard";
 import HolidayCard from "../components/dashboard/HolidayCard";
 import QuickActions from "../components/dashboard/QuickActions";
 import ProfileCard from "../components/dashboard/ProfileCard";
+import PayslipCard from "../components/dashboard/PayslipCard";
+import PayslipModal from "../components/PayslipModal";
 
 function StatCard({ title, value, icon, color, bg, loading }) {
   return (
@@ -62,7 +64,7 @@ export default function HRDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const [myLatestSalary, setMyLatestSalary] = useState(null);
   const [stats, setStats] = useState({
     totalEmployees: 0,
     presentToday: 0,
@@ -79,11 +81,16 @@ export default function HRDashboard() {
   const [employees, setEmployees] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [holidays, setHolidays] = useState([]);
+  const [payslipOpen, setPayslipOpen] = useState(false);
+  const [selectedPayslip, setSelectedPayslip] = useState(null);
+  const [myPayslips, setMyPayslips] = useState([]);
+
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
       setUser(JSON.parse(userData));
+      fetchMySalary();
     }
     fetchAllData();
   }, []);
@@ -245,6 +252,18 @@ export default function HRDashboard() {
       fetchWFH();
     } catch (error) {
       console.error("Error rejecting WFH:", error);
+    }
+  };
+
+  const fetchMySalary = async () => {
+    try {
+      const res = await api.get("/salary/my");
+      if (res.data && res.data.length > 0) {
+        setMyPayslips(res.data);
+        setMyLatestSalary(res.data[0]);
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -500,6 +519,19 @@ export default function HRDashboard() {
         {/* Right column (30%) */}
         <Grid size={{ xs: 12, lg: 3.5 }}>
           <Stack spacing={3}>
+            {myLatestSalary && ["Generated", "Paid"].includes(myLatestSalary.status) && (
+              <PayslipCard
+                payslips={myPayslips}
+                onView={(slip) => {
+                  setSelectedPayslip({
+                    ...slip,
+                    name: user.name,
+                    role: user.role
+                  });
+                  setPayslipOpen(true);
+                }}
+              />
+            )}
             <QuickActions role="hr" />
             {/* PayslipCard REMOVED */}
             <AnnouncementCard announcements={announcements} loading={loading} />
@@ -507,6 +539,11 @@ export default function HRDashboard() {
           </Stack>
         </Grid>
       </Grid>
+      <PayslipModal
+        open={payslipOpen}
+        onClose={() => setPayslipOpen(false)}
+        data={selectedPayslip}
+      />
     </Box>
   );
 }
