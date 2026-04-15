@@ -81,8 +81,8 @@ export const updateUser = async (req, res) => {
       }
 
       db.query(
-        "UPDATE employees SET name = ? WHERE user_id = ?",
-        [username, id],
+        "UPDATE employees SET name = ?, email = ? WHERE user_id = ?",
+        [username, email, id],
         (err2) => {
           if (err2) {
             console.error("EMPLOYEE ERROR:", err2); // 🔥 IMPORTANT
