@@ -106,9 +106,32 @@ export const updateEmployee = async (req, res) => {
 /* DELETE EMPLOYEE */
 export const deleteEmployee = async (req, res) => {
   const { id } = req.params;
+
   try {
-    await sequelize.query(`DELETE FROM employees WHERE id=:id`, { replacements: { id }, type: QueryTypes.DELETE });
-    res.json({ message: "Employee deleted successfully" });
+    // 1. Get user_id
+    const [result] = await sequelize.query(
+      "SELECT user_id FROM employees WHERE id = :id",
+      { replacements: { id } }
+    );
+
+    const userId = result[0]?.user_id;
+
+    // 2. Delete employee
+    await sequelize.query(
+      "DELETE FROM employees WHERE id = :id",
+      { replacements: { id }, type: QueryTypes.DELETE }
+    );
+
+    // 3. Delete user also
+    if (userId) {
+      await sequelize.query(
+        "DELETE FROM users WHERE id = :userId",
+        { replacements: { userId }, type: QueryTypes.DELETE }
+      );
+    }
+
+    res.json({ message: "Employee & User deleted successfully" });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Database error" });

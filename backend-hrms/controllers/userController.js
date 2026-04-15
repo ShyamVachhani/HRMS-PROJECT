@@ -99,21 +99,23 @@ export const updateUser = async (req, res) => {
 };
 
 export const deleteUser = (req, res) => {
-
   const id = req.params.id;
 
   db.query(
-    "DELETE FROM users WHERE id = ?",
+    "DELETE FROM employees WHERE user_id = ?",
     [id],
     (err) => {
-
       if (err) return res.status(500).json(err);
 
-      res.json({
-        message: "User deleted"
-      });
+      db.query(
+        "DELETE FROM users WHERE id = ?",
+        [id],
+        (err2) => {
+          if (err2) return res.status(500).json(err2);
 
+          res.json({ message: "User & Employee deleted" });
+        }
+      );
     }
   );
-
 };
