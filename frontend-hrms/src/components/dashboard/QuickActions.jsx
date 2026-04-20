@@ -14,11 +14,11 @@ const QuickActions = ({ role }) => {
   const actions = {
     admin: [
       { label: "Add Employee", icon: <PersonAddIcon />, path: "/employees", color: "primary" },
-      { label: "Generate Report", icon: <AssessmentIcon />, path: "/reports", color: "secondary" },
-      { label: "Manage Departments", icon: <BusinessIcon />, path: "/departments", color: "info" }
+      { label: "Generate Report", icon: <AssessmentIcon />, path: "/reports", color: "primary" },
+      { label: "Manage Departments", icon: <BusinessIcon />, path: "/departments", color: "primary" }
     ],
     hr: [
-      { label: "Manage Departments", icon: <BusinessIcon />, path: "/departments", color: "info" },
+      { label: "Manage Departments", icon: <BusinessIcon />, path: "/departments", color: "primary" },
       { label: "View Reports", icon: <AssessmentIcon />, path: "/reports", color: "success" }
     ],
     manager: [

@@ -14,7 +14,7 @@ const HolidayCard = ({ holidays = [], loading = false }) => {
       <CardContent>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <EventIcon sx={{ color: "success.main" }} />
+            <EventIcon sx={{ color: "primary.main" }} />
             <Typography variant="h6" fontWeight="bold" sx={{ color: "primary.main" }}>
               Upcoming Holidays
             </Typography>
